@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지킴이 일정 상세</title>
+    <title>지킴이 일정</title>
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
         h1 { color: #333; }
-        .calendar-container { display: flex; flex-direction: column; align-items: center; }
-        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 700px; margin: auto; }
-        .day { background: white; padding: 10px; border-radius: 5px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); min-height: 100px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .sunday { color: red; font-weight: bold; }
+        .calendar { 
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            gap: 5px; 
+            max-width: 700px; 
+            margin: auto;
+        }
+        .day, .weekday { 
+            background: white; 
+            padding: 10px; 
+            border-radius: 5px; 
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); 
+            min-height: 100px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+        }
+        .weekday { font-weight: bold; background: #ddd; }
+        .sunday { color: red; }
         .holiday { color: red; font-weight: bold; }
         .name-list { margin-top: 5px; font-size: 0.9em; text-align: center; }
-        .weekday-header { font-weight: bold; text-align: center; padding: 10px; background: #ddd; border-radius: 5px; }
-        input { width: 80%; padding: 5px; margin: 5px 0; }
+        input { width: 80%; padding: 5px; margin-top: 5px; }
         .color-picker { display: flex; justify-content: center; margin-bottom: 10px; }
-        .color-btn {
-            width: 30px; height: 30px; border-radius: 50%; border: none; margin: 0 5px;
-            cursor: pointer;
-        }
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: none; margin: 0 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -33,9 +44,7 @@
         <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
     </div>
 
-    <div class="calendar-container">
-        <div id="calendarContainer" class="calendar"></div>
-    </div>
+    <div id="calendarContainer" class="calendar"></div>
 
     <script>
         let selectedMonth = localStorage.getItem("selectedMonth");
@@ -68,21 +77,22 @@
 
             // 요일 헤더 추가
             const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
-            let headerRow = document.createElement("div");
-            headerRow.className = "calendar";
             weekdays.forEach((day, index) => {
                 let dayHeader = document.createElement("div");
-                dayHeader.className = "weekday-header";
+                dayHeader.className = "weekday";
                 if (index === 0) dayHeader.classList.add("sunday");
                 dayHeader.textContent = day;
-                headerRow.appendChild(dayHeader);
+                container.appendChild(dayHeader);
             });
-            container.appendChild(headerRow);
 
+            // 빈 칸 추가 (첫 요일 맞추기)
             for (let i = 0; i < firstDay; i++) {
-                container.innerHTML += `<div></div>`;
+                let emptyCell = document.createElement("div");
+                emptyCell.className = "day";
+                container.appendChild(emptyCell);
             }
 
+            // 날짜 채우기
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayDiv = document.createElement("div");
                 dayDiv.className = "day";
