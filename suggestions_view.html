@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>건의 사항 보기</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); }
+        .post-title { font-size: 1.2em; font-weight: bold; }
+        .post-info { color: gray; font-size: 0.9em; margin-bottom: 10px; }
+        .post-content { text-align: left; }
+        .delete-btn { background: red; color: white; padding: 5px; border: none; border-radius: 3px; cursor: pointer; }
+        .comment-section { margin-top: 20px; }
+        .comment { background: #fff; padding: 10px; margin: 5px 0; border-radius: 5px; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <h1>건의 사항 보기</h1>
+
+    <div class="container">
+        <div class="post-title" id="title"></div>
+        <div class="post-info">
+            <span id="author"></span> | <span id="date"></span>
+        </div>
+        <div class="post-content" id="content"></div>
+        <button class="delete-btn" onclick="deletePost()">삭제</button>
+    </div>
+
+    <div class="comment-section">
+        <h2>댓글</h2>
+        <input type="text" id="commentInput" placeholder="댓글 작성">
+        <button onclick="addComment()">댓글 추가</button>
+        <div id="commentList"></div>
+    </div>
+
+    <script>
+        let post = JSON.parse(localStorage.getItem("currentPost"));
+        let comments = JSON.parse(localStorage.getItem("comments_" + post.id)) || [];
+
+        document.getElementById("title").textContent = post.title;
+        document.getElementById("author").textContent = "글쓴이: " + post.nickname;
+        document.getElementById("date").textContent = post.date;
+        document.getElementById("content").textContent = post.text;
+
+        function deletePost() {
+            let posts = JSON.parse(localStorage.getItem("suggestions")) || [];
+            posts = posts.filter(p => p.title !== post.title);
+            localStorage.setItem("suggestions", JSON.stringify(posts));
+            localStorage.removeItem("currentPost");
+            window.location.href = "suggestions.html";
+        }
+
+        function addComment() {
+            let commentInput = document.getElementById("commentInput").value;
+            if (!commentInput.trim()) return;
+            comments.push(commentInput);
+            localStorage.setItem("comments_" + post.id, JSON.stringify(comments));
+            displayComments();
+            document.getElementById("commentInput").value = "";
+        }
+
+        function displayComments() {
+            let commentList = document.getElementById("commentList");
+            commentList.innerHTML = "";
+            comments.forEach(comment => {
+                commentList.innerHTML += `<div class="comment">${comment}</div>`;
+            });
+        }
+
+        displayComments();
+    </script>
+
+</body>
+</html>
