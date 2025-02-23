@@ -10,7 +10,9 @@
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 700px; margin: auto; }
         .day { background: white; padding: 10px; border-radius: 5px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); min-height: 80px; text-align: center; }
         .sunday { color: red; font-weight: bold; }
+        .holiday { color: red; font-weight: bold; }
         .name-list { margin-top: 5px; font-size: 0.9em; }
+        .weekday-header { font-weight: bold; text-align: center; padding: 10px; }
         input { width: 80%; padding: 5px; margin: 5px 0; }
         button { background: #8B5E3C; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: 5px; }
         .color-picker { display: flex; justify-content: center; margin-bottom: 10px; }
@@ -23,7 +25,7 @@
 <body>
 
     <h1 id="monthTitle"></h1>
-    
+
     <div class="color-picker">
         <button class="color-btn" style="background: black;" onclick="setColor('black')"></button>
         <button class="color-btn" style="background: red;" onclick="setColor('red')"></button>
@@ -31,7 +33,7 @@
         <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
     </div>
 
-    <div id="calendarContainer" class="calendar"></div>
+    <div id="calendarContainer"></div>
 
     <script>
         let selectedMonth = localStorage.getItem("selectedMonth");
@@ -43,6 +45,17 @@
             selectedColor = color;
         }
 
+        const holidays = {
+            "1-1": "신정",
+            "3-1": "삼일절",
+            "5-5": "어린이날",
+            "6-6": "현충일",
+            "8-15": "광복절",
+            "10-3": "개천절",
+            "10-9": "한글날",
+            "12-25": "성탄절"
+        };
+
         function createCalendar(year, month) {
             const container = document.getElementById("calendarContainer");
             container.innerHTML = "";
@@ -51,6 +64,19 @@
             const firstDay = new Date(year, month - 1, 1).getDay();
             let calendarData = JSON.parse(localStorage.getItem(`calendar_${year}_${month}`)) || {};
 
+            // 요일 헤더 추가
+            const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+            let headerRow = document.createElement("div");
+            headerRow.className = "calendar";
+            weekdays.forEach((day, index) => {
+                let dayHeader = document.createElement("div");
+                dayHeader.className = "weekday-header";
+                if (index === 0) dayHeader.classList.add("sunday");
+                dayHeader.textContent = day;
+                headerRow.appendChild(dayHeader);
+            });
+            container.appendChild(headerRow);
+
             for (let i = 0; i < firstDay; i++) {
                 container.innerHTML += `<div></div>`;
             }
@@ -58,7 +84,15 @@
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayDiv = document.createElement("div");
                 dayDiv.className = "day";
-                dayDiv.innerHTML = `<strong>${day}</strong>`;
+                const dateKey = `${month}-${day}`;
+
+                if (holidays[dateKey]) {
+                    dayDiv.innerHTML = `<strong class="holiday">${day}<br>${holidays[dateKey]}</strong>`;
+                } else if (new Date(year, month - 1, day).getDay() === 0) {
+                    dayDiv.innerHTML = `<strong class="sunday">${day}</strong>`;
+                } else {
+                    dayDiv.innerHTML = `<strong>${day}</strong>`;
+                }
 
                 const input = document.createElement("input");
                 input.placeholder = "이름 입력";
