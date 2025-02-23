@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>방명록</title>
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
+    nav { background: #8B5E3C; padding: 15px; text-align: center; }
+    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 1.1em; }
+    nav a:hover { text-decoration: underline; }
+    .container { max-width: 600px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+    h1 { text-align: center; }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+    button { width: 100%; padding: 10px; background: #8B5E3C; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #6E452A; }
+    .messages { margin-top: 20px; }
+    .message { padding: 10px; background: #FFF7E6; border-left: 5px solid #8B5E3C; margin-bottom: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">홈</a>
+    <a href="guestbook.html">방명록</a>
+    <a href="gallery.html">전시 이미지</a>
+    <a href="weather.html">날씨 정보</a>
+    <a href="places.html">박물관 근처 맛집</a>
+    <a href="events.html">전시 일정</a>
+    <a href="tips.html">꿀팁</a>
+    <a href="quiz.html">이벤트</a>
+    <a href="calendar.html">지킴이 일정</a>
+  </nav>
+  <div class="container">
+    <h1>방명록</h1>
+    <input type="text" id="name" placeholder="이름을 입력하세요">
+    <textarea id="message" placeholder="메시지를 입력하세요"></textarea>
+    <button onclick="addMessage()">등록</button>
+    <div class="messages" id="messages"></div>
+  </div>
+
+  <script>
+    function addMessage() {
+      let name = document.getElementById('name').value;
+      let message = document.getElementById('message').value;
+      if (!name || !message) {
+        alert('이름과 메시지를 입력해주세요!');
+        return;
+      }
+      let messagesDiv = document.getElementById('messages');
+      let newMessage = document.createElement('div');
+      newMessage.classList.add('message');
+      newMessage.innerHTML = `<strong>${name}:</strong> ${message}`;
+      messagesDiv.prepend(newMessage);
+      document.getElementById('name').value = '';
+      document.getElementById('message').value = '';
+    }
+  </script>
+</body>
+</html>
