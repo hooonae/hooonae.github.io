@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>서울공예박물관 안내</title>
+    <title>서울공예박물관 홈페이지</title>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
-        nav { background: #8B5E3C; padding: 15px; text-align: center; }
-        nav a { color: white; text-decoration: none; margin: 0 10px; font-weight: bold; font-size: 1em; }
-        nav a:hover { text-decoration: underline; }
-        .container { padding: 20px; text-align: center; }
-        .menu { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; text-align: center; }
+        h1 { padding: 20px; }
+        .menu { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
         .menu a {
             display: block;
             background: white;
@@ -19,32 +16,24 @@
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-decoration: none;
             color: #333;
-            width: 90%;
+            width: 80%;
             max-width: 300px;
             text-align: center;
             font-weight: bold;
         }
-        @media (min-width: 600px) {
-            .menu a { width: 45%; }
-        }
+        .menu a:hover { background: #eee; }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">홈</a>
-    </nav>
-    <div class="container">
-        <h1>서울공예박물관 안내</h1>
-        <p>박물관 관련 정보를 확인하세요.</p>
-        <div class="menu">
-            <a href="gallery.html">전시 이미지 업로드</a>
-            <a href="places.html">박물관 근처 맛집</a>
-            <a href="events.html">전시 일정</a>
-            <a href="calendar.html">지킴이 일정</a>
-            <a href="tips.html">꿀팁</a>
-            <a href="supplies.html">필요 비품</a>
-            <a href="suggestions.html">건의 사항</a>
-        </div>
+    <h1>서울공예박물관 안내</h1>
+    <div class="menu">
+        <a href="gallery.html">전시 이미지</a>
+        <a href="places.html">박물관 근처 맛집</a>
+        <a href="events.html">전시 일정</a>
+        <a href="calendar.html">지킴이 일정</a>
+        <a href="tips.html">꿀팁</a>
+        <a href="supplies.html">필요 비품</a>
+        <a href="suggestions.html">건의 사항</a>
     </div>
 </body>
 </html>
