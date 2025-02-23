@@ -3,26 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>달력</title>
+  <title>지킴이 일정</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-    nav { background: #5563DE; padding: 10px; text-align: center; }
-    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; }
-    nav a:hover { text-decoration: underline; }
-    .container { padding: 20px; }
+    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
+    .container { padding: 20px; text-align: center; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .calendar div { background: #E1D5C9; padding: 10px; border-radius: 5px; font-weight: bold; text-align: center; position: relative; min-height: 80px; }
+    .name-list { font-size: 14px; margin-top: 5px; }
   </style>
 </head>
 <body>
-  <nav>
-    <a href="index.html">홈</a>
-    <a href="schedule.html">주요일정</a>
-    <a href="calendar.html">달력</a>
-    <a href="board.html">자유게시판</a>
-    <a href="tip.html">안국 꿀팁</a>
-  </nav>
   <div class="container">
-    <h1>달력</h1>
-    <p>여기에 달력 기능이나 일정표를 구현할 수 있습니다.</p>
+    <h1>2025년 지킴이 일정</h1>
+    <div class="calendar">
+      <div onclick="addName(this)">1일<div class="name-list"></div></div>
+      <div onclick="addName(this)">2일<div class="name-list"></div></div>
+      <div onclick="addName(this)">3일<div class="name-list"></div></div>
+      <div onclick="addName(this)">4일<div class="name-list"></div></div>
+      <div onclick="addName(this)">5일<div class="name-list"></div></div>
+      <div onclick="addName(this)">6일<div class="name-list"></div></div>
+      <div onclick="addName(this)">7일<div class="name-list"></div></div>
+      <div onclick="addName(this)">8일<div class="name-list"></div></div>
+      <div onclick="addName(this)">9일<div class="name-list"></div></div>
+      <div onclick="addName(this)">10일<div class="name-list"></div></div>
+      <div onclick="addName(this)">11일<div class="name-list"></div></div>
+      <div onclick="addName(this)">12일<div class="name-list"></div></div>
+      <div onclick="addName(this)">13일<div class="name-list"></div></div>
+      <div onclick="addName(this)">14일<div class="name-list"></div></div>
+      <div onclick="addName(this)">15일<div class="name-list"></div></div>
+      <div onclick="addName(this)">16일<div class="name-list"></div></div>
+      <div onclick="addName(this)">17일<div class="name-list"></div></div>
+      <div onclick="addName(this)">18일<div class="name-list"></div></div>
+      <div onclick="addName(this)">19일<div class="name-list"></div></div>
+      <div onclick="addName(this)">20일<div class="name-list"></div></div>
+      <div onclick="addName(this)">21일<div class="name-list"></div></div>
+      <div onclick="addName(this)">22일<div class="name-list"></div></div>
+      <div onclick="addName(this)">23일<div class="name-list"></div></div>
+      <div onclick="addName(this)">24일<div class="name-list"></div></div>
+      <div onclick="addName(this)">25일<div class="name-list"></div></div>
+      <div onclick="addName(this)">26일<div class="name-list"></div></div>
+      <div onclick="addName(this)">27일<div class="name-list"></div></div>
+      <div onclick="addName(this)">28일<div class="name-list"></div></div>
+      <div onclick="addName(this)">29일<div class="name-list"></div></div>
+      <div onclick="addName(this)">30일<div class="name-list"></div></div>
+      <div onclick="addName(this)">31일<div class="name-list"></div></div>
+    </div>
   </div>
+
+  <script>
+    function addName(dayDiv) {
+      let name = prompt("이름을 입력하세요:");
+      let color = prompt("이름 색상을 입력하세요 (red, blue, green, black 중 선택):");
+      if (!name || !["red", "blue", "green", "black"].includes(color)) {
+        alert("올바른 이름과 색상을 입력해주세요!");
+        return;
+      }
+      let nameList = dayDiv.querySelector(".name-list");
+      if (nameList.children.length >= 6) {
+        alert("최대 6명까지만 추가 가능합니다.");
+        return;
+      }
+      let nameItem = document.createElement("span");
+      nameItem.style.color = color;
+      nameItem.textContent = name + " ";
+      nameList.appendChild(nameItem);
+    }
+  </script>
 </body>
 </html>
