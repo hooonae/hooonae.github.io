@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>나의 홈페이지</title>
   <style>
-    /* 기본 리셋 */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    /* 전체 페이지 스타일 */
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #74ABE2, #5563DE);
@@ -24,24 +22,20 @@
       text-align: center;
       padding: 20px;
     }
-    /* 콘텐츠 박스 */
     .container {
       background: rgba(0, 0, 0, 0.3);
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-    /* 제목 스타일 */
     h1 {
       font-size: 3rem;
       margin-bottom: 20px;
     }
-    /* 문단 스타일 */
     p {
       font-size: 1.2rem;
       margin-bottom: 30px;
     }
-    /* 버튼 스타일 */
     .btn {
       background-color: #fff;
       color: #5563DE;
@@ -56,13 +50,40 @@
     .btn:hover {
       background-color: #f0f0f0;
     }
+    /* 이미지 컨테이너는 처음에 숨김 처리 */
+    #museum-image {
+      margin-top: 20px;
+      display: none;
+    }
+    #museum-image img {
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>안녕하세요!</h1>
     <p>GitHub Pages로 만든 첫 홈페이지입니다.</p>
-    <a href="#" class="btn">더 알아보기</a>
+    <!-- 더 알아보기 버튼 -->
+    <button class="btn" id="learnMoreBtn">더 알아보기</button>
+    <!-- 소울공예박물관 이미지가 들어갈 영역 -->
+    <div id="museum-image">
+      <img src="https://example.com/soul-crafts-museum.jpg" alt="소울공예박물관 이미지">
+    </div>
   </div>
+
+  <script>
+    // 버튼 클릭 시 이미지 영역을 보이도록 처리
+    const learnMoreBtn = document.getElementById('learnMoreBtn');
+    const museumImageDiv = document.getElementById('museum-image');
+
+    learnMoreBtn.addEventListener('click', function() {
+      museumImageDiv.style.display = 'block';
+      // 버튼은 클릭 후 감추고 싶다면 아래 주석 해제
+      // learnMoreBtn.style.display = 'none';
+    });
+  </script>
 </body>
 </html>
