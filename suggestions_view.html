@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>건의 사항 보기</title>
+    <title>건의 사항 상세 보기</title>
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
         h1 { color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
         .post-title { font-size: 1.2em; font-weight: bold; }
         .post-info { color: gray; font-size: 0.9em; margin-bottom: 10px; }
         .post-content { text-align: left; }
+        .post-img { width: 100%; max-height: 200px; border-radius: 5px; object-fit: cover; margin-top: 10px; }
         .delete-btn { background: red; color: white; padding: 5px; border: none; border-radius: 3px; cursor: pointer; }
         .comment-section { margin-top: 20px; }
         .comment { background: #fff; padding: 10px; margin: 5px 0; border-radius: 5px; text-align: left; }
@@ -18,19 +26,21 @@
 </head>
 <body>
 
-    <h1>건의 사항 보기</h1>
+    <h1>건의 사항 상세 보기</h1>
 
     <div class="container">
         <div class="post-title" id="title"></div>
         <div class="post-info">
             <span id="author"></span> | <span id="date"></span>
         </div>
+        <img id="image" class="post-img">
         <div class="post-content" id="content"></div>
         <button class="delete-btn" onclick="deletePost()">삭제</button>
     </div>
 
     <div class="comment-section">
         <h2>댓글</h2>
+        <input type="text" id="commentNickname" placeholder="닉네임">
         <input type="text" id="commentInput" placeholder="댓글 작성">
         <button onclick="addComment()">댓글 추가</button>
         <div id="commentList"></div>
@@ -41,9 +51,10 @@
         let comments = JSON.parse(localStorage.getItem("comments_" + post.id)) || [];
 
         document.getElementById("title").textContent = post.title;
-        document.getElementById("author").textContent = "글쓴이: " + post.nickname;
+        document.getElementById("author").textContent = "작성자: " + post.nickname;
         document.getElementById("date").textContent = post.date;
         document.getElementById("content").textContent = post.text;
+        document.getElementById("image").src = post.image;
 
         function deletePost() {
             let posts = JSON.parse(localStorage.getItem("suggestions")) || [];
@@ -54,20 +65,36 @@
         }
 
         function addComment() {
-            let commentInput = document.getElementById("commentInput").value;
-            if (!commentInput.trim()) return;
-            comments.push(commentInput);
+            let commentNickname = document.getElementById("commentNickname").value.trim();
+            let commentInput = document.getElementById("commentInput").value.trim();
+            if (!commentNickname || !commentInput) {
+                alert("닉네임과 댓글을 입력하세요.");
+                return;
+            }
+            comments.push({ nickname: commentNickname, text: commentInput });
             localStorage.setItem("comments_" + post.id, JSON.stringify(comments));
             displayComments();
+            document.getElementById("commentNickname").value = "";
             document.getElementById("commentInput").value = "";
         }
 
         function displayComments() {
             let commentList = document.getElementById("commentList");
             commentList.innerHTML = "";
-            comments.forEach(comment => {
-                commentList.innerHTML += `<div class="comment">${comment}</div>`;
+            comments.forEach((comment, index) => {
+                commentList.innerHTML += `
+                    <div class="comment">
+                        <strong>${comment.nickname}</strong>: ${comment.text}
+                        <button onclick="deleteComment(${index})" style="margin-left:10px; background:red; color:white; border:none; cursor:pointer;">삭제</button>
+                    </div>
+                `;
             });
+        }
+
+        function deleteComment(index) {
+            comments.splice(index, 1);
+            localStorage.setItem("comments_" + post.id, JSON.stringify(comments));
+            displayComments();
         }
 
         displayComments();
