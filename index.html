@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -50,7 +50,7 @@
     .btn:hover {
       background-color: #f0f0f0;
     }
-    /* 이미지 컨테이너는 처음에 숨김 처리 */
+    /* 이미지 컨테이너 (처음엔 숨김) */
     #museum-image {
       margin-top: 20px;
       display: none;
@@ -59,18 +59,21 @@
       max-width: 100%;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>안녕하세요!</h1>
-    <p>홈페이지를 만들었어요</p>
+    <p>GitHub Pages로 만든 첫 홈페이지입니다.</p>
     <!-- 더 알아보기 버튼 -->
     <button class="btn" id="learnMoreBtn">더 알아보기</button>
-    <!-- 소울공예박물관 이미지가 들어갈 영역 -->
+    <!-- 소울공예박물관 이미지 (이미지를 클릭하면 board.html로 이동) -->
     <div id="museum-image">
-      <img src="https://i.ytimg.com/vi/h-1kqHKch14/maxresdefault.jpg" alt="소울공예박물관 이미지">
+      <a href="board.html">
+        <img src="https://example.com/soul-crafts-museum.jpg" alt="소울공예박물관 이미지">
+      </a>
     </div>
   </div>
 
@@ -81,7 +84,7 @@
 
     learnMoreBtn.addEventListener('click', function() {
       museumImageDiv.style.display = 'block';
-      // 버튼은 클릭 후 감추고 싶다면 아래 주석 해제
+      // 버튼을 숨기려면 아래 주석을 해제하세요.
       // learnMoreBtn.style.display = 'none';
     });
   </script>
