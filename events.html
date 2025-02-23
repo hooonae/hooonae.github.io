@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전시 일정</title>
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
+    nav { background: #8B5E3C; padding: 15px; text-align: center; }
+    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 1.1em; }
+    nav a:hover { text-decoration: underline; }
+    .container { max-width: 800px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center; }
+    .event { background: #FFF7E6; padding: 15px; border-radius: 5px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+    button { width: 100%; padding: 10px; background: #8B5E3C; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #6E452A; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">홈</a>
+    <a href="guestbook.html">방명록</a>
+    <a href="gallery.html">전시 이미지</a>
+    <a href="weather.html">날씨 정보</a>
+    <a href="places.html">박물관 근처 맛집</a>
+    <a href="events.html">전시 일정</a>
+    <a href="tips.html">꿀팁</a>
+    <a href="quiz.html">이벤트</a>
+    <a href="calendar.html">지킴이 일정</a>
+  </nav>
+  <div class="container">
+    <h1>전시 일정</h1>
+    <input type="text" id="eventName" placeholder="전시 이름을 입력하세요">
+    <input type="date" id="eventDate">
+    <textarea id="eventDescription" placeholder="전시 설명을 입력하세요"></textarea>
+    <button onclick="addEvent()">전시 추가</button>
+    <div id="eventsList"></div>
+  </div>
+
+  <script>
+    function addEvent() {
+      let name = document.getElementById('eventName').value;
+      let date = document.getElementById('eventDate').value;
+      let description = document.getElementById('eventDescription').value;
+      if (!name || !date || !description) {
+        alert('모든 정보를 입력해주세요!');
+        return;
+      }
+      let eventsList = document.getElementById('eventsList');
+      let eventDiv = document.createElement('div');
+      eventDiv.classList.add('event');
+      eventDiv.innerHTML = `
+        <h3>${name}</h3>
+        <p><strong>날짜:</strong> ${date}</p>
+        <p><strong>설명:</strong> ${description}</p>
+        <button onclick="deleteEvent(this)">삭제</button>
+      `;
+      eventsList.prepend(eventDiv);
+      document.getElementById('eventName').value = '';
+      document.getElementById('eventDate').value = '';
+      document.getElementById('eventDescription').value = '';
+    }
+
+    function deleteEvent(button) {
+      button.parentElement.remove();
+    }
+  </script>
+</body>
+</html>
