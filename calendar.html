@@ -4,68 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>지킴이 일정</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .month-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .month-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            width: 80%;
+            max-width: 200px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .month-item:hover { background: #eee; }
+    </style>
 </head>
 <body>
+
     <h1>지킴이 일정</h1>
-    <div id="calendarContainer"></div>
+
+    <div class="month-list">
+        <script>
+            for (let month = 1; month <= 12; month++) {
+                document.write(`<div class="month-item" onclick="viewMonth(${month})">${month}월</div>`);
+            }
+        </script>
+    </div>
 
     <script>
-        function createCalendar(year) {
-            const container = document.getElementById("calendarContainer");
-            container.innerHTML = "";
-
-            for (let month = 1; month <= 12; month++) {
-                const monthDiv = document.createElement("div");
-                monthDiv.innerHTML = `<h2>${month}월</h2>`;
-                
-                const calendarGrid = document.createElement("div");
-                calendarGrid.className = "calendar";
-
-                const daysInMonth = new Date(year, month, 0).getDate();
-                const firstDay = new Date(year, month - 1, 1).getDay();
-
-                for (let i = 0; i < firstDay; i++) {
-                    calendarGrid.innerHTML += `<div></div>`;
-                }
-
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const dayDiv = document.createElement("div");
-                    dayDiv.className = "day";
-                    dayDiv.innerHTML = `<strong>${day}</strong>`;
-
-                    const input = document.createElement("input");
-                    input.placeholder = "이름 입력";
-                    input.type = "text";
-                    input.onkeypress = function (e) {
-                        if (e.key === "Enter") {
-                            addName(dayDiv, input.value);
-                            input.value = "";
-                        }
-                    };
-
-                    const nameList = document.createElement("div");
-                    nameList.className = "name-list";
-
-                    dayDiv.appendChild(input);
-                    dayDiv.appendChild(nameList);
-                    calendarGrid.appendChild(dayDiv);
-                }
-
-                monthDiv.appendChild(calendarGrid);
-                container.appendChild(monthDiv);
-            }
+        function viewMonth(month) {
+            localStorage.setItem("selectedMonth", month);
+            window.location.href = "calendar_view.html";
         }
-
-        function addName(dayDiv, name) {
-            if (!name.trim()) return;
-            const nameSpan = document.createElement("span");
-            nameSpan.textContent = name;
-            nameSpan.style.display = "block";
-            dayDiv.querySelector(".name-list").appendChild(nameSpan);
-        }
-
-        createCalendar(2025);
     </script>
+
 </body>
 </html>
