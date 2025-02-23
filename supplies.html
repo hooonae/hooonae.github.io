@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>필요 비품</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>필요 비품</h1>
+    <input type="text" id="itemName" placeholder="비품 이름">
+    <button onclick="addItem()">추가</button>
+    
+    <div id="postList"></div>
+
+    <script>
+        let posts = JSON.parse(localStorage.getItem("suppliesPosts")) || [];
+
+        function displayPosts() {
+            const postList = document.getElementById("postList");
+            postList.innerHTML = "";
+            posts.forEach((post, index) => {
+                postList.innerHTML += `
+                    <div class="post">
+                        <div class="post-info">
+                            <div class="post-title">${post.name}</div>
+                            <button onclick="deleteItem(${index})">삭제</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addItem() {
+            const itemName = document.getElementById("itemName").value;
+            if (itemName) {
+                posts.unshift({ name: itemName });
+                localStorage.setItem("suppliesPosts", JSON.stringify(posts));
+                displayPosts();
+                document.getElementById("itemName").value = "";
+            }
+        }
+
+        function deleteItem(index) {
+            posts.splice(index, 1);
+            localStorage.setItem("suppliesPosts", JSON.stringify(posts));
+            displayPosts();
+        }
+
+        displayPosts();
+    </script>
+</body>
+</html>
