@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자유게시판</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f2f2f2;
+    }
+    h1 {
+      text-align: center;
+    }
+    .post-form, .comment-form {
+      margin-bottom: 20px;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #5563DE;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .post {
+      background-color: white;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .comments {
+      margin-top: 10px;
+      margin-left: 20px;
+    }
+    .comment {
+      background-color: #f9f9f9;
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>자유게시판</h1>
+  
+  <div class="post-form">
+    <h2>새 글 작성</h2>
+    <input type="text" id="postTitle" placeholder="제목을 입력하세요">
+    <textarea id="postContent" placeholder="내용을 입력하세요"></textarea>
+    <button onclick="addPost()">글 작성</button>
+  </div>
+  
+  <div id="posts">
+    <!-- 작성된 글이 여기에 표시됩니다 -->
+  </div>
+
+  <script>
+    // 로컬 저장소에서 글 목록을 불러오거나 초기화
+    let posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+    function displayPosts() {
+      const postsDiv = document.getElementById('posts');
+      postsDiv.innerHTML = '';
+      posts.forEach((post, index) => {
+        const postDiv = document.createElement('div');
+        postDiv.className = 'post';
+        postDiv.innerHTML = `
+          <h3>${post.title}</h3>
+          <p>${post.content}</p>
+          <div>
+            <input type="text" id="commentInput${index}" placeholder="댓글 입력">
+            <button onclick="addComment(${index})">댓글 달기</button>
+          </div>
+          <div class="comments" id="comments${index}">
+            ${post.comments.map(comment => `<div class="comment">${comment}</div>`).join('')}
+          </div>
+        `;
+        postsDiv.appendChild(postDiv);
+      });
+    }
+
+    function addPost() {
+      const title = document.getElementById('postTitle').value;
+      const content = document.getElementById('postContent').value;
+      if (title && content) {
+        posts.push({ title, content, comments: [] });
+        localStorage.setItem('posts', JSON.stringify(posts));
+        displayPosts();
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postContent').value = '';
+      } else {
+        alert("제목과 내용을 모두 입력해주세요.");
+      }
+    }
+
+    function addComment(postIndex) {
+      const commentInput = document.getElementById('commentInput' + postIndex);
+      const comment = commentInput.value;
+      if (comment) {
+        posts[postIndex].comments.push(comment);
+        localStorage.setItem('posts', JSON.stringify(posts));
+        displayPosts();
+      } else {
+        alert("댓글 내용을 입력해주세요.");
+      }
+    }
+
+    // 페이지 로드 시 기존 글을 표시합니다.
+    displayPosts();
+  </script>
+</body>
+</html>
