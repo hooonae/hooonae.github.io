@@ -17,9 +17,9 @@
 
     <script>
         function submitPost() {
-            let nickname = document.getElementById("nickname").value;
-            let title = document.getElementById("title").value;
-            let content = document.getElementById("content").value;
+            let nickname = document.getElementById("nickname").value.trim();
+            let title = document.getElementById("title").value.trim();
+            let content = document.getElementById("content").value.trim();
             let date = new Date().toLocaleDateString();
             let imageInput = document.getElementById("imageInput").files[0];
 
@@ -28,18 +28,22 @@
                 return;
             }
 
-            let reader = new FileReader();
-            reader.onload = function (e) {
-                savePost(nickname, title, content, e.target.result, date);
-            };
-            reader.readAsDataURL(imageInput);
+            if (imageInput) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    savePost(nickname, title, content, e.target.result, date);
+                };
+                reader.readAsDataURL(imageInput);
+            } else {
+                savePost(nickname, title, content, "", date);
+            }
         }
 
         function savePost(nickname, title, content, image, date) {
             let posts = JSON.parse(localStorage.getItem("places")) || [];
             posts.unshift({ id: Date.now(), nickname, title, text: content, image, date });
             localStorage.setItem("places", JSON.stringify(posts));
-            window.location.href = "places.html";
+            window.location.href = "places.html"; // 맛집 목록으로 이동
         }
     </script>
 
