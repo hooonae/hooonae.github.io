@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>건의 사항 작성</title>
+</head>
+<body>
+
+    <h1>건의 사항 작성</h1>
+
+    <input type="text" id="nickname" placeholder="닉네임">
+    <input type="text" id="title" placeholder="제목">
+    <textarea id="content" placeholder="건의 내용을 입력하세요"></textarea>
+    <button onclick="submitPost()">등록</button>
+
+    <script>
+        function submitPost() {
+            let nickname = document.getElementById("nickname").value;
+            let title = document.getElementById("title").value;
+            let content = document.getElementById("content").value;
+            let date = new Date().toLocaleDateString();
+
+            let posts = JSON.parse(localStorage.getItem("suggestions")) || [];
+            posts.unshift({ id: Date.now(), nickname, title, text: content, date });
+            localStorage.setItem("suggestions", JSON.stringify(posts));
+            window.location.href = "suggestions.html";
+        }
+    </script>
+
+</body>
+</html>
