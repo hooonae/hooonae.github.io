@@ -4,24 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전시 일정 추가</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .date-inputs {
+            display: flex;
+            flex-direction: column;
+        }
+        label { font-weight: bold; margin-top: 10px; display: block; }
+        @media (min-width: 600px) {
+            .date-inputs { flex-direction: row; justify-content: space-between; }
+            .date-inputs input { width: 48%; }
+        }
+    </style>
 </head>
 <body>
 
     <h1>전시 일정 추가</h1>
 
-    <input type="text" id="nickname" placeholder="작성자">
-    <input type="text" id="title" placeholder="전시 제목">
-    <textarea id="content" placeholder="전시 설명"></textarea>
-    <label>시작 날짜: <input type="date" id="startDate"></label>
-    <label>종료 날짜: <input type="date" id="endDate"></label>
-    <input type="file" id="imageInput" accept="image/*">
-    <button onclick="submitPost()">등록</button>
+    <div class="container">
+        <label>작성자</label>
+        <input type="text" id="nickname" placeholder="작성자">
+
+        <label>전시 제목</label>
+        <input type="text" id="title" placeholder="전시 제목">
+
+        <label>전시 설명</label>
+        <textarea id="content" placeholder="전시 설명을 입력하세요"></textarea>
+
+        <div class="date-inputs">
+            <div>
+                <label>시작 날짜</label>
+                <input type="date" id="startDate">
+            </div>
+            <div>
+                <label>종료 날짜</label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+
+        <label>전시 이미지</label>
+        <input type="file" id="imageInput" accept="image/*">
+
+        <button onclick="submitPost()">등록</button>
+    </div>
 
     <script>
         function submitPost() {
-            let nickname = document.getElementById("nickname").value;
-            let title = document.getElementById("title").value;
-            let content = document.getElementById("content").value;
+            let nickname = document.getElementById("nickname").value.trim();
+            let title = document.getElementById("title").value.trim();
+            let content = document.getElementById("content").value.trim();
             let startDate = document.getElementById("startDate").value;
             let endDate = document.getElementById("endDate").value;
             let imageInput = document.getElementById("imageInput").files[0];
@@ -31,18 +80,22 @@
                 return;
             }
 
-            let reader = new FileReader();
-            reader.onload = function (e) {
-                savePost(nickname, title, content, startDate, endDate, e.target.result);
-            };
-            reader.readAsDataURL(imageInput);
+            if (imageInput) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    savePost(nickname, title, content, startDate, endDate, e.target.result);
+                };
+                reader.readAsDataURL(imageInput);
+            } else {
+                savePost(nickname, title, content, startDate, endDate, "");
+            }
         }
 
         function savePost(nickname, title, content, startDate, endDate, image) {
             let posts = JSON.parse(localStorage.getItem("events")) || [];
             posts.unshift({ id: Date.now(), nickname, title, text: content, startDate, endDate, image });
             localStorage.setItem("events", JSON.stringify(posts));
-            window.location.href = "events.html";
+            window.location.href = "events.html"; // 전시 일정 목록으로 이동
         }
     </script>
 
