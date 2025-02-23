@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전시 이미지 추가</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>전시 이미지 추가</h1>
+
+    <div class="container">
+        <input type="text" id="nickname" placeholder="작성자 이름">
+        <input type="text" id="title" placeholder="제목">
+        <textarea id="content" placeholder="전시 설명"></textarea>
+        <input type="file" id="imageInput" accept="image/*">
+        <button onclick="submitPost()">등록</button>
+    </div>
+
+    <script>
+        function submitPost() {
+            const nickname = document.getElementById("nickname").value.trim();
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const imageInput = document.getElementById("imageInput").files[0];
+            const date = new Date().toLocaleDateString();
+
+            if (!nickname || !title || !content) {
+                alert("모든 필드를 입력하세요.");
+                return;
+            }
+
+            if (imageInput) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    savePost(nickname, title, content, e.target.result, date);
+                };
+                reader.readAsDataURL(imageInput);
+            } else {
+                savePost(nickname, title, content, "", date);
+            }
+        }
+
+        function savePost(nickname, title, content, image, date) {
+            let posts = JSON.parse(localStorage.getItem("gallery")) || [];
+            posts.unshift({ id: Date.now(), nickname, title, text: content, image, date });
+            localStorage.setItem("gallery", JSON.stringify(posts));
+            window.location.href = "gallery.html";
+        }
+    </script>
+
+</body>
+</html>
