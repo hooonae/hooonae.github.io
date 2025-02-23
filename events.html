@@ -4,32 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전시 일정</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .post-list { list-style: none; padding: 0; }
+        .post-item {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: left;
+            cursor: pointer;
+        }
+        .post-item:hover { background: #f0f0f0; }
+        .post-title { font-weight: bold; }
+        .post-date { color: gray; font-size: 0.8em; }
+    </style>
 </head>
 <body>
+
     <h1>전시 일정</h1>
-    <div id="postList"></div>
+
+    <ul id="postList" class="post-list"></ul>
+    <button onclick="location.href='events_form.html'">전시 일정 추가</button>
 
     <script>
-        let posts = JSON.parse(localStorage.getItem("eventsPosts")) || [];
+        let posts = JSON.parse(localStorage.getItem("events")) || [];
 
         function displayPosts() {
             const postList = document.getElementById("postList");
             postList.innerHTML = "";
-            posts.forEach(post => {
+            posts.forEach((post, index) => {
                 postList.innerHTML += `
-                    <div class="post">
-                        <img src="${post.image}" alt="전시 이미지">
-                        <div class="post-info">
-                            <div class="post-title">${post.title}</div>
-                            <div class="post-date">${post.date}</div>
-                        </div>
-                    </div>
+                    <li class="post-item" onclick="viewPost(${index})">
+                        <div class="post-title">${post.title}</div>
+                        <div class="post-date">${post.startDate} ~ ${post.endDate}</div>
+                    </li>
                 `;
             });
         }
 
+        function viewPost(index) {
+            localStorage.setItem("currentPost", JSON.stringify(posts[index]));
+            window.location.href = "events_view.html";
+        }
+
         displayPosts();
     </script>
+
 </body>
 </html>
