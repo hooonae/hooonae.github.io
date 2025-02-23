@@ -4,50 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>필요 비품</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .post-list { list-style: none; padding: 0; }
+        .post-item {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: left;
+            cursor: pointer;
+        }
+        .post-item:hover { background: #f0f0f0; }
+        .post-title { font-weight: bold; }
+        .post-date { color: gray; font-size: 0.8em; }
+    </style>
 </head>
 <body>
+
     <h1>필요 비품</h1>
-    <input type="text" id="itemName" placeholder="비품 이름">
-    <button onclick="addItem()">추가</button>
-    
-    <div id="postList"></div>
+
+    <ul id="postList" class="post-list"></ul>
+    <button onclick="location.href='supplies_form.html'">비품 추가</button>
 
     <script>
-        let posts = JSON.parse(localStorage.getItem("suppliesPosts")) || [];
+        let posts = JSON.parse(localStorage.getItem("supplies")) || [];
 
         function displayPosts() {
             const postList = document.getElementById("postList");
             postList.innerHTML = "";
             posts.forEach((post, index) => {
                 postList.innerHTML += `
-                    <div class="post">
-                        <div class="post-info">
-                            <div class="post-title">${post.name}</div>
-                            <button onclick="deleteItem(${index})">삭제</button>
-                        </div>
-                    </div>
+                    <li class="post-item" onclick="viewPost(${index})">
+                        <div class="post-title">${post.title}</div>
+                        <div class="post-date">${post.date}</div>
+                    </li>
                 `;
             });
         }
 
-        function addItem() {
-            const itemName = document.getElementById("itemName").value;
-            if (itemName) {
-                posts.unshift({ name: itemName });
-                localStorage.setItem("suppliesPosts", JSON.stringify(posts));
-                displayPosts();
-                document.getElementById("itemName").value = "";
-            }
-        }
-
-        function deleteItem(index) {
-            posts.splice(index, 1);
-            localStorage.setItem("suppliesPosts", JSON.stringify(posts));
-            displayPosts();
+        function viewPost(index) {
+            localStorage.setItem("currentPost", JSON.stringify(posts[index]));
+            window.location.href = "supplies_view.html";
         }
 
         displayPosts();
     </script>
+
 </body>
 </html>
