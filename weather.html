@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>날씨 정보</title>
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
+    nav { background: #8B5E3C; padding: 15px; text-align: center; }
+    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 1.1em; }
+    nav a:hover { text-decoration: underline; }
+    .container { max-width: 800px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center; }
+    h1 { text-align: center; }
+    .weather-info { margin-top: 20px; }
+    .week-forecast { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px; }
+    .day { background: #FFF7E6; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; }
+    .temperature { font-size: 1.2em; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">홈</a>
+    <a href="guestbook.html">방명록</a>
+    <a href="gallery.html">전시 이미지</a>
+    <a href="weather.html">날씨 정보</a>
+    <a href="places.html">박물관 근처 맛집</a>
+    <a href="events.html">전시 일정</a>
+    <a href="tips.html">꿀팁</a>
+    <a href="quiz.html">이벤트</a>
+    <a href="calendar.html">지킴이 일정</a>
+  </nav>
+  <div class="container">
+    <h1>이번 주 날씨</h1>
+    <div class="weather-info">
+      <p><strong>현재 온도:</strong> <span id="current-temp">-</span>°C</p>
+      <p><strong>날씨:</strong> <span id="current-condition">-</span></p>
+    </div>
+    <h2>주간 예보</h2>
+    <div class="week-forecast" id="week-forecast">
+      <!-- 주간 날씨가 표시될 곳 -->
+    </div>
+  </div>
+
+  <script>
+    async function fetchWeather() {
+      try {
+        let response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.57&longitude=126.98&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Asia/Seoul');
+        let data = await response.json();
+        
+        // 현재 온도 설정
+        document.getElementById('current-temp').textContent = data.daily.temperature_2m_max[0];
+        document.getElementById('current-condition').textContent = "맑음"; // 예제, API 해석 필요
+        
+        // 주간 예보 설정
+        let weekForecastDiv = document.getElementById('week-forecast');
+        weekForecastDiv.innerHTML = '';
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        let today = new Date().getDay();
+        
+        for (let i = 0; i < 7; i++) {
+          let dayIndex = (today + i) % 7;
+          let maxTemp = data.daily.temperature_2m_max[i];
+          let minTemp = data.daily.temperature_2m_min[i];
+          let forecastDiv = document.createElement('div');
+          forecastDiv.classList.add('day');
+          forecastDiv.innerHTML = `
+            ${days[dayIndex]}<br>
+            <span class="temperature">${minTemp}°C ~ ${maxTemp}°C</span>
+          `;
+          weekForecastDiv.appendChild(forecastDiv);
+        }
+      } catch (error) {
+        console.error("날씨 정보를 가져오는 중 오류 발생: ", error);
+      }
+    }
+    
+    fetchWeather();
+  </script>
+</body>
+</html>
