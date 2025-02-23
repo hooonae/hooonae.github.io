@@ -1,71 +1,35 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>박물관 근처 맛집</title>
-  <style>
-    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
-    nav { background: #8B5E3C; padding: 15px; text-align: center; }
-    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 1.1em; }
-    nav a:hover { text-decoration: underline; }
-    .container { max-width: 800px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center; }
-    .place { background: #FFF7E6; padding: 15px; border-radius: 5px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-    .rating { font-size: 1.2em; color: #FFD700; }
-    .comment-box { margin-top: 10px; }
-    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-    button { width: 100%; padding: 10px; background: #8B5E3C; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #6E452A; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>박물관 근처 맛집</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a href="index.html">홈</a>
-    <a href="guestbook.html">방명록</a>
-    <a href="gallery.html">전시 이미지</a>
-    <a href="weather.html">날씨 정보</a>
-    <a href="places.html">박물관 근처 맛집</a>
-    <a href="events.html">전시 일정</a>
-    <a href="tips.html">꿀팁</a>
-    <a href="quiz.html">이벤트</a>
-    <a href="calendar.html">지킴이 일정</a>
-  </nav>
-  <div class="container">
     <h1>박물관 근처 맛집</h1>
-    <input type="text" id="placeName" placeholder="맛집 이름을 입력하세요">
-    <input type="text" id="placeLocation" placeholder="위치를 입력하세요">
-    <textarea id="placeReview" placeholder="리뷰를 입력하세요"></textarea>
-    <button onclick="addPlace()">맛집 추가</button>
-    <div id="placesList"></div>
-  </div>
+    <div id="postList"></div>
 
-  <script>
-    function addPlace() {
-      let name = document.getElementById('placeName').value;
-      let location = document.getElementById('placeLocation').value;
-      let review = document.getElementById('placeReview').value;
-      if (!name || !location || !review) {
-        alert('모든 정보를 입력해주세요!');
-        return;
-      }
-      let placesList = document.getElementById('placesList');
-      let placeDiv = document.createElement('div');
-      placeDiv.classList.add('place');
-      placeDiv.innerHTML = `
-        <h3>${name}</h3>
-        <p><strong>위치:</strong> ${location}</p>
-        <p><strong>리뷰:</strong> ${review}</p>
-        <button onclick="deletePlace(this)">삭제</button>
-      `;
-      placesList.prepend(placeDiv);
-      document.getElementById('placeName').value = '';
-      document.getElementById('placeLocation').value = '';
-      document.getElementById('placeReview').value = '';
-    }
+    <script>
+        let posts = JSON.parse(localStorage.getItem("placesPosts")) || [];
 
-    function deletePlace(button) {
-      button.parentElement.remove();
-    }
-  </script>
+        function displayPosts() {
+            const postList = document.getElementById("postList");
+            postList.innerHTML = "";
+            posts.forEach(post => {
+                postList.innerHTML += `
+                    <div class="post">
+                        <img src="${post.image}" alt="맛집 이미지">
+                        <div class="post-info">
+                            <div class="post-title">${post.title}</div>
+                            <div class="post-date">${post.date}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        displayPosts();
+    </script>
 </body>
 </html>
