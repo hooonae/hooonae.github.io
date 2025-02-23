@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맛집 추가</title>
+</head>
+<body>
+
+    <h1>맛집 추가</h1>
+
+    <input type="text" id="nickname" placeholder="작성자">
+    <input type="text" id="title" placeholder="맛집 이름">
+    <textarea id="content" placeholder="맛집 설명"></textarea>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="submitPost()">등록</button>
+
+    <script>
+        function submitPost() {
+            let nickname = document.getElementById("nickname").value;
+            let title = document.getElementById("title").value;
+            let content = document.getElementById("content").value;
+            let date = new Date().toLocaleDateString();
+            let imageInput = document.getElementById("imageInput").files[0];
+
+            if (!nickname || !title || !content) {
+                alert("모든 필드를 입력하세요.");
+                return;
+            }
+
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                savePost(nickname, title, content, e.target.result, date);
+            };
+            reader.readAsDataURL(imageInput);
+        }
+
+        function savePost(nickname, title, content, image, date) {
+            let posts = JSON.parse(localStorage.getItem("places")) || [];
+            posts.unshift({ id: Date.now(), nickname, title, text: content, image, date });
+            localStorage.setItem("places", JSON.stringify(posts));
+            window.location.href = "places.html";
+        }
+    </script>
+
+</body>
+</html>
