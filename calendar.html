@@ -1,97 +1,71 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>지킴이 일정</title>
-  <style>
-    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
-    .container { padding: 20px; text-align: center; }
-    .month { margin-top: 20px; }
-    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 30px; }
-    .day { background: #E1D5C9; padding: 10px; border-radius: 5px; font-weight: bold; text-align: center; position: relative; min-height: 80px; }
-    .sunday { color: red; }
-    .holiday { color: red; font-weight: bold; }
-    .name-list { font-size: 14px; margin-top: 5px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지킴이 일정</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>2025년 지킴이 일정</h1>
-    
+    <h1>지킴이 일정</h1>
+    <div id="calendarContainer"></div>
+
     <script>
-      const months = [
-        { name: "1월", days: 31, holidays: {1: "신정", 25: "설날"} },
-        { name: "2월", days: 28, holidays: { } },
-        { name: "3월", days: 31, holidays: {1: "삼일절"} },
-        { name: "4월", days: 30, holidays: { } },
-        { name: "5월", days: 31, holidays: {5: "어린이날", 15: "스승의날"} },
-        { name: "6월", days: 30, holidays: {6: "현충일"} },
-        { name: "7월", days: 31, holidays: { } },
-        { name: "8월", days: 31, holidays: {15: "광복절"} },
-        { name: "9월", days: 30, holidays: { } },
-        { name: "10월", days: 31, holidays: {3: "개천절", 9: "한글날"} },
-        { name: "11월", days: 30, holidays: { } },
-        { name: "12월", days: 31, holidays: {25: "성탄절"} }
-      ];
+        function createCalendar(year) {
+            const container = document.getElementById("calendarContainer");
+            container.innerHTML = "";
 
-      function generateCalendar() {
-        let container = document.querySelector(".container");
-        months.forEach(month => {
-          let monthDiv = document.createElement("div");
-          monthDiv.classList.add("month");
-          monthDiv.innerHTML = `<h2>${month.name}</h2>`;
-          
-          let calendarDiv = document.createElement("div");
-          calendarDiv.classList.add("calendar");
-          
-          let daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-          daysOfWeek.forEach(day => {
-            let dayLabel = document.createElement("div");
-            dayLabel.classList.add("day");
-            if (day === "일") dayLabel.classList.add("sunday");
-            dayLabel.innerText = day;
-            calendarDiv.appendChild(dayLabel);
-          });
-          
-          for (let i = 1; i <= month.days; i++) {
-            let dayDiv = document.createElement("div");
-            dayDiv.classList.add("day");
-            if (month.holidays[i]) {
-              dayDiv.classList.add("holiday");
-              dayDiv.innerHTML = `${i}일 (${month.holidays[i]})<div class="name-list"></div>`;
-            } else {
-              dayDiv.innerHTML = `${i}일<div class="name-list"></div>`;
+            for (let month = 1; month <= 12; month++) {
+                const monthDiv = document.createElement("div");
+                monthDiv.innerHTML = `<h2>${month}월</h2>`;
+                
+                const calendarGrid = document.createElement("div");
+                calendarGrid.className = "calendar";
+
+                const daysInMonth = new Date(year, month, 0).getDate();
+                const firstDay = new Date(year, month - 1, 1).getDay();
+
+                for (let i = 0; i < firstDay; i++) {
+                    calendarGrid.innerHTML += `<div></div>`;
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayDiv = document.createElement("div");
+                    dayDiv.className = "day";
+                    dayDiv.innerHTML = `<strong>${day}</strong>`;
+
+                    const input = document.createElement("input");
+                    input.placeholder = "이름 입력";
+                    input.type = "text";
+                    input.onkeypress = function (e) {
+                        if (e.key === "Enter") {
+                            addName(dayDiv, input.value);
+                            input.value = "";
+                        }
+                    };
+
+                    const nameList = document.createElement("div");
+                    nameList.className = "name-list";
+
+                    dayDiv.appendChild(input);
+                    dayDiv.appendChild(nameList);
+                    calendarGrid.appendChild(dayDiv);
+                }
+
+                monthDiv.appendChild(calendarGrid);
+                container.appendChild(monthDiv);
             }
-            dayDiv.setAttribute("onclick", "addName(this)");
-            calendarDiv.appendChild(dayDiv);
-          }
-          
-          monthDiv.appendChild(calendarDiv);
-          container.appendChild(monthDiv);
-        });
-      }
-
-      function addName(dayDiv) {
-        let name = prompt("이름을 입력하세요:");
-        let color = prompt("이름 색상을 입력하세요 (red, blue, green, black 중 선택):");
-        if (!name || !["red", "blue", "green", "black"].includes(color)) {
-          alert("올바른 이름과 색상을 입력해주세요!");
-          return;
         }
-        let nameList = dayDiv.querySelector(".name-list");
-        if (nameList.children.length >= 6) {
-          alert("최대 6명까지만 추가 가능합니다.");
-          return;
-        }
-        let nameItem = document.createElement("span");
-        nameItem.style.color = color;
-        nameItem.textContent = name + " ";
-        nameList.appendChild(nameItem);
-      }
 
-      window.onload = generateCalendar;
+        function addName(dayDiv, name) {
+            if (!name.trim()) return;
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = name;
+            nameSpan.style.display = "block";
+            dayDiv.querySelector(".name-list").appendChild(nameSpan);
+        }
+
+        createCalendar(2025);
     </script>
-  </div>
 </body>
 </html>
