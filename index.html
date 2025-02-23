@@ -3,90 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>나의 홈페이지</title>
+  <title>서울공예박물관 전시 안내</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #74ABE2, #5563DE);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
-      padding: 20px;
-    }
-    .container {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 20px;
-    }
-    p {
-      font-size: 1.2rem;
-      margin-bottom: 30px;
-    }
-    .btn {
-      background-color: #fff;
-      color: #5563DE;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background-color 0.3s ease;
-    }
-    .btn:hover {
-      background-color: #f0f0f0;
-    }
-    /* 이미지 컨테이너 (처음엔 숨김) */
-    #museum-image {
-      margin-top: 20px;
-      display: none;
-    }
-    #museum-image img {
-      max-width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      cursor: pointer;
-    }
+    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; }
+    nav { background: #8B5E3C; padding: 15px; text-align: center; }
+    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 1.1em; }
+    nav a:hover { text-decoration: underline; }
+    .container { padding: 20px; text-align: center; }
+    .gallery img { width: 180px; height: 120px; margin: 5px; cursor: pointer; border-radius: 5px; }
+    .calendar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .calendar div { background: #E1D5C9; padding: 15px; border-radius: 5px; position: relative; font-weight: bold; }
+    .name-list { font-size: 14px; margin-top: 5px; }
   </style>
 </head>
 <body>
+  <nav>
+    <a href="index.html">홈</a>
+    <a href="#guestbook">방명록</a>
+    <a href="#gallery">전시 이미지</a>
+    <a href="#weather">날씨 정보</a>
+    <a href="#places">박물관 근처 맛집</a>
+    <a href="#events">전시 일정</a>
+    <a href="#tips">관람 꿀팁</a>
+    <a href="#quiz">퀴즈 & 이벤트</a>
+    <a href="#calendar">지킴이 일정</a>
+  </nav>
   <div class="container">
-    <h1>안녕하세요!</h1>
-    <p>서공예 지키미 홈페이지입니다.</p>
-    <!-- 더 알아보기 버튼 -->
-    <button class="btn" id="learnMoreBtn">더 알아보기</button>
-    <!-- 소울공예박물관 이미지 (이미지를 클릭하면 board.html로 이동) -->
-    <div id="museum-image">
-      <a href="board.html">
-        <img src="https://i.ytimg.com/vi/h-1kqHKch14/maxresdefault.jpg" alt="소울공예박물관 이미지">
-      </a>
+    <h1>서울공예박물관 전시 안내</h1>
+    <p>박물관에서 진행하는 다양한 전시와 정보를 확인하세요.</p>
+  </div>
+
+  <!-- 방명록 -->
+  <div id="guestbook" class="container">
+    <h2>방명록</h2>
+    <input type="text" id="guestName" placeholder="닉네임" />
+    <textarea id="guestMessage" placeholder="메시지를 입력하세요"></textarea>
+    <button onclick="addGuestMessage()">등록</button>
+    <ul id="guestList"></ul>
+  </div>
+
+  <!-- 전시 이미지 갤러리 -->
+  <div id="gallery" class="container">
+    <h2>전시 이미지</h2>
+    <div class="gallery">
+      <img src="exhibit1.jpg" alt="전시1">
+      <img src="exhibit2.jpg" alt="전시2">
+      <img src="exhibit3.jpg" alt="전시3">
+    </div>
+  </div>
+
+  <!-- 지킴이 달력 -->
+  <div id="calendar" class="container">
+    <h2>2025년 지킴이 일정</h2>
+    <div class="calendar">
+      <div onclick="addName(this)">1월<div class="name-list"></div></div>
+      <div onclick="addName(this)">2월<div class="name-list"></div></div>
+      <div onclick="addName(this)">3월<div class="name-list"></div></div>
+      <div onclick="addName(this)">4월<div class="name-list"></div></div>
+      <div onclick="addName(this)">5월<div class="name-list"></div></div>
+      <div onclick="addName(this)">6월<div class="name-list"></div></div>
+      <div onclick="addName(this)">7월<div class="name-list"></div></div>
+      <div onclick="addName(this)">8월<div class="name-list"></div></div>
+      <div onclick="addName(this)">9월<div class="name-list"></div></div>
+      <div onclick="addName(this)">10월<div class="name-list"></div></div>
+      <div onclick="addName(this)">11월<div class="name-list"></div></div>
+      <div onclick="addName(this)">12월<div class="name-list"></div></div>
     </div>
   </div>
 
   <script>
-    // 버튼 클릭 시 이미지 영역을 보이도록 처리
-    const learnMoreBtn = document.getElementById('learnMoreBtn');
-    const museumImageDiv = document.getElementById('museum-image');
+    function addGuestMessage() {
+      let name = document.getElementById("guestName").value;
+      let message = document.getElementById("guestMessage").value;
+      if (!name || !message) {
+        alert("닉네임과 메시지를 입력해주세요!");
+        return;
+      }
+      let listItem = document.createElement("li");
+      listItem.innerHTML = `<strong>${name}</strong>: ${message} <button onclick="this.parentElement.remove()">삭제</button>`;
+      document.getElementById("guestList").appendChild(listItem);
+      document.getElementById("guestName").value = "";
+      document.getElementById("guestMessage").value = "";
+    }
 
-    learnMoreBtn.addEventListener('click', function() {
-      museumImageDiv.style.display = 'block';
-      // 버튼을 숨기려면 아래 주석을 해제하세요.
-      // learnMoreBtn.style.display = 'none';
-    });
+    function addName(monthDiv) {
+      let name = prompt("이름을 입력하세요:");
+      let color = prompt("이름 색상을 입력하세요 (red, blue, green, black 중 선택):");
+      if (!name || !["red", "blue", "green", "black"].includes(color)) {
+        alert("올바른 이름과 색상을 입력해주세요!");
+        return;
+      }
+      let nameList = monthDiv.querySelector(".name-list");
+      if (nameList.children.length >= 6) {
+        alert("최대 6명까지만 추가 가능합니다.");
+        return;
+      }
+      let nameItem = document.createElement("span");
+      nameItem.style.color = color;
+      nameItem.textContent = name + " ";
+      nameList.appendChild(nameItem);
+    }
   </script>
 </body>
 </html>
