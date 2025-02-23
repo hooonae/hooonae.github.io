@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지킴이 일정 상세</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 700px; margin: auto; }
+        .day { background: white; padding: 10px; border-radius: 5px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); min-height: 80px; text-align: center; }
+        .sunday { color: red; font-weight: bold; }
+        .name-list { margin-top: 5px; font-size: 0.9em; }
+        input { width: 80%; padding: 5px; margin: 5px 0; }
+        button { background: #8B5E3C; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: 5px; }
+        .color-picker { display: flex; justify-content: center; margin-bottom: 10px; }
+        .color-btn {
+            width: 25px; height: 25px; border-radius: 50%; border: none; margin: 0 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="monthTitle"></h1>
+    
+    <div class="color-picker">
+        <button class="color-btn" style="background: black;" onclick="setColor('black')"></button>
+        <button class="color-btn" style="background: red;" onclick="setColor('red')"></button>
+        <button class="color-btn" style="background: blue;" onclick="setColor('blue')"></button>
+        <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
+    </div>
+
+    <div id="calendarContainer" class="calendar"></div>
+
+    <script>
+        let selectedMonth = localStorage.getItem("selectedMonth");
+        document.getElementById("monthTitle").textContent = selectedMonth + "월 지킴이 일정";
+
+        let selectedColor = "black"; 
+
+        function setColor(color) {
+            selectedColor = color;
+        }
+
+        function createCalendar(year, month) {
+            const container = document.getElementById("calendarContainer");
+            container.innerHTML = "";
+
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const firstDay = new Date(year, month - 1, 1).getDay();
+            let calendarData = JSON.parse(localStorage.getItem(`calendar_${year}_${month}`)) || {};
+
+            for (let i = 0; i < firstDay; i++) {
+                container.innerHTML += `<div></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement("div");
+                dayDiv.className = "day";
+                dayDiv.innerHTML = `<strong>${day}</strong>`;
+
+                const input = document.createElement("input");
+                input.placeholder = "이름 입력";
+                input.type = "text";
+                input.onkeypress = function (e) {
+                    if (e.key === "Enter") {
+                        addName(year, month, day, input.value);
+                        input.value = "";
+                    }
+                };
+
+                const nameList = document.createElement("div");
+                nameList.className = "name-list";
+                if (calendarData[day]) {
+                    calendarData[day].forEach(nameData => {
+                        addNameToUI(nameList, nameData.name, nameData.color);
+                    });
+                }
+
+                dayDiv.appendChild(input);
+                dayDiv.appendChild(nameList);
+                container.appendChild(dayDiv);
+            }
+        }
+
+        function addName(year, month, day, name) {
+            if (!name.trim()) return;
+            let calendarData = JSON.parse(localStorage.getItem(`calendar_${year}_${month}`)) || {};
+            if (!calendarData[day]) calendarData[day] = [];
+
+            if (calendarData[day].length < 6) {
+                calendarData[day].push({ name, color: selectedColor });
+                localStorage.setItem(`calendar_${year}_${month}`, JSON.stringify(calendarData));
+                createCalendar(year, month);
+            } else {
+                alert("최대 6명까지 추가할 수 있습니다.");
+            }
+        }
+
+        function addNameToUI(nameList, name, color) {
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = name;
+            nameSpan.style.color = color;
+            nameSpan.style.display = "block";
+            nameList.appendChild(nameSpan);
+        }
+
+        createCalendar(2025, selectedMonth);
+    </script>
+
+</body>
+</html>
