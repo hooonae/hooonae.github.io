@@ -14,12 +14,17 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            word-wrap: break-word; /* 긴 텍스트가 줄바꿈되도록 설정 */
         }
         .post-title { font-size: 1.2em; font-weight: bold; }
-        .post-info { color: gray; font-size: 0.9em; margin-bottom: 10px; }
-        .post-content { text-align: left; }
-        .post-img { width: 100%; max-height: 200px; border-radius: 5px; object-fit: cover; margin-top: 10px; }
+        .post-info { color: gray; font-size: 0.9em; margin-bottom: 10px; text-align: center; }
+        .post-dates { display: flex; flex-direction: column; text-align: center; }
+        .post-content { text-align: left; word-wrap: break-word; } /* 긴 텍스트도 줄바꿈 */
+        .post-img { width: 100%; max-height: 250px; border-radius: 5px; object-fit: cover; margin-top: 10px; }
         .delete-btn { background: red; color: white; padding: 5px; border: none; border-radius: 3px; cursor: pointer; }
+        @media (max-width: 500px) {
+            .post-dates { flex-direction: column; } /* 모바일에서 날짜 줄바꿈 */
+        }
     </style>
 </head>
 <body>
@@ -29,7 +34,11 @@
     <div class="container">
         <div class="post-title" id="title"></div>
         <div class="post-info">
-            <span id="author"></span> | <span id="startDate"></span> ~ <span id="endDate"></span>
+            <span id="author"></span>
+        </div>
+        <div class="post-dates">
+            <strong>시작 날짜: <span id="startDate"></span></strong>
+            <strong>종료 날짜: <span id="endDate"></span></strong>
         </div>
         <img id="image" class="post-img">
         <div class="post-content" id="content"></div>
