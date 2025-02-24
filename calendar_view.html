@@ -45,6 +45,15 @@
         }
         .color-picker { display: flex; justify-content: center; margin-bottom: 10px; }
         .color-btn { width: 30px; height: 30px; border-radius: 50%; border: none; margin: 0 5px; cursor: pointer; }
+        .name-item { display: flex; align-items: center; margin: 3px 0; }
+        .delete-btn {
+            background: transparent; 
+            border: none; 
+            color: red; 
+            font-size: 14px; 
+            cursor: pointer;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -133,8 +142,8 @@
                 const nameList = document.createElement("div");
                 nameList.className = "name-list";
                 if (calendarData[day]) {
-                    calendarData[day].forEach(nameData => {
-                        addNameToUI(nameList, nameData.name, nameData.color);
+                    calendarData[day].forEach((nameData, index) => {
+                        addNameToUI(nameList, nameData.name, nameData.color, year, month, day, index);
                     });
                 }
 
@@ -158,12 +167,31 @@
             }
         }
 
-        function addNameToUI(nameList, name, color) {
+        function addNameToUI(nameList, name, color, year, month, day, index) {
+            const nameItem = document.createElement("div");
+            nameItem.className = "name-item";
+
             const nameSpan = document.createElement("span");
             nameSpan.textContent = name;
             nameSpan.style.color = color;
-            nameSpan.style.display = "block";
-            nameList.appendChild(nameSpan);
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-btn";
+            deleteBtn.textContent = "❌";
+            deleteBtn.onclick = function () {
+                deleteName(year, month, day, index);
+            };
+
+            nameItem.appendChild(nameSpan);
+            nameItem.appendChild(deleteBtn);
+            nameList.appendChild(nameItem);
+        }
+
+        function deleteName(year, month, day, index) {
+            let calendarData = JSON.parse(localStorage.getItem(`calendar_${year}_${month}`)) || {};
+            calendarData[day].splice(index, 1);
+            localStorage.setItem(`calendar_${year}_${month}`, JSON.stringify(calendarData));
+            createCalendar(year, month);
         }
 
         createCalendar(2025, selectedMonth);
