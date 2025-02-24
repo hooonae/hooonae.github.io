@@ -45,7 +45,7 @@
         }
         .color-picker { display: flex; justify-content: center; margin-bottom: 10px; }
         .color-btn { width: 30px; height: 30px; border-radius: 50%; border: none; margin: 0 5px; cursor: pointer; }
-        .name-item { display: flex; align-items: center; margin: 3px 0; }
+        .name-item { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .delete-btn {
             background: transparent; 
             border: none; 
@@ -174,6 +174,7 @@
             const nameSpan = document.createElement("span");
             nameSpan.textContent = name;
             nameSpan.style.color = color;
+            nameSpan.style.whiteSpace = "nowrap"; // 이름이 한 줄로 표시되도록 수정
 
             const deleteBtn = document.createElement("button");
             deleteBtn.className = "delete-btn";
