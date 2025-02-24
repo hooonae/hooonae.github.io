@@ -22,13 +22,15 @@
             let content = document.getElementById("content").value.trim();
             let date = new Date().toLocaleDateString();
             let imageInput = document.getElementById("imageInput").files[0];
+            let submitBtn = document.getElementById("submitBtn");
 
             if (!nickname || !title || !content) {
                 alert("모든 필드를 입력하세요.");
                 return;
             }
 
-            document.getElementById("submitBtn").disabled = true; // 중복 클릭 방지
+            submitBtn.disabled = true; // 버튼 비활성화 (중복 클릭 방지)
+            submitBtn.textContent = "등록 중..."; // 로딩 표시
 
             if (imageInput) {
                 let reader = new FileReader();
@@ -37,7 +39,8 @@
                 };
                 reader.onerror = function () {
                     alert("이미지 업로드 중 오류가 발생했습니다. 다시 시도해주세요.");
-                    document.getElementById("submitBtn").disabled = false;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "등록";
                 };
                 reader.readAsDataURL(imageInput);
             } else {
@@ -49,7 +52,11 @@
             let posts = JSON.parse(localStorage.getItem("gallery")) || [];
             posts.unshift({ id: Date.now(), nickname, title, text: content, image, date });
             localStorage.setItem("gallery", JSON.stringify(posts));
-            window.location.href = "gallery.html"; // 전시 이미지 목록으로 이동
+
+            document.getElementById("submitBtn").textContent = "등록 완료!";
+            setTimeout(() => {
+                window.location.href = "gallery.html"; // 전시 이미지 목록으로 이동
+            }, 1000); // 1초 후 이동
         }
     </script>
 
