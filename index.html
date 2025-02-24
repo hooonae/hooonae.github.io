@@ -5,35 +5,165 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>서울공예박물관 홈페이지</title>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; background: #F8F1E9; color: #333; text-align: center; }
-        h1 { padding: 20px; }
-        .menu { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
-        .menu a {
-            display: block;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-            text-decoration: none;
-            color: #333;
-            width: 80%;
-            max-width: 300px;
-            text-align: center;
-            font-weight: bold;
+        /* 전체 스타일 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc); 
+            color: #333; 
         }
-        .menu a:hover { background: #eee; }
+        h1 { text-align: center; font-size: 2.5em; margin-top: 20px; }
+        
+        /* 네비게이션 바 */
+        nav { 
+            background: rgba(139, 94, 60, 0.9); 
+            padding: 15px; 
+            text-align: center; 
+            position: fixed; 
+            width: 100%; 
+            top: 0; 
+            left: 0; 
+            z-index: 1000; 
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        nav a { 
+            color: white; 
+            text-decoration: none; 
+            margin: 0 10px; 
+            font-weight: bold; 
+            font-size: 1.1em; 
+            transition: all 0.3s ease;
+        }
+        nav a:hover { text-decoration: underline; transform: scale(1.1); }
+
+        /* 컨테이너 */
+        .container { 
+            padding: 100px 20px; 
+            text-align: center; 
+        }
+
+        /* 슬라이드 배너 */
+        .banner { 
+            position: relative; 
+            max-width: 90%; 
+            margin: auto; 
+            overflow: hidden; 
+            border-radius: 15px; 
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .banner img { width: 100%; height: 300px; object-fit: cover; display: none; }
+        .banner img.active { display: block; animation: fadeIn 1s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 카드 스타일 */
+        .cards { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            max-width: 900px; 
+            margin: auto; 
+            margin-top: 30px; 
+        }
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); 
+            text-align: center; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { margin-bottom: 10px; }
+        .card p { color: gray; font-size: 0.9em; }
+        .card button {
+            background: #8B5E3C; 
+            color: white; 
+            border: none; 
+            padding: 10px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+        }
+        .card button:hover { background: #6E422A; }
+
+        /* 모바일 최적화 */
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            .banner img { height: 200px; }
+            .cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+        }
     </style>
 </head>
 <body>
-    <h1>서울공예박물관 안내</h1>
-    <div class="menu">
-        <a href="gallery.html">전시 이미지</a>
-        <a href="places.html">박물관 근처 맛집</a>
-        <a href="events.html">전시 일정</a>
-        <a href="calendar.html">지킴이 일정</a>
-        <a href="tips.html">꿀팁</a>
-        <a href="supplies.html">필요 비품</a>
-        <a href="suggestions.html">건의 사항</a>
+
+    <!-- 네비게이션 바 -->
+    <nav>
+        <a href="index.html">🏠 홈</a>
+        <a href="gallery.html">🖼 전시 이미지</a>
+        <a href="places.html">🍽 맛집 추천</a>
+        <a href="events.html">📅 전시 일정</a>
+        <a href="calendar.html">📌 지킴이 일정</a>
+        <a href="tips.html">💡 꿀팁</a>
+        <a href="supplies.html">📦 필요 비품</a>
+        <a href="suggestions.html">🗣 건의 사항</a>
+    </nav>
+
+    <div class="container">
+        <h1>서울공예박물관</h1>
+        
+        <!-- 슬라이드 배너 -->
+        <div class="banner">
+            <img src="banner.png" class="active">
+        </div>
+
+        <!-- 카드 섹션 -->
+        <div class="cards">
+            <div class="card">
+                <h3>🔍 전시 이미지</h3>
+                <p>전시된 작품들을 확인하고 공유하세요!</p>
+                <button onclick="location.href='gallery.html'">보러 가기</button>
+            </div>
+            <div class="card">
+                <h3>🍽 추천 맛집</h3>
+                <p>박물관 근처의 맛집을 공유해보세요.</p>
+                <button onclick="location.href='places.html'">맛집 보기</button>
+            </div>
+            <div class="card">
+                <h3>📅 전시 일정</h3>
+                <p>다가오는 전시 일정을 확인하세요!</p>
+                <button onclick="location.href='events.html'">일정 보기</button>
+            </div>
+            <div class="card">
+                <h3>📦 필요 비품</h3>
+                <p>박물관 운영에 필요한 비품을 요청하세요.</p>
+                <button onclick="location.href='supplies.html'">비품 신청</button>
+            </div>
+            <div class="card">
+                <h3>🗣 건의 사항</h3>
+                <p>개선이 필요한 사항을 건의해주세요.</p>
+                <button onclick="location.href='suggestions.html'">건의하기</button>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // 슬라이드 배너 기능
+        let banners = document.querySelectorAll(".banner img");
+        let index = 0;
+
+        function showNextBanner() {
+            banners[index].classList.remove("active");
+            index = (index + 1) % banners.length;
+            banners[index].classList.add("active");
+        }
+
+        setInterval(showNextBanner, 3000); // 3초마다 슬라이드 변경
+    </script>
+
 </body>
 </html>
