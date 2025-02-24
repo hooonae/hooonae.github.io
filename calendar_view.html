@@ -19,16 +19,30 @@
             padding: 10px; 
             border-radius: 5px; 
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); 
-            min-height: 100px; 
+            min-height: 120px; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
+            justify-content: space-between;
         }
         .weekday { font-weight: bold; background: #ddd; }
         .sunday { color: red; }
         .holiday { color: red; font-weight: bold; }
-        .name-list { margin-top: 5px; font-size: 0.9em; text-align: center; }
-        input { width: 80%; padding: 5px; margin-top: 5px; }
+        .name-list { 
+            margin-top: 5px; 
+            font-size: 0.9em; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        input { 
+            width: 90%; 
+            padding: 5px; 
+            margin-top: 5px; 
+            text-align: center;
+        }
         .color-picker { display: flex; justify-content: center; margin-bottom: 10px; }
         .color-btn { width: 30px; height: 30px; border-radius: 50%; border: none; margin: 0 5px; cursor: pointer; }
     </style>
@@ -124,8 +138,8 @@
                     });
                 }
 
-                dayDiv.appendChild(input);
                 dayDiv.appendChild(nameList);
+                dayDiv.appendChild(input);
                 container.appendChild(dayDiv);
             }
         }
