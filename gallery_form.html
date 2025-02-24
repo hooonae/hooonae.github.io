@@ -29,16 +29,18 @@
                 return;
             }
 
-            submitBtn.disabled = true; // 버튼 비활성화 (중복 클릭 방지)
-            submitBtn.textContent = "등록 중..."; // 로딩 표시
+            submitBtn.disabled = true;
+            submitBtn.textContent = "등록 중..."; // 버튼 비활성화
 
             if (imageInput) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    savePost(nickname, title, content, e.target.result, date);
+                    resizeImage(e.target.result, 800, 600, function (resizedImage) {
+                        savePost(nickname, title, content, resizedImage, date);
+                    });
                 };
                 reader.onerror = function () {
-                    alert("이미지 업로드 중 오류가 발생했습니다. 다시 시도해주세요.");
+                    alert("이미지 업로드 중 오류가 발생했습니다.");
                     submitBtn.disabled = false;
                     submitBtn.textContent = "등록";
                 };
@@ -48,6 +50,35 @@
             }
         }
 
+        function resizeImage(base64, maxWidth, maxHeight, callback) {
+            let img = new Image();
+            img.src = base64;
+            img.onload = function () {
+                let canvas = document.createElement("canvas");
+                let ctx = canvas.getContext("2d");
+
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth || height > maxHeight) {
+                    if (width / height > maxWidth / maxHeight) {
+                        height = Math.round((maxWidth / width) * height);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((maxHeight / height) * width);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                let resizedBase64 = canvas.toDataURL("image/jpeg", 0.8); // JPEG로 변환하여 용량 줄이기
+                callback(resizedBase64);
+            };
+        }
+
         function savePost(nickname, title, content, image, date) {
             let posts = JSON.parse(localStorage.getItem("gallery")) || [];
             posts.unshift({ id: Date.now(), nickname, title, text: content, image, date });
@@ -55,8 +86,8 @@
 
             document.getElementById("submitBtn").textContent = "등록 완료!";
             setTimeout(() => {
-                window.location.href = "gallery.html"; // 전시 이미지 목록으로 이동
-            }, 1000); // 1초 후 이동
+                window.location.href = "gallery.html";
+            }, 1000);
         }
     </script>
 
