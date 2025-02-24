@@ -48,21 +48,17 @@
             text-align: center; 
         }
 
-        /* 슬라이드 배너 */
+        /* GIF 배너 */
         .banner { 
-            position: relative; 
-            max-width: 90%; 
+            max-width: 100%; 
             margin: auto; 
             overflow: hidden; 
-            border-radius: 15px; 
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
         }
-        .banner img { width: 100%; height: 300px; object-fit: cover; display: none; }
-        .banner img.active { display: block; animation: fadeIn 1s; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .banner img { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
         }
 
         /* 카드 스타일 */
@@ -99,7 +95,6 @@
         /* 모바일 최적화 */
         @media (max-width: 600px) {
             h1 { font-size: 2em; }
-            .banner img { height: 200px; }
             .cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
             nav { padding: 10px; gap: 5px; }
             nav a { font-size: 0.9em; padding: 5px; }
@@ -123,9 +118,9 @@
     <div class="container">
         <h1>서울공예박물관</h1>
         
-        <!-- 슬라이드 배너 -->
+        <!-- GIF 배너 -->
         <div class="banner">
-            <img src="banner.gif" class="active">
+            <img src="banner.gif" alt="움직이는 배너">
         </div>
 
         <!-- 카드 섹션 -->
@@ -162,20 +157,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // 슬라이드 배너 기능
-        let banners = document.querySelectorAll(".banner img");
-        let index = 0;
-
-        function showNextBanner() {
-            banners[index].classList.remove("active");
-            index = (index + 1) % banners.length;
-            banners[index].classList.add("active");
-        }
-
-        setInterval(showNextBanner, 3000); // 3초마다 슬라이드 변경
-    </script>
 
 </body>
 </html>
