@@ -13,8 +13,8 @@
             background: linear-gradient(135deg, #F8F1E9, #e0c3fc); 
             color: #333; 
         }
-        h1 { text-align: center; font-size: 2.5em; margin-top: 20px; }
-        
+        h1 { text-align: center; font-size: 2.5em; margin-top: 60px; }
+
         /* 네비게이션 바 */
         nav { 
             background: rgba(139, 94, 60, 0.9); 
@@ -26,14 +26,19 @@
             left: 0; 
             z-index: 1000; 
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
         nav a { 
             color: white; 
             text-decoration: none; 
-            margin: 0 10px; 
+            padding: 5px 10px;
             font-weight: bold; 
-            font-size: 1.1em; 
+            font-size: 1em; 
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
         nav a:hover { text-decoration: underline; transform: scale(1.1); }
 
@@ -96,6 +101,8 @@
             h1 { font-size: 2em; }
             .banner img { height: 200px; }
             .cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+            nav { padding: 10px; gap: 5px; }
+            nav a { font-size: 0.9em; padding: 5px; }
         }
     </style>
 </head>
@@ -124,14 +131,9 @@
         <!-- 카드 섹션 -->
         <div class="cards">
             <div class="card">
-                <h3>🔍 전시 이미지</h3>
-                <p>전시된 작품들을 확인하고 공유하세요!</p>
-                <button onclick="location.href='gallery.html'">보러 가기</button>
-            </div>
-            <div class="card">
-                <h3>🍽 추천 맛집</h3>
-                <p>박물관 근처의 맛집을 공유해보세요.</p>
-                <button onclick="location.href='places.html'">맛집 보기</button>
+                <h3>📌 지킴이 일정</h3>
+                <p>지킴이들의 근무 일정을 확인하세요.</p>
+                <button onclick="location.href='calendar.html'">일정 보기</button>
             </div>
             <div class="card">
                 <h3>📅 전시 일정</h3>
@@ -147,6 +149,16 @@
                 <h3>🗣 건의 사항</h3>
                 <p>개선이 필요한 사항을 건의해주세요.</p>
                 <button onclick="location.href='suggestions.html'">건의하기</button>
+            </div>
+            <div class="card">
+                <h3>🍽 추천 맛집</h3>
+                <p>박물관 근처의 맛집을 공유해보세요.</p>
+                <button onclick="location.href='places.html'">맛집 보기</button>
+            </div>
+            <div class="card">
+                <h3>🖼 전시 이미지</h3>
+                <p>전시된 작품들을 확인하고 공유하세요!</p>
+                <button onclick="location.href='gallery.html'">보러 가기</button>
             </div>
         </div>
     </div>
