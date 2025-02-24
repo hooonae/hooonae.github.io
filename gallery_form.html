@@ -13,7 +13,7 @@
     <input type="text" id="title" placeholder="전시 제목">
     <textarea id="content" placeholder="전시 설명"></textarea>
     <input type="file" id="imageInput" accept="image/*">
-    <button onclick="submitPost()">등록</button>
+    <button id="submitBtn" onclick="submitPost()">등록</button>
 
     <script>
         function submitPost() {
@@ -28,10 +28,16 @@
                 return;
             }
 
+            document.getElementById("submitBtn").disabled = true; // 중복 클릭 방지
+
             if (imageInput) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
                     savePost(nickname, title, content, e.target.result, date);
+                };
+                reader.onerror = function () {
+                    alert("이미지 업로드 중 오류가 발생했습니다. 다시 시도해주세요.");
+                    document.getElementById("submitBtn").disabled = false;
                 };
                 reader.readAsDataURL(imageInput);
             } else {
