@@ -3,51 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>박물관 근처 맛집 추천</title>
+    <title>추천 맛집 목록</title>
 </head>
 <body>
 
-    <h1>박물관 근처 맛집</h1>
-    
-    <input type="text" id="nickname" placeholder="닉네임">
-    <input type="text" id="title" placeholder="맛집 이름">
-    <textarea id="content" placeholder="맛집 설명"></textarea>
-    <button onclick="submitPost()">등록</button>
+    <h1>추천 맛집 목록</h1>
 
-    <h2>추천 맛집 목록</h2>
+    <a href="places_form.html"><button>맛집 추천 글쓰기</button></a>
+
     <div id="placesList"></div>
 
     <script>
-        const SHEET_URL = "https://script.google.com/macros/s/AKfycby4l8aIFwY9v5qyBqNmnEUEzhVVMDK4DGVTcdD3_ViLbuiW8WS9KZGFCPOll_7T4UPO/exec";  // 🔥 본인의 Google Apps Script URL 입력
-
-        function submitPost() {
-            let nickname = document.getElementById("nickname").value.trim();
-            let title = document.getElementById("title").value.trim();
-            let content = document.getElementById("content").value.trim();
-
-            if (!nickname || !title || !content) {
-                alert("모든 필드를 입력하세요.");
-                return;
-            }
-
-            let postData = {
-                nickname: nickname,
-                title: title,
-                content: content
-            };
-
-            fetch(SHEET_URL, {
-                method: "POST",
-                body: JSON.stringify(postData),
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(response => response.text())
-            .then(data => {
-                alert("맛집이 등록되었습니다!");
-                loadPosts();
-            })
-            .catch(error => console.error("Error:", error));
-        }
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycby4l8aIFwY9v5qyBqNmnEUEzhVVMDK4DGVTcdD3_ViLbuiW8WS9KZGFCPOll_7T4UPO/exec"; 
 
         function loadPosts() {
             fetch(SHEET_URL)
