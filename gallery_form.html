@@ -3,56 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전시 이미지 목록</title>
+    <title>전시 이미지 업로드</title>
     <style>
-        .gallery-container { max-width: 800px; margin: auto; }
-        .post { border: 1px solid #ddd; padding: 10px; margin-bottom: 20px; background: white; }
-        .post img { width: 100%; height: auto; display: block; margin-bottom: 10px; } /* 이미지 크롭 없이 전체 표시 */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #F8F1E9;
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+        .upload-box {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #70422A;
+        }
     </style>
 </head>
 <body>
 
-    <h1>전시 이미지 목록</h1>
-
-    <div class="gallery-container" id="gallery"></div>
+    <div class="container">
+        <h1>전시 이미지 업로드</h1>
+        
+        <div class="upload-box">
+            <input type="file" id="imageUpload">
+            <input type="text" id="nickname" placeholder="닉네임">
+            <input type="text" id="title" placeholder="제목">
+            <button onclick="uploadImage()">이미지 업로드</button>
+        </div>
+    </div>
 
     <script>
-        function loadPosts() {
-            let gallery = document.getElementById("gallery");
-            gallery.innerHTML = "";
+        const SHEET_URL = "YOUR_GOOGLE_SCRIPT_URL"; // 🔥 Google Sheets API URL 입력
 
-            let posts = JSON.parse(localStorage.getItem("gallery")) || [];
-            posts.forEach(post => {
-                let postDiv = document.createElement("div");
-                postDiv.className = "post";
+        function uploadImage() {
+            const fileInput = document.getElementById("imageUpload");
+            const file = fileInput.files[0];
+            const nickname = document.getElementById("nickname").value.trim();
+            const title = document.getElementById("title").value.trim();
 
-                let title = document.createElement("h3");
-                title.textContent = post.title;
+            if (!file || !nickname || !title) {
+                alert("모든 필드를 입력하세요!");
+                return;
+            }
 
-                let author = document.createElement("p");
-                author.textContent = `작성자: ${post.nickname} | 날짜: ${post.date}`;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageUrl = event.target.result;
 
-                let content = document.createElement("p");
-                content.textContent = post.text;
+                // 🔥 Google Sheets에 업로드 (데이터 저장)
+                let postData = {
+                    nickname: nickname,
+                    title: title,
+                    imageUrl: imageUrl
+                };
 
-                postDiv.appendChild(title);
-                postDiv.appendChild(author);
-                postDiv.appendChild(content);
+                fetch(SHEET_URL, {
+                    method: "POST",
+                    body: JSON.stringify(postData),
+                    headers: { "Content-Type": "application/json" }
+                })
+                .then(response => response.text())
+                .then(data => {
+                    alert("이미지가 업로드되었습니다!");
+                })
+                .catch(error => console.error("Error:", error));
+            };
 
-                if (post.images && post.images.length > 0) {
-                    post.images.forEach(imageSrc => {
-                        let img = document.createElement("img");
-                        img.src = imageSrc;
-                        img.alt = "전시 이미지";
-                        postDiv.appendChild(img);
-                    });
-                }
-
-                gallery.appendChild(postDiv);
-            });
+            reader.readAsDataURL(file);
         }
-
-        window.onload = loadPosts;
     </script>
 
 </body>
