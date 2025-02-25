@@ -48,17 +48,40 @@
             text-align: center; 
         }
 
-        /* PNG 배너 */
+        /* 배너 스타일 */
         .banner { 
             max-width: 100%; 
             margin: auto; 
-            overflow: hidden; 
             text-align: center;
         }
         .banner img { 
             width: 100%; 
             height: auto; 
             display: block; 
+        }
+
+        /* 공지사항 스타일 */
+        .notice { 
+            background: #ffeb99; 
+            padding: 15px; 
+            border-radius: 10px; 
+            max-width: 800px; 
+            margin: auto; 
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); 
+            margin-bottom: 20px;
+        }
+        .notice h2 { 
+            margin: 0; 
+            font-size: 1.5em; 
+            color: #8B5E3C; 
+        }
+        .notice ul { 
+            list-style-type: none;
+            padding: 0;
+        }
+        .notice li { 
+            padding: 5px 0; 
+            font-size: 1em; 
         }
 
         /* 카드 스타일 */
@@ -79,18 +102,6 @@
             transition: transform 0.3s ease-in-out;
         }
         .card:hover { transform: translateY(-5px); }
-        .card h3 { margin-bottom: 10px; }
-        .card p { color: gray; font-size: 0.9em; }
-        .card button {
-            background: #8B5E3C; 
-            color: white; 
-            border: none; 
-            padding: 10px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            transition: all 0.3s ease;
-        }
-        .card button:hover { background: #6E422A; }
 
         /* 모바일 최적화 */
         @media (max-width: 600px) {
@@ -117,10 +128,19 @@
 
     <div class="container">
         <h1>서울공예박물관</h1>
-        
-        <!-- PNG 배너 -->
+
+        <!-- 배너 복구 -->
         <div class="banner">
             <img src="banner.png" alt="박물관 배너">
+        </div>
+
+        <!-- 공지사항 섹션 -->
+        <div class="notice">
+            <h2>📢 공지사항</h2>
+            <ul id="noticeList">
+                <li>현재 박물관 지킴이 일정이 업데이트되었습니다.</li>
+                <li>새로운 전시회가 시작되었습니다.</li>
+            </ul>
         </div>
 
         <!-- 카드 섹션 -->
@@ -145,17 +165,8 @@
                 <p>개선이 필요한 사항을 건의해주세요.</p>
                 <button onclick="location.href='suggestions.html'">건의하기</button>
             </div>
-            <div class="card">
-                <h3>🍽 추천 맛집</h3>
-                <p>박물관 근처의 맛집을 공유해보세요.</p>
-                <button onclick="location.href='places.html'">맛집 보기</button>
-            </div>
-            <div class="card">
-                <h3>🖼 전시 이미지</h3>
-                <p>전시된 작품들을 확인하고 공유하세요!</p>
-                <button onclick="location.href='gallery.html'">보러 가기</button>
-            </div>
         </div>
+
     </div>
 
 </body>
