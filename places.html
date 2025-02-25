@@ -3,54 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>박물관 근처 맛집</title>
-    <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
-        h1 { color: #333; }
-        .post-list { list-style: none; padding: 0; }
-        .post-item {
-            background: white;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-            text-align: left;
-            cursor: pointer;
-        }
-        .post-item:hover { background: #f0f0f0; }
-        .post-title { font-weight: bold; }
-        .post-date { color: gray; font-size: 0.8em; }
-    </style>
+    <title>박물관 근처 맛집 추천</title>
 </head>
 <body>
 
     <h1>박물관 근처 맛집</h1>
+    
+    <input type="text" id="nickname" placeholder="닉네임">
+    <input type="text" id="title" placeholder="맛집 이름">
+    <textarea id="content" placeholder="맛집 설명"></textarea>
+    <button onclick="submitPost()">등록</button>
 
-    <ul id="postList" class="post-list"></ul>
-    <button onclick="location.href='places_form.html'">맛집 추가</button>
+    <h2>추천 맛집 목록</h2>
+    <div id="placesList"></div>
 
     <script>
-        let posts = JSON.parse(localStorage.getItem("places")) || [];
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycby4l8aIFwY9v5qyBqNmnEUEzhVVMDK4DGVTcdD3_ViLbuiW8WS9KZGFCPOll_7T4UPO/exec";  // 🔥 본인의 Google Apps Script URL 입력
 
-        function displayPosts() {
-            const postList = document.getElementById("postList");
-            postList.innerHTML = "";
-            posts.forEach((post, index) => {
-                postList.innerHTML += `
-                    <li class="post-item" onclick="viewPost(${index})">
-                        <div class="post-title">${post.title}</div>
-                        <div class="post-date">${post.date}</div>
-                    </li>
-                `;
-            });
+        function submitPost() {
+            let nickname = document.getElementById("nickname").value.trim();
+            let title = document.getElementById("title").value.trim();
+            let content = document.getElementById("content").value.trim();
+
+            if (!nickname || !title || !content) {
+                alert("모든 필드를 입력하세요.");
+                return;
+            }
+
+            let postData = {
+                nickname: nickname,
+                title: title,
+                content: content
+            };
+
+            fetch(SHEET_URL, {
+                method: "POST",
+                body: JSON.stringify(postData),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert("맛집이 등록되었습니다!");
+                loadPosts();
+            })
+            .catch(error => console.error("Error:", error));
         }
 
-        function viewPost(index) {
-            localStorage.setItem("currentPost", JSON.stringify(posts[index]));
-            window.location.href = "places_view.html";
+        function loadPosts() {
+            fetch(SHEET_URL)
+            .then(response => response.json())
+            .then(data => {
+                let placesList = document.getElementById("placesList");
+                placesList.innerHTML = "";
+
+                data.forEach(post => {
+                    let div = document.createElement("div");
+                    div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>작성자: ${post.nickname} | ${post.date}</small>`;
+                    placesList.appendChild(div);
+                });
+            })
+            .catch(error => console.error("Error:", error));
         }
 
-        displayPosts();
+        window.onload = loadPosts;
     </script>
 
 </body>
