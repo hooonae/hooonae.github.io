@@ -1,94 +1,35 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>맛집 추천 글쓰기</title>
-    <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #F8F1E9;
-            text-align: center;
+<script>
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbzygsjZJnL3D8unFlyDFXdg3I84STU1l-kzvGgHo3BonOGfVMw2xMeh_xdYwSl9qyGU/exec"; // 🔥 새 배포한 웹 앱 URL 입력
+
+    function submitPost() {
+        let nickname = document.getElementById("nickname").value.trim();
+        let title = document.getElementById("title").value.trim();
+        let content = document.getElementById("content").value.trim();
+
+        if (!nickname || !title || !content) {
+            alert("모든 필드를 입력하세요.");
+            return;
         }
-        .form-container {
-            max-width: 400px;
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background: #8B5E3C;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #70422A;
-        }
-        .back-link {
-            display: block;
-            margin-top: 15px;
-            text-decoration: none;
-            color: #8B5E3C;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
 
-    <h1>맛집 추천 글쓰기</h1>
+        let postData = {
+            nickname: nickname,
+            title: title,
+            content: content
+        };
 
-    <div class="form-container">
-        <input type="text" id="nickname" placeholder="닉네임">
-        <input type="text" id="title" placeholder="맛집 이름">
-        <textarea id="content" placeholder="맛집 설명"></textarea>
-        <button onclick="submitPost()">등록</button>
-    </div>
+        console.log("🚀 데이터 전송 중...", postData);
 
-    <a href="places.html" class="back-link">← 맛집 목록으로 돌아가기</a>
-
-    <script>
-        const SHEET_URL = "https://script.google.com/macros/s/AKfycbzIkcr1P5uY_Mk9dmjKqyDJSl8Bd2JqW9qfTW03pww1Zz4FHdsddYOSrefN7xsKQX-i/exec";
-
-        function submitPost() {
-            let nickname = document.getElementById("nickname").value.trim();
-            let title = document.getElementById("title").value.trim();
-            let content = document.getElementById("content").value.trim();
-
-            if (!nickname || !title || !content) {
-                alert("모든 필드를 입력하세요.");
-                return;
-            }
-
-            let postData = {
-                nickname: nickname,
-                title: title,
-                content: content
-            };
-
-            fetch(SHEET_URL, {
-                method: "POST",
-                body: JSON.stringify(postData),
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(response => {
-                alert("맛집 추천이 등록되었습니다!");
-                window.location.href = "places.html"; // 등록 후 목록으로 이동
-            })
-            .catch(error => console.error("Error:", error));
-        }
-    </script>
-
-</body>
-</html>
+        fetch(SHEET_URL, {
+            method: "POST",
+            body: JSON.stringify(postData),
+            headers: { "Content-Type": "application/json" } // ✅ "mode: no-cors" 삭제
+        })
+        .then(response => response.text()) // ✅ 응답을 JSON이 아닌 text로 받아서 디버깅
+        .then(data => {
+            console.log("✅ 서버 응답 받음:", data);
+            alert("맛집 추천이 등록되었습니다!");
+            window.location.href = "places.html"; // 등록 후 목록으로 이동
+        })
+        .catch(error => console.error("❌ 오류 발생:", error));
+    }
+</script>
