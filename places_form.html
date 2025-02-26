@@ -46,46 +46,38 @@
         <button onclick="submitPost()">등록</button>
     </div>
 
-    <script>
-        console.log("🚀 페이지 로드 완료! (디버깅 중)");
+<script>
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbzZXVz83RyBktVSmcco_5gCFZU9-pGDsgP2rK-X3QS5t0Xxb7BIxAVIqQ4dATesGudT/exec"; // 🔥 새 배포한 웹 앱 URL 입력
 
-        const SHEET_URL = "https://script.google.com/macros/s/AKfycbxrZZ6cHohZtJ7u2t66dygwZya5EpzU9TzfDa-Sn-AuIDFBBbRx7_pXE9Vk5D5TNesV/exec"; // 🔥 새 웹 앱 URL 입력
+    function submitPost() {
+        let nickname = document.getElementById("nickname").value.trim();
+        let title = document.getElementById("title").value.trim();
+        let content = document.getElementById("content").value.trim();
 
-        function submitPost() {
-            let nickname = document.getElementById("nickname").value.trim();
-            let title = document.getElementById("title").value.trim();
-            let content = document.getElementById("content").value.trim();
-
-            if (!nickname || !title || !content) {
-                alert("모든 필드를 입력하세요.");
-                return;
-            }
-
-            let postData = {
-                nickname: nickname,
-                title: title,
-                content: content
-            };
-
-            console.log("🚀 데이터 전송 중...", postData);
-
-            fetch(SHEET_URL, {
-                method: "POST",
-                body: JSON.stringify(postData),
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(response => {
-                console.log("✅ 서버 응답 받음:", response);
-                return response.text();
-            })
-            .then(data => {
-                console.log("✅ 서버 응답 데이터:", data);
-                alert("맛집 추천이 등록되었습니다!");
-                window.location.href = "places.html"; // 등록 후 목록으로 이동
-            })
-            .catch(error => console.error("❌ 오류 발생:", error));
+        if (!nickname || !title || !content) {
+            alert("모든 필드를 입력하세요.");
+            return;
         }
-    </script>
 
-</body>
-</html>
+        let postData = {
+            nickname: nickname,
+            title: title,
+            content: content
+        };
+
+        console.log("🚀 데이터 전송 중...", postData);
+
+        fetch(SHEET_URL, {
+            method: "POST",
+            body: JSON.stringify(postData),
+            headers: { "Content-Type": "application/json" } // ✅ "mode: no-cors" 삭제
+        })
+        .then(response => response.text()) // ✅ 응답을 JSON이 아닌 text로 받아서 디버깅
+        .then(data => {
+            console.log("✅ 서버 응답 받음:", data);
+            alert("맛집 추천이 등록되었습니다!");
+            window.location.href = "places.html"; // 등록 후 목록으로 이동
+        })
+        .catch(error => console.error("❌ 오류 발생:", error));
+    }
+</script>
