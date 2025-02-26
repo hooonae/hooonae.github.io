@@ -4,20 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>맛집 추천 글쓰기</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F8F1E9;
+            text-align: center;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #70422A;
+        }
+        .back-link {
+            display: block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #8B5E3C;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
     <h1>맛집 추천 글쓰기</h1>
 
-    <input type="text" id="nickname" placeholder="닉네임">
-    <input type="text" id="title" placeholder="맛집 이름">
-    <textarea id="content" placeholder="맛집 설명"></textarea>
-    <button onclick="submitPost()">등록</button>
+    <div class="form-container">
+        <input type="text" id="nickname" placeholder="닉네임">
+        <input type="text" id="title" placeholder="맛집 이름">
+        <textarea id="content" placeholder="맛집 설명"></textarea>
+        <button onclick="submitPost()">등록</button>
+    </div>
 
-    <a href="places.html"><button>목록으로 돌아가기</button></a>
+    <a href="places.html" class="back-link">← 맛집 목록으로 돌아가기</a>
 
     <script>
-        const SHEET_URL = "https://script.google.com/macros/s/AKfycby4l8aIFwY9v5qyBqNmnEUEzhVVMDK4DGVTcdD3_ViLbuiW8WS9KZGFCPOll_7T4UPO/exec"; 
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycbzJUOBih-DaEQjOAg6rQs62YRqPhNmHj6_W6zY7QGhmVDFYfaVozSIdku0H0sl6DsNp/exec";
 
         function submitPost() {
             let nickname = document.getElementById("nickname").value.trim();
@@ -38,8 +80,7 @@
             fetch(SHEET_URL, {
                 method: "POST",
                 body: JSON.stringify(postData),
-                headers: { "Content-Type": "application/json" },
-                mode: 'no-cors' // 🔥 CORS 오류 방지 추가
+                headers: { "Content-Type": "application/json" }
             })
             .then(response => {
                 alert("맛집 추천이 등록되었습니다!");
