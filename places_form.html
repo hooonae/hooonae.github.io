@@ -4,86 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>맛집 추천 작성</title>
-    <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #F8F1E9;
-            text-align: center;
-        }
-        .form-container {
-            max-width: 400px;
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background: #8B5E3C;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
+    
+    <!-- ✅ Firebase SDK 추가 -->
+    <script type="module">
+        // ✅ Firebase SDK 불러오기
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-    <h1>맛집 추천 작성</h1>
-
-    <div class="form-container">
-        <input type="text" id="nickname" placeholder="닉네임">
-        <input type="text" id="title" placeholder="맛집 이름">
-        <textarea id="content" placeholder="맛집 설명"></textarea>
-        <button onclick="submitPost()">등록</button>
-    </div>
-
-<script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycby2z5r6sqTeBMeADZpnnjzSVDbQe38KUlOJECxkx2fvpdmIjHZ1HMc8gaPzYWonulLj/exec"; // ✅ 새 배포된 웹 앱 URL로 변경
-
-    function submitPost() {
-        let nickname = document.getElementById("nickname").value.trim();
-        let title = document.getElementById("title").value.trim();
-        let content = document.getElementById("content").value.trim();
-
-        if (!nickname || !title || !content) {
-            alert("모든 필드를 입력하세요.");
-            return;
-        }
-
-        let postData = {
-            nickname: nickname,
-            title: title,
-            content: content
+        // ✅ Firebase 설정 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.firebasestorage.app",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        console.log("🚀 데이터 전송 중...", postData);
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        fetch(SHEET_URL, {
-            method: "POST",
-            body: JSON.stringify(postData),
-            headers: { 
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*" // ✅ 추가하여 CORS 오류 방지
+        // ✅ 데이터 저장 함수
+        function submitPost() {
+            let nickname = document.getElementById("nickname").value.trim();
+            let title = document.getElementById("title").value.trim();
+            let content = document.getElementById("content").value.trim();
+
+            if (!nickname || !title || !content) {
+                alert("모든 필드를 입력하세요.");
+                return;
             }
-        })
-        .then(response => response.json()) // ✅ JSON 형식으로 응답을 받도록 변경
-        .then(data => {
-            console.log("✅ 서버 응답 받음:", data);
-            alert("맛집 추천이 등록되었습니다!");
-            window.location.href = "places.html"; // 등록 후 목록으로 이동
-        })
-        .catch(error => {
-            console.error("❌ 오류 발생:", error);
-            alert("데이터 전송에 실패했습니다. 콘솔에서 오류를 확인하세요.");
-        });
-    }
-</script>
+
+            // ✅ Firebase 데이터베이스에 저장
+            push(ref(db, "places"), {
+                nickname: nickname,
+                title: title,
+                content: content,
+                date: new Date().toLocaleString()
+            }).then(() => {
+                alert("맛집 추천이 등록되었습니다!");
+                window.location.href = "places.html";
+            }).catch(error => {
+                console.error("❌ 오류 발생:", error);
+                alert("데이터 저장 실패");
+            });
