@@ -43,32 +43,6 @@
 
         // ✅ 페이지 로딩 시 실행
         window.onload = loadPosts;
-
-        // ✅ 맛집 추가 함수
-        function submitPlace() {
-            const title = document.getElementById("title").value;
-            const content = document.getElementById("content").value;
-            const nickname = document.getElementById("nickname").value;
-            const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
-
-            if (title && content && nickname) {
-                const newPlaceRef = push(ref(db, "places"));
-                newPlaceRef.set({
-                    title: title,
-                    content: content,
-                    nickname: nickname,
-                    date: date
-                }).then(() => {
-                    alert("맛집이 등록되었습니다!");
-                    location.reload(); // 등록 후 페이지 새로고침
-                }).catch((error) => {
-                    console.error("등록 중 오류 발생:", error);
-                    alert("등록 실패!");
-                });
-            } else {
-                alert("모든 입력칸을 채워주세요!");
-            }
-        }
     </script>
 
     <style>
@@ -119,6 +93,34 @@
         <h2>맛집 목록</h2>
         <div id="placesList"></div>
     </div>
+
+    <script type="module">
+        // ✅ 맛집 추가 함수
+        function submitPlace() {
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            const nickname = document.getElementById("nickname").value;
+            const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
+
+            if (title && content && nickname) {
+                const newPlaceRef = push(ref(db, "places"));
+                newPlaceRef.set({
+                    title: title,
+                    content: content,
+                    nickname: nickname,
+                    date: date
+                }).then(() => {
+                    alert("맛집이 등록되었습니다!");
+                    location.reload(); // 등록 후 페이지 새로고침
+                }).catch((error) => {
+                    console.error("등록 중 오류 발생:", error);
+                    alert("등록 실패!");
+                });
+            } else {
+                alert("모든 입력칸을 채워주세요!");
+            }
+        }
+    </script>
 
 </body>
 </html>
