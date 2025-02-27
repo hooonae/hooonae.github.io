@@ -19,78 +19,53 @@
             width: 100%;
             height: 250px;
             background: url('banner.png') no-repeat center center/cover;
+            position: relative;
         }
-
-        /* ✅ 네비게이션 바 */
-        nav {
-            background: rgba(139, 94, 60, 0.9);
-            padding: 15px;
-            text-align: center;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-        }
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 10px;
-            font-weight: bold;
-            font-size: 1em;
-            padding: 10px;
-        }
-        nav a:hover { text-decoration: underline; }
 
         /* ✅ 모바일 메뉴 (햄버거 메뉴) */
         .menu-toggle {
-            display: none;
-            font-size: 1.5em;
+            font-size: 2.2em; /* 기존 대비 1.5배 확대 */
             color: white;
             background: none;
             border: none;
             cursor: pointer;
             position: absolute;
             right: 15px;
-            top: 12px;
+            top: 15px;
+            z-index: 2000;
         }
 
         .menu {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            background: rgba(139, 94, 60, 0.95);
+            width: 100%;
+            top: 60px;
+            left: 0;
+            text-align: center;
+            z-index: 1000;
         }
 
-        @media (max-width: 768px) {
-            .menu {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                background: rgba(139, 94, 60, 0.95);
-                width: 100%;
-                top: 50px;
-                left: 0;
-                text-align: center;
-            }
+        .menu a {
+            display: block;
+            padding: 15px;
+            color: white;
+            font-size: 1.2em;
+            text-decoration: none;
+        }
 
-            .menu a {
-                display: block;
-                padding: 10px;
-            }
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
-            .menu-toggle {
-                display: block;
-            }
-
-            .menu.open {
-                display: flex;
-            }
+        .menu.open {
+            display: flex;
         }
 
         /* ✅ 메인 컨테이너 */
         .container {
-            padding: 100px 20px 50px;
+            padding: 30px 20px 50px;
             text-align: center;
         }
 
@@ -146,23 +121,22 @@
 <body>
 
     <!-- ✅ 배너 추가 -->
-    <div class="banner"></div>
-
-    <!-- ✅ 네비게이션 바 -->
-    <nav>
+    <div class="banner">
         <button class="menu-toggle" onclick="toggleMenu()">☰</button>
-        <div class="menu">
-            <a href="index.html">🏠 홈</a>
-            <a href="gallery.html">🖼 전시 이미지</a>
-            <a href="places.html">🍽 맛집 추천</a>
-            <a href="events.html">📅 전시 일정</a>
-            <a href="calendar.html">📌 지킴이 일정</a>
-            <a href="tips.html">💡 꿀팁</a>
-            <a href="supplies.html">📦 필요 비품</a>
-            <a href="suggestions.html">🗣 건의 사항</a>
-            <a href="notices.html">📢 공지사항</a>
-        </div>
-    </nav>
+    </div>
+
+    <!-- ✅ 햄버거 메뉴 -->
+    <div class="menu">
+        <a href="index.html">🏠 홈</a>
+        <a href="gallery.html">🖼 전시 이미지</a>
+        <a href="places.html">🍽 맛집 추천</a>
+        <a href="events.html">📅 전시 일정</a>
+        <a href="calendar.html">📌 지킴이 일정</a>
+        <a href="tips.html">💡 꿀팁</a>
+        <a href="supplies.html">📦 필요 비품</a>
+        <a href="suggestions.html">🗣 건의 사항</a>
+        <a href="notices.html">📢 공지사항</a>
+    </div>
 
     <div class="container">
         <h1>서울공예박물관</h1>
