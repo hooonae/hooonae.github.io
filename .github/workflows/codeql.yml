@@ -28,6 +28,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # 🔍 Python 코드가 존재하는지 디버깅 (파일 목록 출력)
+    - name: Debug - List Files
+      run: ls -la
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -42,7 +46,7 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        build-mode: "none"  # 🔥 autobuild → none으로 수정
+        source-root: "${{ github.workspace }}"  # 🔥 Python 코드 감지를 확실하게 설정
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
