@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>추천 맛집 목록</title>
+    <title>서울공예박물관 홈페이지</title>
     
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         // ✅ Firebase 설정 정보
         const firebaseConfig = {
@@ -25,101 +25,199 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ✅ Firebase에서 데이터 불러오기
-        function loadPosts() {
-            const placesList = document.getElementById("placesList");
-            placesList.innerHTML = "<p>로딩 중...</p>";
+        // ✅ Firebase에서 공지사항 불러오기
+        function loadNotices() {
+            const noticeList = document.getElementById("noticeList");
+            noticeList.innerHTML = "<p>로딩 중...</p>";
 
-            onValue(ref(db, "places"), (snapshot) => {
-                placesList.innerHTML = ""; // 기존 목록 초기화
+            onValue(ref(db, "notices"), (snapshot) => {
+                noticeList.innerHTML = ""; // 기존 목록 초기화
+                let count = 0;
                 snapshot.forEach((childSnapshot) => {
-                    const post = childSnapshot.val();
-                    let div = document.createElement("div");
-                    div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>작성자: ${post.nickname} | ${post.date}</small>`;
-                    placesList.appendChild(div);
+                    if (count < 3) { // 최근 공지 3개만 표시
+                        const notice = childSnapshot.val();
+                        let li = document.createElement("li");
+                        li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}`;
+                        noticeList.appendChild(li);
+                        count++;
+                    }
                 });
             });
         }
 
         // ✅ 페이지 로딩 시 실행
-        window.onload = loadPosts;
-
-        // ✅ 맛집 등록 함수
-        function submitPlace() {
-            const title = document.getElementById("title").value;
-            const content = document.getElementById("content").value;
-            const nickname = document.getElementById("nickname").value;
-            const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
-
-            if (title && content && nickname) {
-                const newPlaceRef = push(ref(db, "places"));
-                newPlaceRef.set({
-                    title: title,
-                    content: content,
-                    nickname: nickname,
-                    date: date
-                }).then(() => {
-                    alert("맛집이 등록되었습니다!");
-                    location.reload(); // 등록 후 페이지 새로고침
-                }).catch((error) => {
-                    console.error("등록 중 오류 발생:", error);
-                    alert("등록 실패!");
-                });
-            } else {
-                alert("모든 입력칸을 채워주세요!");
-            }
-        }
+        window.onload = loadNotices;
     </script>
 
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
             margin: 0;
-            padding: 20px;
-            background: #F8F1E9;
+            padding: 0;
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+            color: #333;
+        }
+
+        /* 배너 스타일 */
+        .banner {
+            width: 100%;
+            height: 300px;
+            background: url('banner.png') center/cover no-repeat;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            margin-top: 60px; /* 상단바를 피하기 위해 배너 위쪽 여백 추가 */
+        }
+
+        h1 { text-align: center; font-size: 2.5em; margin-top: 60px; }
+
+        /* 네비게이션 바 */
+        nav {
+            background: rgba(139, 94, 60, 0.9);
+            padding: 15px;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            overflow-x: auto; /* 내용이 길어질 때 자동으로 스크롤 가능 */
+        }
+
+        /* 네비게이션 메뉴 항목 스타일 */
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: bold;
+            font-size: 1em;
+            display: inline-block; /* 메뉴 항목들이 수평으로 나열됨 */
+        }
+
+        nav a:hover { text-decoration: underline; }
+
+        /* 모바일 화면에서 메뉴 항목이 세로로 나열되도록 */
+        @media (max-width: 600px) {
+            nav {
+                text-align: left; /* 세로로 나열할 때는 왼쪽 정렬 */
+                padding: 20px;
+            }
+
+            nav a {
+                display: block; /* 메뉴 항목들이 세로로 나열되게 설정 */
+                margin: 10px 0; /* 항목들 간에 간격 추가 */
+            }
+        }
+
+        /* 컨테이너 */
+        .container {
+            padding: 100px 20px;
             text-align: center;
         }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
+
+        /* 공지사항 */
+        .notice {
+            background: #ffeb99;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: auto;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
         }
-        input, button {
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            background-color: #007BFF;
+        .notice h2 { color: #8B5E3C; }
+        .notice ul { list-style-type: none; padding: 0; }
+        .notice li { padding: 5px 0; font-size: 1em; }
+        .notice .more-btn {
+            display: block;
+            margin-top: 10px;
+            background: #8B5E3C;
             color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #0056b3;
+
+        /* 카드 스타일 */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: auto;
+            margin-top: 30px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover { transform: translateY(-5px); }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            .cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
         }
     </style>
 </head>
 <body>
 
-    <h1>추천 맛집 목록</h1>
-
-    <!-- 글쓰기 버튼 -->
-    <button onclick="location.href='places_form.html'">글쓰기</button>
-
-    <div class="container">
-        <div id="placesList"></div>
+    <!-- 배너 -->
+    <div class="banner">
+        서울공예박물관
     </div>
 
+    <!-- 네비게이션 바 -->
+    <nav>
+        <a href="index.html">🏠 홈</a>
+        <a href="gallery.html">🖼 전시 이미지</a>
+        <a href="places.html">🍽 맛집 추천</a>
+        <a href="events.html">📅 전시 일정</a>
+        <a href="calendar.html">📌 지킴이 일정</a>
+        <a href="tips.html">💡 꿀팁</a>
+        <a href="supplies.html">📦 필요 비품</a>
+        <a href="suggestions.html">🗣 건의 사항</a>
+        <a href="notices.html">📢 공지사항</a>
+    </nav>
+
     <div class="container">
-        <h2>맛집 추가하기</h2>
-        <input type="text" id="title" placeholder="맛집 이름">
-        <input type="text" id="content" placeholder="맛집 설명">
-        <input type="text" id="nickname" placeholder="작성자">
-        <button onclick="submitPlace()">등록하기</button>
+        <h1>서울공예박물관</h1>
+
+        <!-- 공지사항 섹션 -->
+        <div class="notice">
+            <h2>📢 공지사항</h2>
+            <ul id="noticeList"></ul>
+            <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
+        </div>
+
+        <!-- 카드 섹션 -->
+        <div class="cards">
+            <div class="card">
+                <h3>📌 지킴이 일정</h3>
+                <p>지킴이들의 근무 일정을 확인하세요.</p>
+                <button onclick="location.href='calendar.html'">일정 보기</button>
+            </div>
+            <div class="card">
+                <h3>📅 전시 일정</h3>
+                <p>다가오는 전시 일정을 확인하세요!</p>
+                <button onclick="location.href='events.html'">일정 보기</button>
+            </div>
+            <div class="card">
+                <h3>📢 공지사항 작성</h3>
+                <p>관리자만 공지사항을 작성할 수 있습니다.</p>
+                <button onclick="location.href='notice_form.html'">작성하기</button>
+            </div>
+        </div>
     </div>
 
 </body>
