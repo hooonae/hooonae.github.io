@@ -8,7 +8,7 @@
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         // ✅ Firebase 설정 정보
         const firebaseConfig = {
@@ -43,6 +43,32 @@
 
         // ✅ 페이지 로딩 시 실행
         window.onload = loadPosts;
+
+        // ✅ 맛집 등록 함수
+        function submitPlace() {
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            const nickname = document.getElementById("nickname").value;
+            const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
+
+            if (title && content && nickname) {
+                const newPlaceRef = push(ref(db, "places"));
+                newPlaceRef.set({
+                    title: title,
+                    content: content,
+                    nickname: nickname,
+                    date: date
+                }).then(() => {
+                    alert("맛집이 등록되었습니다!");
+                    location.reload(); // 등록 후 페이지 새로고침
+                }).catch((error) => {
+                    console.error("등록 중 오류 발생:", error);
+                    alert("등록 실패!");
+                });
+            } else {
+                alert("모든 입력칸을 채워주세요!");
+            }
+        }
     </script>
 
     <style>
@@ -61,14 +87,39 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
 
     <h1>추천 맛집 목록</h1>
 
+    <!-- 글쓰기 버튼 -->
+    <button onclick="location.href='places_form.html'">글쓰기</button>
+
     <div class="container">
         <div id="placesList"></div>
+    </div>
+
+    <div class="container">
+        <h2>맛집 추가하기</h2>
+        <input type="text" id="title" placeholder="맛집 이름">
+        <input type="text" id="content" placeholder="맛집 설명">
+        <input type="text" id="nickname" placeholder="작성자">
+        <button onclick="submitPlace()">등록하기</button>
     </div>
 
 </body>
