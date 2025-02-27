@@ -5,50 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>서울공예박물관 홈페이지</title>
     
-    <!-- ✅ Firebase SDK 추가 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
-        // ✅ Firebase 설정 정보
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.firebasestorage.app",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-
-        // ✅ Firebase 초기화
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // ✅ Firebase에서 공지사항 불러오기
-        function loadNotices() {
-            const noticeList = document.getElementById("noticeList");
-            noticeList.innerHTML = "<p>로딩 중...</p>";
-
-            onValue(ref(db, "notices"), (snapshot) => {
-                noticeList.innerHTML = ""; // 기존 목록 초기화
-                let count = 0;
-                snapshot.forEach((childSnapshot) => {
-                    if (count < 3) { // 최근 공지 3개만 표시
-                        const notice = childSnapshot.val();
-                        let li = document.createElement("li");
-                        li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}`;
-                        noticeList.appendChild(li);
-                        count++;
-                    }
-                });
-            });
-        }
-
-        // ✅ 페이지 로딩 시 실행
-        window.onload = loadNotices;
-    </script>
-
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -58,24 +14,14 @@
             color: #333;
         }
 
-        /* 배너 스타일 */
+        /* ✅ 배너 스타일 */
         .banner {
             width: 100%;
-            height: 300px;
-            background: url('banner.png') center/cover no-repeat;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 2em;
-            font-weight: bold;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            height: 250px;
+            background: url('banner.png') no-repeat center center/cover;
         }
 
-        h1 { text-align: center; font-size: 2.5em; margin-top: 60px; }
-
-        /* 네비게이션 바 */
+        /* ✅ 네비게이션 바 */
         nav {
             background: rgba(139, 94, 60, 0.9);
             padding: 15px;
@@ -93,16 +39,62 @@
             margin: 0 10px;
             font-weight: bold;
             font-size: 1em;
+            padding: 10px;
         }
         nav a:hover { text-decoration: underline; }
 
-        /* 컨테이너 */
+        /* ✅ 모바일 메뉴 (햄버거 메뉴) */
+        .menu-toggle {
+            display: none;
+            font-size: 1.5em;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            top: 12px;
+        }
+
+        .menu {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                background: rgba(139, 94, 60, 0.95);
+                width: 100%;
+                top: 50px;
+                left: 0;
+                text-align: center;
+            }
+
+            .menu a {
+                display: block;
+                padding: 10px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .menu.open {
+                display: flex;
+            }
+        }
+
+        /* ✅ 메인 컨테이너 */
         .container {
-            padding: 100px 20px;
+            padding: 100px 20px 50px;
             text-align: center;
         }
 
-        /* 공지사항 */
+        /* ✅ 공지사항 */
         .notice {
             background: #ffeb99;
             padding: 15px;
@@ -126,7 +118,7 @@
             cursor: pointer;
         }
 
-        /* 카드 스타일 */
+        /* ✅ 카드 스타일 */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -153,35 +145,36 @@
 </head>
 <body>
 
-    <!-- 배너 -->
-    <div class="banner">
-        서울공예박물관
-    </div>
+    <!-- ✅ 배너 추가 -->
+    <div class="banner"></div>
 
-    <!-- 네비게이션 바 -->
+    <!-- ✅ 네비게이션 바 -->
     <nav>
-        <a href="index.html">🏠 홈</a>
-        <a href="gallery.html">🖼 전시 이미지</a>
-        <a href="places.html">🍽 맛집 추천</a>
-        <a href="events.html">📅 전시 일정</a>
-        <a href="calendar.html">📌 지킴이 일정</a>
-        <a href="tips.html">💡 꿀팁</a>
-        <a href="supplies.html">📦 필요 비품</a>
-        <a href="suggestions.html">🗣 건의 사항</a>
-        <a href="notices.html">📢 공지사항</a>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <div class="menu">
+            <a href="index.html">🏠 홈</a>
+            <a href="gallery.html">🖼 전시 이미지</a>
+            <a href="places.html">🍽 맛집 추천</a>
+            <a href="events.html">📅 전시 일정</a>
+            <a href="calendar.html">📌 지킴이 일정</a>
+            <a href="tips.html">💡 꿀팁</a>
+            <a href="supplies.html">📦 필요 비품</a>
+            <a href="suggestions.html">🗣 건의 사항</a>
+            <a href="notices.html">📢 공지사항</a>
+        </div>
     </nav>
 
     <div class="container">
         <h1>서울공예박물관</h1>
 
-        <!-- 공지사항 섹션 -->
+        <!-- ✅ 공지사항 섹션 -->
         <div class="notice">
             <h2>📢 공지사항</h2>
             <ul id="noticeList"></ul>
             <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
         </div>
 
-        <!-- 카드 섹션 -->
+        <!-- ✅ 카드 섹션 -->
         <div class="cards">
             <div class="card">
                 <h3>📌 지킴이 일정</h3>
@@ -200,6 +193,14 @@
             </div>
         </div>
     </div>
+
+    <!-- ✅ 모바일 메뉴 토글 기능 -->
+    <script>
+        function toggleMenu() {
+            const menu = document.querySelector('.menu');
+            menu.classList.toggle('open');
+        }
+    </script>
 
 </body>
 </html>
