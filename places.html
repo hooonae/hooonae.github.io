@@ -26,23 +26,63 @@
         const db = getDatabase(app);
 
         // ✅ Firebase에서 데이터 불러오기
-        function loadPosts() {
+        function loadPlaces() {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>로딩 중...</p>";
 
             onValue(ref(db, "places"), (snapshot) => {
                 placesList.innerHTML = ""; // 기존 목록 초기화
+                if (!snapshot.exists()) {
+                    placesList.innerHTML = "<p>등록된 맛집이 없습니다.</p>";
+                    return;
+                }
+
                 snapshot.forEach((childSnapshot) => {
-                    const post = childSnapshot.val();
+                    const place = childSnapshot.val();
                     let div = document.createElement("div");
-                    div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>작성자: ${post.nickname} | ${post.date}</small>`;
+                    div.classList.add("place-item");
+                    div.innerHTML = `
+                        <h3>${place.title}</h3>
+                        <p>${place.content}</p>
+                        <small>👤 ${place.nickname} | 📅 ${place.date}</small>
+                    `;
                     placesList.appendChild(div);
                 });
+            }, (error) => {
+                console.error("데이터를 불러오는 중 오류 발생:", error);
+                placesList.innerHTML = "<p>데이터를 불러오는 중 오류가 발생했습니다.</p>";
+            });
+        }
+
+        // ✅ 맛집 추가 함수
+        function submitPlace() {
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            const nickname = document.getElementById("nickname").value;
+            const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
+
+            if (!title || !content || !nickname) {
+                alert("⚠️ 모든 입력칸을 채워주세요!");
+                return;
+            }
+
+            const newPlaceRef = push(ref(db, "places"));
+            newPlaceRef.set({
+                title: title,
+                content: content,
+                nickname: nickname,
+                date: date
+            }).then(() => {
+                alert("✅ 맛집이 등록되었습니다!");
+                location.reload(); // 등록 후 페이지 새로고침
+            }).catch((error) => {
+                console.error("등록 중 오류 발생:", error);
+                alert("❌ 등록 실패!");
             });
         }
 
         // ✅ 페이지 로딩 시 실행
-        window.onload = loadPosts;
+        window.onload = loadPlaces;
     </script>
 
     <style>
@@ -57,70 +97,82 @@
             max-width: 600px;
             margin: 20px auto;
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
         input, button {
             padding: 10px;
-            margin: 5px;
             border-radius: 5px;
             border: 1px solid #ccc;
+            font-size: 1rem;
         }
         button {
             background-color: #007BFF;
             color: white;
+            font-weight: bold;
             cursor: pointer;
+            border: none;
+            transition: 0.3s;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        .place-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 10px 0;
+            text-align: left;
+        }
+        .place-item h3 {
+            margin: 0 0 5px;
+        }
+        .place-item p {
+            margin: 0 0 10px;
+            font-size: 0.9rem;
+        }
+        .place-item small {
+            color: gray;
+            font-size: 0.8rem;
+        }
+
+        /* ✅ 반응형 (모바일 최적화) */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+            input, button {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <h1>추천 맛집 목록</h1>
+    <h1>🍽 추천 맛집 목록</h1>
 
     <div class="container">
-        <h2>맛집 추가하기</h2>
-        <input type="text" id="title" placeholder="맛집 이름">
-        <input type="text" id="content" placeholder="맛집 설명">
-        <input type="text" id="nickname" placeholder="작성자">
+        <h2>➕ 맛집 추가하기</h2>
+        <div class="input-group">
+            <input type="text" id="title" placeholder="🍜 맛집 이름">
+            <input type="text" id="content" placeholder="📖 맛집 설명">
+            <input type="text" id="nickname" placeholder="👤 작성자">
+        </div>
         <button onclick="submitPlace()">등록하기</button>
     </div>
 
     <div class="container">
-        <h2>맛집 목록</h2>
+        <h2>📋 맛집 목록</h2>
         <div id="placesList"></div>
     </div>
-
-    <script type="module">
-        // ✅ 맛집 추가 함수
-        function submitPlace() {
-            const title = document.getElementById("title").value;
-            const content = document.getElementById("content").value;
-            const nickname = document.getElementById("nickname").value;
-            const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
-
-            if (title && content && nickname) {
-                const newPlaceRef = push(ref(db, "places"));
-                newPlaceRef.set({
-                    title: title,
-                    content: content,
-                    nickname: nickname,
-                    date: date
-                }).then(() => {
-                    alert("맛집이 등록되었습니다!");
-                    location.reload(); // 등록 후 페이지 새로고침
-                }).catch((error) => {
-                    console.error("등록 중 오류 발생:", error);
-                    alert("등록 실패!");
-                });
-            } else {
-                alert("모든 입력칸을 채워주세요!");
-            }
-        }
-    </script>
 
 </body>
 </html>
