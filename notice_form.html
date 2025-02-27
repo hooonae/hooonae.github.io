@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항 작성</title>
+    
+    <!-- ✅ Firebase SDK 추가 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
+
+        // ✅ Firebase 설정 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const storage = getStorage(app);
+
+        // ✅ 공지사항 저장 함수
+        function submitNotice() {
+            const password = document.getElementById("password").value;
+            if (password !== "2025") {
+                alert("비밀번호가 틀렸습니다.");
+                return;
+            }
+
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const file = document.getElementById("image").files[0];
+
+            if (!title || !content) {
+                alert("제목과 내용을 입력하세요.");
+                return;
+            }
+
+            let noticeData = {
+                title: title,
+                content: content,
+                date: new Date().toLocaleString(),
+                imageUrl: "" // 이미지 URL을 저장할 공간
+            };
+
+            if (file) {
+                const imageRef = storageRef(storage, "notices/" + file.name);
+                uploadBytes(imageRef, file).then(snapshot => {
+                    return getDownloadURL(snapshot.ref);
+                }).then(url => {
+                    noticeData.imageUrl = url;
+                    push(ref(db, "notices"), noticeData);
+                    alert("공지사항이 등록되었습니다!");
+                    window.location.href = "notices.html";
+                }).catch(error => console.error("이미지 업로드 실패:", error));
+            } else {
+                push(ref(db, "notices"), noticeData);
+                alert("공지사항이 등록되었습니다!");
+                window.location.href = "notices.html";
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F8F1E9;
+            text-align: center;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>공지사항 작성</h1>
+
+    <div class="form-container">
+        <input type="password" id="password" placeholder="비밀번호 입력 (관리자만 작성 가능)">
+        <input type="text" id="title" placeholder="제목">
+        <textarea id="content" placeholder="내용"></textarea>
+        <input type="file" id="image" accept="image/*">
+        <button onclick="submitNotice()">등록</button>
+    </div>
+
+</body>
+</html>
