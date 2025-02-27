@@ -47,7 +47,7 @@
     </div>
 
 <script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycbxtIQ0HKyoc3R-FcPZXecU4jgWt-8Jc0X4E4wrvWal-HXhszjG_wiM4dL7WXvk9cM46/exec"; // 🔥 새 배포한 웹 앱 URL 입력
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycby2z5r6sqTeBMeADZpnnjzSVDbQe38KUlOJECxkx2fvpdmIjHZ1HMc8gaPzYWonulLj/exec"; // ✅ 새 배포된 웹 앱 URL로 변경
 
     function submitPost() {
         let nickname = document.getElementById("nickname").value.trim();
@@ -70,14 +70,20 @@
         fetch(SHEET_URL, {
             method: "POST",
             body: JSON.stringify(postData),
-            headers: { "Content-Type": "application/json" } // ✅ "mode: no-cors" 삭제
+            headers: { 
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*" // ✅ 추가하여 CORS 오류 방지
+            }
         })
-        .then(response => response.text()) // ✅ 응답을 JSON이 아닌 text로 받아서 디버깅
+        .then(response => response.json()) // ✅ JSON 형식으로 응답을 받도록 변경
         .then(data => {
             console.log("✅ 서버 응답 받음:", data);
             alert("맛집 추천이 등록되었습니다!");
             window.location.href = "places.html"; // 등록 후 목록으로 이동
         })
-        .catch(error => console.error("❌ 오류 발생:", error));
+        .catch(error => {
+            console.error("❌ 오류 발생:", error);
+            alert("데이터 전송에 실패했습니다. 콘솔에서 오류를 확인하세요.");
+        });
     }
 </script>
