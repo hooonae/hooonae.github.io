@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항</title>
+    
+    <!-- ✅ Firebase SDK 추가 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // ✅ Firebase 설정 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.firebasestorage.app",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ✅ Firebase에서 모든 공지사항 불러오기
+        function loadAllNotices() {
+            const noticesList = document.getElementById("noticesList");
+            noticesList.innerHTML = "<p>로딩 중...</p>";
+
+            onValue(ref(db, "notices"), (snapshot) => {
+                noticesList.innerHTML = ""; // 기존 목록 초기화
+                snapshot.forEach((childSnapshot) => {
+                    const notice = childSnapshot.val();
+                    let div = document.createElement("div");
+                    div.classList.add("notice-card");
+                    div.innerHTML = `
+                        <h3>${notice.title}</h3>
+                        <p>${notice.date}</p>
+                        <button onclick="viewNotice('${childSnapshot.key}')">자세히 보기</button>
+                    `;
+                    noticesList.appendChild(div);
+                });
+            });
+        }
+
+        // ✅ 특정 공지사항 보기
+        function viewNotice(noticeId) {
+            window.location.href = `notice_view.html?id=${noticeId}`;
+        }
+
+        // ✅ 페이지 로딩 시 실행
+        window.onload = loadAllNotices;
+    </script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F8F1E9;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .notice-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        .notice-card h3 {
+            margin: 0;
+        }
+        .notice-card p {
+            color: #666;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📢 공지사항 목록</h1>
+
+    <div class="container">
+        <div id="noticesList"></div>
+
+        <button onclick="location.href='notice_form.html'">공지사항 작성</button>
+        <button onclick="location.href='index.html'">🏠 홈으로</button>
+    </div>
+
+</body>
+</html>
