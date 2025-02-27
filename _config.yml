@@ -1,5 +1,40 @@
-theme: jekyll-theme-primer
+# Jekyll 사이트 설정 파일 (_config.yml)
 
+title: "Hooonae's GitHub Pages"  # 사이트 제목 (원하는 대로 변경 가능)
+description: "GitHub Pages powered by Jekyll"  # 사이트 설명
+theme: jekyll-theme-primer  # Jekyll에서 사용할 테마 (원하는 테마로 변경 가능)
+
+# SCSS 설정 (Jekyll이 SCSS 변환을 수행할 수 있도록 설정)
 sass:
-  sass_dir: assets/css
-  style: compressed
+  sass_dir: assets/css  # SCSS 파일이 위치한 폴더
+  style: compressed  # CSS를 압축하여 최적화
+
+# 빌드 관련 설정
+exclude:
+  - README.md  # 빌드에서 제외할 파일
+  - node_modules
+  - vendor
+
+# Plugins (Jekyll에서 사용할 플러그인)
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-paginate
+  - jekyll-archives
+
+# 기본 Markdown 설정
+markdown: kramdown
+
+# 기본 permalink 설정 (URL 구조 변경 가능)
+permalink: pretty
+
+# Paginator 설정 (블로그 페이지네이션 기능)
+paginate: 5  # 한 페이지에 5개의 포스트 표시
+paginate_path: "/page:num/"
+
+# Collections 설정 (추가적인 데이터 구조 사용 가능)
+collections:
+  projects:
+    output: true
+    permalink: /projects/:path/
