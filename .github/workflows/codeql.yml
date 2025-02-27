@@ -28,11 +28,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Python 환경 설정 추가
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    # Node.js 환경 설정 추가 (JavaScript용)
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        build-mode: "autobuild"  # 수정된 부분
+        build-mode: "autobuild"
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
