@@ -4,6 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>추천 맛집 목록</title>
+    
+    <!-- ✅ Firebase SDK 추가 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // ✅ Firebase 설정 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.firebasestorage.app",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ✅ Firebase에서 데이터 불러오기
+        function loadPosts() {
+            const placesList = document.getElementById("placesList");
+            placesList.innerHTML = "<p>로딩 중...</p>";
+
+            onValue(ref(db, "places"), (snapshot) => {
+                placesList.innerHTML = ""; // 기존 목록 초기화
+                snapshot.forEach((childSnapshot) => {
+                    const post = childSnapshot.val();
+                    let div = document.createElement("div");
+                    div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>작성자: ${post.nickname} | ${post.date}</small>`;
+                    placesList.appendChild(div);
+                });
+            });
+        }
+
+        // ✅ 페이지 로딩 시 실행
+        window.onload = loadPosts;
+    </script>
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -12,7 +53,7 @@
             background: #F8F1E9;
             text-align: center;
         }
-        .list-container {
+        .container {
             max-width: 600px;
             margin: 20px auto;
             background: white;
@@ -20,57 +61,15 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .list-item {
-            border-bottom: 1px solid #ddd;
-            padding: 10px;
-        }
-        .list-item:last-child {
-            border-bottom: none;
-        }
-        .write-button {
-            display: block;
-            width: 200px;
-            margin: 20px auto;
-            padding: 10px;
-            background: #8B5E3C;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
 
     <h1>추천 맛집 목록</h1>
 
-    <a href="places_form.html" class="write-button">맛집 추천 글쓰기</a>
-
-    <div id="placesList" class="list-container"></div>
-
-    <script>
-        const SHEET_URL = "https://script.google.com/macros/s/AKfycby2z5r6sqTeBMeADZpnnjzSVDbQe38KUlOJECxkx2fvpdmIjHZ1HMc8gaPzYWonulLj/exec";
-
-        function loadPlaces() {
-            console.log("데이터 불러오는 중...");
-            fetch(SHEET_URL)
-            .then(response => response.json())
-            .then(data => {
-                console.log("받은 데이터:", data);
-                let placesList = document.getElementById("placesList");
-                placesList.innerHTML = "";
-
-                data.forEach(post => {
-                    let div = document.createElement("div");
-                    div.classList.add("list-item");
-                    div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>작성자: ${post.nickname} | ${post.date}</small>`;
-                    placesList.appendChild(div);
-                });
-            })
-            .catch(error => console.error("Error:", error));
-        }
-
-        window.onload = loadPlaces;
-    </script>
+    <div class="container">
+        <div id="placesList"></div>
+    </div>
 
 </body>
 </html>
