@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항 상세</title>
+    
+    <!-- ✅ Firebase SDK 추가 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // ✅ Firebase 설정 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ✅ URL에서 공지사항 ID 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const noticeId = urlParams.get("id");
+
+        // ✅ 특정 공지사항 불러오기
+        function loadNotice() {
+            if (!noticeId) {
+                document.getElementById("noticeContent").innerHTML = "<p>공지사항을 찾을 수 없습니다.</p>";
+                return;
+            }
+
+            get(ref(db, "notices/" + noticeId)).then(snapshot => {
+                if (snapshot.exists()) {
+                    const notice = snapshot.val();
+                    document.getElementById("noticeTitle").innerText = notice.title;
+                    document.getElementById("noticeDate").innerText = `📅 ${notice.date}`;
+                    document.getElementById("noticeContent").innerText = notice.content;
+                    if (notice.imageUrl) {
+                        document.getElementById("noticeImage").src = notice.imageUrl;
+                        document.getElementById("noticeImage").style.display = "block";
+                    }
+                } else {
+                    document.getElementById("noticeContent").innerHTML = "<p>공지사항을 찾을 수 없습니다.</p>";
+                }
+            }).catch(error => console.error("공지사항 불러오기 실패:", error));
+        }
+
+        window.onload = loadNotice;
+    </script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F8F1E9;
+            text-align: center;
+        }
+        .content {
+            max-width: 600px;
+            margin: auto;
+        }
+        img {
+            max-width: 100%;
+            display: none;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="noticeTitle">공지사항</h1>
+    <p id="noticeDate"></p>
+    <div class="content">
+        <img id="noticeImage">
+        <p id="noticeContent"></p>
+    </div>
+
+    <button onclick="location.href='notices.html'">목록으로</button>
+
+</body>
+</html>
