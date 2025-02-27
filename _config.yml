@@ -1,0 +1,5 @@
+theme: jekyll-theme-primer
+
+sass:
+  sass_dir: assets/css
+  style: compressed
