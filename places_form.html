@@ -50,3 +50,53 @@
                 console.error("❌ 오류 발생:", error);
                 alert("데이터 저장 실패");
             });
+        }
+
+        // ✅ HTML에서 submitPost() 함수를 사용할 수 있도록 설정
+        window.submitPost = submitPost;
+    </script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F8F1E9;
+            text-align: center;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>맛집 추천 작성</h1>
+
+    <div class="form-container">
+        <input type="text" id="nickname" placeholder="닉네임">
+        <input type="text" id="title" placeholder="맛집 이름">
+        <textarea id="content" placeholder="맛집 설명"></textarea>
+        <button onclick="submitPost()">등록</button>
+    </div>
+
+</body>
+</html>
