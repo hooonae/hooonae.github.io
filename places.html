@@ -27,7 +27,7 @@
         const db = getDatabase(app);
         const storage = getStorage(app);
 
-        // ✅ 맛집 등록 함수 (이미지 업로드 포함)
+        // ✅ 맛집 등록 함수
         window.submitPlace = async function() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
@@ -77,6 +77,16 @@
                 await push(ref(db, "places"), placeData);
                 alert("✅ 맛집이 등록되었습니다!");
                 location.reload();
+            }
+        };
+
+        // ✅ 맛집 삭제 함수 (전역 함수로 설정)
+        window.deletePlace = function(placeId) {
+            if (confirm("⚠️ 정말 삭제하시겠습니까?")) {
+                remove(ref(db, "places/" + placeId)).then(() => {
+                    alert("🗑️ 맛집이 삭제되었습니다.");
+                    location.reload();
+                }).catch(error => console.error("❌ 삭제 실패:", error));
             }
         };
 
