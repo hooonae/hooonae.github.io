@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>추천 맛집 목록</title>
-    
+    <title>🍽 추천 맛집 목록</title>
+
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, push, remove, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
 
         // ✅ Firebase 설정 정보
@@ -27,24 +27,24 @@
         const db = getDatabase(app);
         const storage = getStorage(app);
 
-        // ✅ 맛집 등록 함수
-        function submitPlace() {
+        // ✅ 맛집 등록 함수 (전역 함수로 설정)
+        window.submitPlace = function() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
             const nickname = document.getElementById("nickname").value.trim();
             const file = document.getElementById("image").files[0];
 
             if (!title || !content || !nickname) {
-                alert("모든 입력란을 채워주세요.");
+                alert("모든 항목을 입력해주세요.");
                 return;
             }
 
             let placeData = {
-                title: title,
-                content: content,
-                nickname: nickname,
+                title,
+                content,
+                nickname,
                 date: new Date().toLocaleString(),
-                imageUrl: "" // 이미지 URL 저장
+                imageUrl: "" // 기본 이미지 URL
             };
 
             if (file) {
@@ -55,58 +55,54 @@
                     placeData.imageUrl = url;
                     push(ref(db, "places"), placeData);
                     alert("맛집이 등록되었습니다!");
-                    window.location.reload();
+                    location.reload();
                 }).catch(error => console.error("이미지 업로드 실패:", error));
             } else {
                 push(ref(db, "places"), placeData);
                 alert("맛집이 등록되었습니다!");
-                window.location.reload();
+                location.reload();
             }
-        }
+        };
 
-        // ✅ 맛집 목록 불러오기
+        // ✅ 맛집 삭제 함수
+        window.deletePlace = function(placeId) {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                remove(ref(db, "places/" + placeId));
+                alert("맛집이 삭제되었습니다.");
+                location.reload();
+            }
+        };
+
+        // ✅ Firebase에서 데이터 불러오기
         function loadPlaces() {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>로딩 중...</p>";
 
             onValue(ref(db, "places"), (snapshot) => {
                 placesList.innerHTML = ""; // 기존 목록 초기화
-                let placesArray = [];
+                let places = [];
 
                 snapshot.forEach((childSnapshot) => {
-                    let post = childSnapshot.val();
-                    post.id = childSnapshot.key; // Firebase 데이터의 고유 ID 추가
-                    placesArray.push(post);
+                    let key = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    places.push({ key, ...data });
                 });
 
-                // 최신 글이 위로 오도록 정렬 (최신순)
-                placesArray.reverse().forEach(post => {
+                // 🔥 최신 글이 위로 오도록 정렬
+                places.reverse();
+
+                places.forEach((place) => {
                     let div = document.createElement("div");
-                    div.classList.add("place-card");
-
                     div.innerHTML = `
-                        <h3>${post.title}</h3>
-                        <p>${post.content}</p>
-                        <p>작성자: <span class="nickname">${post.nickname}</span> | ${post.date}</p>
-                        ${post.imageUrl ? `<img src="${post.imageUrl}" class="place-img" alt="맛집 이미지">` : ""}
-                        <button class="delete-btn" onclick="deletePlace('${post.id}')">삭제</button>
+                        <h3>${place.title}</h3>
+                        <p>${place.content}</p>
+                        <p><strong>${place.nickname}</strong> | ${place.date}</p>
+                        ${place.imageUrl ? `<img src="${place.imageUrl}" width="200">` : ""}
+                        <button onclick="deletePlace('${place.key}')">삭제</button>
                     `;
-
                     placesList.appendChild(div);
                 });
             });
-        }
-
-        // ✅ 맛집 삭제 함수
-        function deletePlace(placeId) {
-            if (confirm("정말로 삭제하시겠습니까?")) {
-                remove(ref(db, `places/${placeId}`))
-                    .then(() => {
-                        alert("맛집이 삭제되었습니다.");
-                        window.location.reload();
-                    })
-                    .catch(error => console.error("삭제 실패:", error));
-            }
         }
 
         // ✅ 페이지 로딩 시 실행
@@ -129,64 +125,23 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        h1 {
-            font-size: 2em;
-        }
-        input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background: #8B5E3C;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .place-card {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: left;
-            position: relative;
-        }
-        .place-card img {
-            width: 100%;
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .delete-btn {
-            background: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
 
-    <h1>🍽️ 추천 맛집 목록</h1>
+    <h1>🍽 추천 맛집 목록</h1>
 
     <div class="container">
         <h2>+ 맛집 추가하기</h2>
-        <input type="text" id="title" placeholder="🍜 맛집 이름">
-        <textarea id="content" placeholder="📖 맛집 설명"></textarea>
-        <input type="text" id="nickname" placeholder="👤 작성자">
+        <input type="text" id="title" placeholder="맛집 이름">
+        <input type="text" id="content" placeholder="맛집 설명">
+        <input type="text" id="nickname" placeholder="작성자">
         <input type="file" id="image" accept="image/*">
         <button onclick="submitPlace()">등록하기</button>
     </div>
 
     <div class="container">
-        <h2>📜 맛집 목록</h2>
+        <h2>📋 맛집 목록</h2>
         <div id="placesList"></div>
     </div>
 
