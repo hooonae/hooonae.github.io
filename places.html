@@ -5,6 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F8F1E9;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .place-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        .place-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .delete-btn {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .delete-btn:hover {
+            background: #cc0000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍽 추천 맛집 목록</h1>
+
+    <div class="container">
+        <h2>➕ 맛집 추가하기</h2>
+        <form id="placeForm">
+            <input type="text" id="title" placeholder="🍜 맛집 이름"><br>
+            <input type="text" id="content" placeholder="📖 맛집 설명"><br>
+            <input type="text" id="nickname" placeholder="👤 작성자"><br>
+            <input type="file" id="imageUpload"><br><br>
+            <button type="button" id="submitBtn">등록하기</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>📜 맛집 목록</h2>
+        <div id="placesList">로딩 중...</div>
+    </div>
+
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
@@ -27,7 +85,7 @@
         const db = getDatabase(app);
         const storage = getStorage(app);
 
-        // ✅ 맛집 데이터 추가
+        // ✅ 맛집 데이터 추가 (submitPlace 함수)
         async function submitPlace() {
             const title = document.getElementById("title").value;
             const content = document.getElementById("content").value;
@@ -126,65 +184,10 @@
 
         // ✅ 페이지 로딩 시 실행
         window.onload = loadPlaces;
+
+        // ✅ 이벤트 리스너 추가 (submitPlace 함수 연결)
+        document.getElementById("submitBtn").addEventListener("click", submitPlace);
     </script>
-
-    <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #F8F1E9;
-            text-align: center;
-        }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .place-item {
-            border-bottom: 1px solid #ddd;
-            padding: 10px;
-        }
-        .place-item img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-        }
-        .delete-btn {
-            background: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .delete-btn:hover {
-            background: #cc0000;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>🍽 추천 맛집 목록</h1>
-
-    <div class="container">
-        <h2>➕ 맛집 추가하기</h2>
-        <form id="placeForm">
-            <input type="text" id="title" placeholder="🍜 맛집 이름"><br>
-            <input type="text" id="content" placeholder="📖 맛집 설명"><br>
-            <input type="text" id="nickname" placeholder="👤 작성자"><br>
-            <input type="file" id="imageUpload"><br><br>
-            <button type="button" onclick="submitPlace()">등록하기</button>
-        </form>
-    </div>
-
-    <div class="container">
-        <h2>📜 맛집 목록</h2>
-        <div id="placesList">로딩 중...</div>
-    </div>
 
 </body>
 </html>
