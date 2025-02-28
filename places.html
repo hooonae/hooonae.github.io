@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
-    <!-- ✅ Firebase SDK 로드 (HEAD에서 먼저 로드) -->
+    <!-- ✅ Firebase SDK 로드 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, push, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
 
-        // ✅ Firebase 설정 정보
         const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            apiKey: "AIzaSy...",
             authDomain: "museum-web-370cd.firebaseapp.com",
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
@@ -24,21 +24,73 @@
         // ✅ Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const storage = getStorage(app);
 
-        // ✅ Firebase에서 데이터 불러오기 (목록 갱신)
+        // ✅ 맛집 등록 함수 (이미지 업로드 포함)
+        window.submitPlace = function () {
+            console.log("🔥 등록 버튼 클릭됨!");
+
+            const name = document.getElementById("placeName").value;
+            const description = document.getElementById("placeDescription").value;
+            const author = document.getElementById("placeAuthor").value;
+            const address = document.getElementById("placeAddress").value;
+            const imageFile = document.getElementById("placeImage").files[0]; // ✅ 이미지 파일 가져오기
+
+            if (!name || !description || !author || !address) {
+                alert("모든 필드를 입력해주세요!");
+                return;
+            }
+
+            if (imageFile) {
+                const imageRef = storageRef(storage, `places/${imageFile.name}`);
+                uploadBytes(imageRef, imageFile).then((snapshot) => {
+                    return getDownloadURL(snapshot.ref);
+                }).then((downloadURL) => {
+                    savePlaceToDatabase(name, description, author, address, downloadURL);
+                }).catch((error) => {
+                    alert("이미지 업로드 중 오류 발생: " + error.message);
+                });
+            } else {
+                savePlaceToDatabase(name, description, author, address, null);
+            }
+        };
+
+        // ✅ Firebase Realtime Database에 맛집 정보 저장
+        function savePlaceToDatabase(name, description, author, address, imageUrl) {
+            const newPlaceRef = push(ref(db, "places"));
+            set(newPlaceRef, {
+                title: name,
+                content: description,
+                nickname: author,
+                address: address,
+                imageUrl: imageUrl,
+                date: new Date().toLocaleDateString()
+            }).then(() => {
+                alert("맛집이 등록되었습니다! 🎉");
+                document.getElementById("placeName").value = "";
+                document.getElementById("placeDescription").value = "";
+                document.getElementById("placeAuthor").value = "";
+                document.getElementById("placeAddress").value = "";
+                document.getElementById("placeImage").value = "";
+
+                loadPlaces();
+            });
+        }
+
+        // ✅ 맛집 목록 불러오기
         window.loadPlaces = function () {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>로딩 중...</p>";
 
             onValue(ref(db, "places"), (snapshot) => {
-                placesList.innerHTML = ""; // 기존 목록 초기화
+                placesList.innerHTML = "";
                 if (!snapshot.exists()) {
                     placesList.innerHTML = "<p>등록된 맛집이 없습니다.</p>";
                     return;
                 }
                 snapshot.forEach((childSnapshot) => {
                     const post = childSnapshot.val();
-                    const postId = childSnapshot.key; // Firebase에서 해당 데이터의 ID
+                    const postId = childSnapshot.key;
 
                     let div = document.createElement("div");
                     div.classList.add("place-item");
@@ -46,6 +98,8 @@
                         <h3>${post.title}</h3>
                         <p>${post.content}</p>
                         <small>👩‍🍳 ${post.nickname} | 📅 ${post.date}</small>
+                        <p>📍 ${post.address}</p>
+                        ${post.imageUrl ? `<img src="${post.imageUrl}" style="width:100%; max-width:300px; border-radius:10px;">` : ""}
                         <button class="delete-btn" onclick="deletePlace('${postId}')">❌ 삭제</button>
                     `;
                     placesList.appendChild(div);
@@ -53,65 +107,26 @@
             });
         };
 
-        // ✅ 맛집 데이터 추가 (등록하기 버튼 클릭 시 실행)
-        window.submitPlace = function () {
-            console.log("🔥 [디버깅] 등록 버튼 클릭됨!");
-
-            const name = document.getElementById("placeName").value;
-            const description = document.getElementById("placeDescription").value;
-            const author = document.getElementById("placeAuthor").value;
-
-            if (!name || !description || !author) {
-                console.warn("⚠️ [경고] 필수 입력값이 비어 있음!");
-                alert("모든 필드를 입력해주세요!");
-                return;
-            }
-
-            console.log("✅ [디버깅] 입력값 확인:", { name, description, author });
-
-            const newPlaceRef = push(ref(db, "places"));
-            set(newPlaceRef, {
-                title: name,
-                content: description,
-                nickname: author,
-                date: new Date().toLocaleDateString()
-            })
-            .then(() => {
-                console.log("🎉 [성공] 맛집이 등록되었습니다!");
-                alert("맛집이 등록되었습니다! 🎉");
-
-                document.getElementById("placeName").value = "";
-                document.getElementById("placeDescription").value = "";
-                document.getElementById("placeAuthor").value = "";
-
-                loadPlaces(); // 목록 새로고침
-            })
-            .catch((error) => {
-                console.error("❌ [오류] 등록 실패:", error);
-                alert("등록 중 오류 발생: " + error.message);
-            });
-        };
-
-        // ✅ 맛집 삭제 기능
+        // ✅ 삭제 기능 (누구나 삭제 가능)
         window.deletePlace = function (postId) {
-            console.log(`🗑 [디버깅] 삭제 버튼 클릭됨! 삭제할 ID: ${postId}`);
-
             if (confirm("정말 삭제하시겠습니까?")) {
-                remove(ref(db, `places/${postId}`))
-                .then(() => {
-                    console.log("🗑 [성공] 맛집이 삭제되었습니다!");
-                    alert("맛집이 삭제되었습니다! 🗑");
-                    loadPlaces(); // 목록 새로고침
-                })
-                .catch((error) => {
-                    console.error("❌ [오류] 삭제 실패:", error);
-                    alert("삭제 중 오류 발생: " + error.message);
+                get(ref(db, `places/${postId}`)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const post = snapshot.val();
+                        if (post.imageUrl) {
+                            const imageRef = storageRef(storage, post.imageUrl);
+                            deleteObject(imageRef).catch(() => console.error("❌ 이미지 삭제 실패"));
+                        }
+                    }
+                    remove(ref(db, `places/${postId}`)).then(() => {
+                        alert("맛집이 삭제되었습니다! 🗑");
+                        loadPlaces();
+                    });
                 });
             }
         };
     </script>
 
-    <!-- ✅ CSS 스타일 -->
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -128,67 +143,39 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        input {
+        input, button {
             width: 90%;
             padding: 10px;
             margin: 5px 0;
-            border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 16px;
         }
-        button {
-            background: #007BFF;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
+        button { background: #007BFF; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .delete-btn { background: #FF4C4C; }
         .place-item {
             background: white;
             padding: 15px;
             border-radius: 10px;
             margin: 10px 0;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-        .delete-btn {
-            background: #FF4C4C;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .delete-btn:hover {
-            background: #cc0000;
         }
     </style>
 </head>
 <body onload="loadPlaces()">
-
     <h1>🍽 추천 맛집 목록</h1>
 
-    <!-- ✅ 맛집 추가하기 -->
     <div class="container">
         <h2>➕ 맛집 추가하기</h2>
         <input id="placeName" type="text" placeholder="🍜 맛집 이름">
         <input id="placeDescription" type="text" placeholder="📖 맛집 설명">
         <input id="placeAuthor" type="text" placeholder="👩‍🍳 작성자">
+        <input id="placeAddress" type="text" placeholder="📍 맛집 주소">
+        <input id="placeImage" type="file" accept="image/*">
         <button onclick="submitPlace()">등록하기</button>
     </div>
 
-    <!-- ✅ 맛집 목록 -->
     <div class="container">
         <h2>📋 맛집 목록</h2>
         <div id="placesList"></div>
     </div>
-
-</body>
-</html>
