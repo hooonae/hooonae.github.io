@@ -8,7 +8,7 @@
     <!-- ✅ Firebase SDK 로드 (HEAD에서 먼저 로드) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         // ✅ Firebase 설정 정보
         const firebaseConfig = {
@@ -25,7 +25,35 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ✅ `window` 객체에 `submitPlace` 함수 추가 (중요!)
+        // ✅ Firebase에서 데이터 불러오기 (목록 갱신)
+        window.loadPlaces = function () {
+            const placesList = document.getElementById("placesList");
+            placesList.innerHTML = "<p>로딩 중...</p>";
+
+            onValue(ref(db, "places"), (snapshot) => {
+                placesList.innerHTML = ""; // 기존 목록 초기화
+                if (!snapshot.exists()) {
+                    placesList.innerHTML = "<p>등록된 맛집이 없습니다.</p>";
+                    return;
+                }
+                snapshot.forEach((childSnapshot) => {
+                    const post = childSnapshot.val();
+                    const postId = childSnapshot.key; // Firebase에서 해당 데이터의 ID
+
+                    let div = document.createElement("div");
+                    div.classList.add("place-item");
+                    div.innerHTML = `
+                        <h3>${post.title}</h3>
+                        <p>${post.content}</p>
+                        <small>👩‍🍳 ${post.nickname} | 📅 ${post.date}</small>
+                        <button class="delete-btn" onclick="deletePlace('${postId}')">❌ 삭제</button>
+                    `;
+                    placesList.appendChild(div);
+                });
+            });
+        };
+
+        // ✅ 맛집 데이터 추가 (등록하기 버튼 클릭 시 실행)
         window.submitPlace = function () {
             console.log("🔥 [디버깅] 등록 버튼 클릭됨!");
 
@@ -64,27 +92,22 @@
             });
         };
 
-        // ✅ Firebase에서 데이터 불러오기 (목록 갱신)
-        window.loadPlaces = function () {
-            const placesList = document.getElementById("placesList");
-            placesList.innerHTML = "<p>로딩 중...</p>";
+        // ✅ 맛집 삭제 기능
+        window.deletePlace = function (postId) {
+            console.log(`🗑 [디버깅] 삭제 버튼 클릭됨! 삭제할 ID: ${postId}`);
 
-            onValue(ref(db, "places"), (snapshot) => {
-                placesList.innerHTML = ""; // 기존 목록 초기화
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>등록된 맛집이 없습니다.</p>";
-                    return;
-                }
-                snapshot.forEach((childSnapshot) => {
-                    const post = childSnapshot.val();
-                    let div = document.createElement("div");
-                    div.classList.add("place-item");
-                    div.innerHTML = `<h3>${post.title}</h3>
-                                     <p>${post.content}</p>
-                                     <small>👤 ${post.nickname} | 📅 ${post.date}</small>`;
-                    placesList.appendChild(div);
+            if (confirm("정말 삭제하시겠습니까?")) {
+                remove(ref(db, `places/${postId}`))
+                .then(() => {
+                    console.log("🗑 [성공] 맛집이 삭제되었습니다!");
+                    alert("맛집이 삭제되었습니다! 🗑");
+                    loadPlaces(); // 목록 새로고침
+                })
+                .catch((error) => {
+                    console.error("❌ [오류] 삭제 실패:", error);
+                    alert("삭제 중 오류 발생: " + error.message);
                 });
-            });
+            }
         };
     </script>
 
@@ -131,6 +154,20 @@
             border-radius: 10px;
             margin: 10px 0;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        .delete-btn {
+            background: #FF4C4C;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .delete-btn:hover {
+            background: #cc0000;
         }
     </style>
 </head>
@@ -143,7 +180,7 @@
         <h2>➕ 맛집 추가하기</h2>
         <input id="placeName" type="text" placeholder="🍜 맛집 이름">
         <input id="placeDescription" type="text" placeholder="📖 맛집 설명">
-        <input id="placeAuthor" type="text" placeholder="👤 작성자">
+        <input id="placeAuthor" type="text" placeholder="👩‍🍳 작성자">
         <button onclick="submitPlace()">등록하기</button>
     </div>
 
