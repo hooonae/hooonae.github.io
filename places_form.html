@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>맛집 추천 작성</title>
+    <title>공지사항 작성</title>
     
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
-        // ✅ Firebase SDK 불러오기
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
 
         // ✅ Firebase 설정 정보
         const firebaseConfig = {
@@ -17,7 +17,7 @@
             authDomain: "museum-web-370cd.firebaseapp.com",
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.firebasestorage.app",
+            storageBucket: "museum-web-370cd.appspot.com",
             messagingSenderId: "154810876093",
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
@@ -25,35 +25,48 @@
         // ✅ Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const storage = getStorage(app);
 
-        // ✅ 데이터 저장 함수
-        function submitPost() {
-            let nickname = document.getElementById("nickname").value.trim();
-            let title = document.getElementById("title").value.trim();
-            let content = document.getElementById("content").value.trim();
-
-            if (!nickname || !title || !content) {
-                alert("모든 필드를 입력하세요.");
+        // ✅ 공지사항 등록 함수 (전역 함수로 등록)
+        window.submitNotice = function() {
+            const password = document.getElementById("password").value;
+            if (password !== "2025") {
+                alert("비밀번호가 틀렸습니다.");
                 return;
             }
 
-            // ✅ Firebase 데이터베이스에 저장
-            push(ref(db, "places"), {
-                nickname: nickname,
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const file = document.getElementById("image").files[0];
+
+            if (!title || !content) {
+                alert("제목과 내용을 입력하세요.");
+                return;
+            }
+
+            let noticeData = {
                 title: title,
                 content: content,
-                date: new Date().toLocaleString()
-            }).then(() => {
-                alert("맛집 추천이 등록되었습니다!");
-                window.location.href = "places.html";
-            }).catch(error => {
-                console.error("❌ 오류 발생:", error);
-                alert("데이터 저장 실패");
-            });
-        }
+                date: new Date().toLocaleString(),
+                imageUrl: "" // 기본 이미지 URL (없을 경우 공백)
+            };
 
-        // ✅ HTML에서 submitPost() 함수를 사용할 수 있도록 설정
-        window.submitPost = submitPost;
+            if (file) {
+                const imageRef = storageRef(storage, "notices/" + file.name);
+                uploadBytes(imageRef, file).then(snapshot => {
+                    return getDownloadURL(snapshot.ref);
+                }).then(url => {
+                    noticeData.imageUrl = url;
+                    push(ref(db, "notices"), noticeData);
+                    alert("공지사항이 등록되었습니다!");
+                    window.location.href = "notices.html";
+                }).catch(error => console.error("이미지 업로드 실패:", error));
+            } else {
+                push(ref(db, "notices"), noticeData);
+                alert("공지사항이 등록되었습니다!");
+                window.location.href = "notices.html";
+            }
+        };
     </script>
 
     <style>
@@ -89,13 +102,14 @@
 </head>
 <body>
 
-    <h1>맛집 추천 작성</h1>
+    <h1>📢 공지사항 작성</h1>
 
     <div class="form-container">
-        <input type="text" id="nickname" placeholder="닉네임">
-        <input type="text" id="title" placeholder="맛집 이름">
-        <textarea id="content" placeholder="맛집 설명"></textarea>
-        <button onclick="submitPost()">등록</button>
+        <input type="password" id="password" placeholder="비밀번호 입력 (관리자만 작성 가능)">
+        <input type="text" id="title" placeholder="제목">
+        <textarea id="content" placeholder="내용"></textarea>
+        <input type="file" id="image" accept="image/*">
+        <button onclick="submitNotice()">등록</button>
     </div>
 
 </body>
