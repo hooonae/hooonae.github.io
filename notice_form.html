@@ -27,8 +27,8 @@
         const db = getDatabase(app);
         const storage = getStorage(app);
 
-        // ✅ 공지사항 저장 함수
-        function submitNotice() {
+        // ✅ 공지사항 등록 함수 (전역 함수로 등록)
+        window.submitNotice = function() {
             const password = document.getElementById("password").value;
             if (password !== "2025") {
                 alert("비밀번호가 틀렸습니다.");
@@ -48,7 +48,7 @@
                 title: title,
                 content: content,
                 date: new Date().toLocaleString(),
-                imageUrl: "" // 이미지 URL을 저장할 공간
+                imageUrl: "" // 기본 이미지 URL (없을 경우 공백)
             };
 
             if (file) {
@@ -66,7 +66,7 @@
                 alert("공지사항이 등록되었습니다!");
                 window.location.href = "notices.html";
             }
-        }
+        };
     </script>
 
     <style>
@@ -102,7 +102,7 @@
 </head>
 <body>
 
-    <h1>공지사항 작성</h1>
+    <h1>📢 공지사항 작성</h1>
 
     <div class="form-container">
         <input type="password" id="password" placeholder="비밀번호 입력 (관리자만 작성 가능)">
