@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지사항 상세</title>
+    <title>공지사항 보기</title>
     
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         // ✅ Firebase 설정 정보
         const firebaseConfig = {
@@ -26,32 +26,59 @@
         const db = getDatabase(app);
 
         // ✅ URL에서 공지사항 ID 가져오기
-        const urlParams = new URLSearchParams(window.location.search);
-        const noticeId = urlParams.get("id");
+        function getNoticeIdFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("id");
+        }
 
-        // ✅ 특정 공지사항 불러오기
+        // ✅ 공지사항 불러오기
         function loadNotice() {
+            const noticeId = getNoticeIdFromURL();
             if (!noticeId) {
-                document.getElementById("noticeContent").innerHTML = "<p>공지사항을 찾을 수 없습니다.</p>";
+                alert("공지사항 ID가 없습니다.");
+                window.location.href = "notices.html";
                 return;
             }
 
-            get(ref(db, "notices/" + noticeId)).then(snapshot => {
-                if (snapshot.exists()) {
-                    const notice = snapshot.val();
-                    document.getElementById("noticeTitle").innerText = notice.title;
-                    document.getElementById("noticeDate").innerText = `📅 ${notice.date}`;
-                    document.getElementById("noticeContent").innerText = notice.content;
-                    if (notice.imageUrl) {
-                        document.getElementById("noticeImage").src = notice.imageUrl;
-                        document.getElementById("noticeImage").style.display = "block";
-                    }
-                } else {
-                    document.getElementById("noticeContent").innerHTML = "<p>공지사항을 찾을 수 없습니다.</p>";
+            const noticeRef = ref(db, `notices/${noticeId}`);
+            get(noticeRef).then(snapshot => {
+                if (!snapshot.exists()) {
+                    alert("공지사항을 찾을 수 없습니다.");
+                    window.location.href = "notices.html";
+                    return;
                 }
-            }).catch(error => console.error("공지사항 불러오기 실패:", error));
+
+                const notice = snapshot.val();
+                document.getElementById("title").textContent = notice.title;
+                document.getElementById("date").textContent = `작성일: ${notice.date}`;
+                document.getElementById("content").textContent = notice.content;
+
+                // ✅ 이미지 표시 (이미지가 있는 경우)
+                if (notice.imageUrl) {
+                    document.getElementById("image").src = notice.imageUrl;
+                    document.getElementById("image").style.display = "block";
+                }
+            }).catch(error => {
+                console.error("공지사항 로드 실패:", error);
+            });
         }
 
+        // ✅ 공지사항 삭제 기능
+        function deleteNotice() {
+            const noticeId = getNoticeIdFromURL();
+            if (!noticeId) return;
+
+            if (confirm("정말로 이 공지사항을 삭제하시겠습니까?")) {
+                remove(ref(db, `notices/${noticeId}`))
+                    .then(() => {
+                        alert("공지사항이 삭제되었습니다.");
+                        window.location.href = "notices.html";
+                    })
+                    .catch(error => console.error("삭제 실패:", error));
+            }
+        }
+
+        // ✅ 페이지 로드 시 공지사항 불러오기
         window.onload = loadNotice;
     </script>
 
@@ -63,28 +90,58 @@
             background: #F8F1E9;
             text-align: center;
         }
-        .content {
+        .container {
             max-width: 600px;
-            margin: auto;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2em;
+        }
+        p {
+            color: #555;
         }
         img {
             max-width: 100%;
-            display: none;
+            height: auto;
             margin-top: 10px;
+            display: none;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            padding: 10px;
+            border: none;
             border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .delete-btn {
+            background: #ff4d4d;
         }
     </style>
 </head>
 <body>
 
-    <h1 id="noticeTitle">공지사항</h1>
-    <p id="noticeDate"></p>
-    <div class="content">
-        <img id="noticeImage">
-        <p id="noticeContent"></p>
-    </div>
+    <h1>📢 공지사항 상세 보기</h1>
 
-    <button onclick="location.href='notices.html'">목록으로</button>
+    <div class="container">
+        <h2 id="title"></h2>
+        <p id="date"></p>
+        <p id="content"></p>
+        <img id="image" src="" alt="공지 이미지">
+
+        <div class="button-container">
+            <button onclick="window.location.href='notices.html'">⬅ 목록으로</button>
+            <button class="delete-btn" onclick="deleteNotice()">🗑️ 삭제</button>
+        </div>
+    </div>
 
 </body>
 </html>
