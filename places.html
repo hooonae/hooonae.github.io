@@ -34,29 +34,31 @@
             const description = document.getElementById("placeDescription").value;
             const author = document.getElementById("placeAuthor").value;
             const address = document.getElementById("placeAddress").value;
-            const imageFile = document.getElementById("placeImage").files[0]; // ✅ 이미지 파일 가져오기
+            const imageFile = document.getElementById("placeImage").files[0];
 
             if (!name || !description || !author || !address) {
                 alert("모든 필드를 입력해주세요!");
                 return;
             }
 
+            const timestamp = Date.now(); // 🔥 현재 시간을 timestamp로 저장
+
             if (imageFile) {
                 const imageRef = storageRef(storage, `places/${imageFile.name}`);
                 uploadBytes(imageRef, imageFile).then((snapshot) => {
                     return getDownloadURL(snapshot.ref);
                 }).then((downloadURL) => {
-                    savePlaceToDatabase(name, description, author, address, downloadURL);
+                    savePlaceToDatabase(name, description, author, address, downloadURL, timestamp);
                 }).catch((error) => {
                     alert("이미지 업로드 중 오류 발생: " + error.message);
                 });
             } else {
-                savePlaceToDatabase(name, description, author, address, null);
+                savePlaceToDatabase(name, description, author, address, null, timestamp);
             }
         };
 
         // ✅ Firebase Realtime Database에 맛집 정보 저장
-        function savePlaceToDatabase(name, description, author, address, imageUrl) {
+        function savePlaceToDatabase(name, description, author, address, imageUrl, timestamp) {
             const newPlaceRef = push(ref(db, "places"));
             set(newPlaceRef, {
                 title: name,
@@ -64,6 +66,7 @@
                 nickname: author,
                 address: address,
                 imageUrl: imageUrl,
+                timestamp: timestamp, // 🔥 최신순 정렬을 위한 timestamp 추가
                 date: new Date().toLocaleDateString()
             }).then(() => {
                 alert("맛집이 등록되었습니다! 🎉");
@@ -77,7 +80,7 @@
             });
         }
 
-        // ✅ 맛집 목록 불러오기
+        // ✅ 최신순으로 맛집 목록 불러오기
         window.loadPlaces = function () {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>로딩 중...</p>";
@@ -88,10 +91,18 @@
                     placesList.innerHTML = "<p>등록된 맛집이 없습니다.</p>";
                     return;
                 }
-                snapshot.forEach((childSnapshot) => {
-                    const post = childSnapshot.val();
-                    const postId = childSnapshot.key;
 
+                let placeArray = [];
+                snapshot.forEach((childSnapshot) => {
+                    let post = childSnapshot.val();
+                    post.id = childSnapshot.key;
+                    placeArray.push(post);
+                });
+
+                // 🔥 최신순 정렬 (timestamp 기준 내림차순)
+                placeArray.sort((a, b) => b.timestamp - a.timestamp);
+
+                placeArray.forEach((post) => {
                     let div = document.createElement("div");
                     div.classList.add("place-item");
                     div.innerHTML = `
@@ -100,7 +111,7 @@
                         <small>👩‍🍳 ${post.nickname} | 📅 ${post.date}</small>
                         <p>📍 ${post.address}</p>
                         ${post.imageUrl ? `<img src="${post.imageUrl}" style="width:100%; max-width:300px; border-radius:10px;">` : ""}
-                        <button class="delete-btn" onclick="deletePlace('${postId}')">❌ 삭제</button>
+                        <button class="delete-btn" onclick="deletePlace('${post.id}')">❌ 삭제</button>
                     `;
                     placesList.appendChild(div);
                 });
@@ -150,8 +161,6 @@
             border-radius: 5px;
             font-size: 16px;
         }
-        button { background: #007BFF; color: white; cursor: pointer; }
-        button:hover { background: #0056b3; }
         .delete-btn { background: #FF4C4C; }
         .place-item {
             background: white;
