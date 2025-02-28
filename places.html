@@ -25,11 +25,6 @@
             border-bottom: 1px solid #ddd;
             padding: 10px;
         }
-        .place-item img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-        }
         .delete-btn {
             background: #ff4d4d;
             color: white;
@@ -51,9 +46,8 @@
         <h2>➕ 맛집 추가하기</h2>
         <form id="placeForm">
             <input type="text" id="title" placeholder="🍜 맛집 이름"><br>
-            <input type="text" id="content" placeholder="📖 맛집 설명"><br>
+            <textarea id="content" placeholder="📖 맛집 설명"></textarea><br>
             <input type="text" id="nickname" placeholder="👤 작성자"><br>
-            <input type="file" id="imageUpload"><br><br>
             <button type="button" id="submitBtn">등록하기</button>
         </form>
     </div>
@@ -67,7 +61,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-storage.js";
 
         // ✅ Firebase 설정 정보
         const firebaseConfig = {
@@ -83,34 +76,16 @@
         // ✅ Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const storage = getStorage(app);
 
-        // ✅ 맛집 데이터 추가 (submitPlace 함수)
-        async function submitPlace() {
+        // ✅ 맛집 추가 함수
+        function submitPlace() {
             const title = document.getElementById("title").value;
             const content = document.getElementById("content").value;
             const nickname = document.getElementById("nickname").value;
-            const fileInput = document.getElementById("imageUpload");
 
             if (!title || !content || !nickname) {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
-            }
-
-            let imageUrl = "";
-
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const fileRef = storageRef(storage, `places/${file.name}`);
-
-                try {
-                    await uploadBytes(fileRef, file);
-                    imageUrl = await getDownloadURL(fileRef);
-                } catch (error) {
-                    console.error("❌ 이미지 업로드 실패:", error);
-                    alert("이미지 업로드 중 오류가 발생했습니다.");
-                    return;
-                }
             }
 
             const newPlaceRef = push(ref(db, "places"));
@@ -118,7 +93,6 @@
                 title,
                 content,
                 nickname,
-                imageUrl,
                 timestamp: Date.now()
             };
 
@@ -130,7 +104,7 @@
                 .catch(error => console.error("❌ 데이터 추가 실패:", error));
         }
 
-        // ✅ 맛집 데이터 삭제
+        // ✅ 맛집 삭제 함수
         function deletePlace(key) {
             if (confirm("정말 삭제하시겠습니까?")) {
                 remove(ref(db, `places/${key}`))
@@ -139,7 +113,7 @@
             }
         }
 
-        // ✅ 데이터 불러오기
+        // ✅ 맛집 불러오기
         function loadPlaces() {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>로딩 중...</p>";
@@ -159,7 +133,7 @@
                     places.push(place);
                 });
 
-                // 🔥 최신 글이 위로 정렬
+                // 🔥 최신 맛집이 위로 오도록 정렬
                 places.sort((a, b) => b.timestamp - a.timestamp);
 
                 places.forEach(place => {
@@ -169,7 +143,6 @@
                     div.innerHTML = `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
-                        ${place.imageUrl ? `<img src="${place.imageUrl}" class="place-image" onerror="this.src='default.jpg';">` : ""}
                         <small>👤 ${place.nickname}</small>
                         <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
                     `;
