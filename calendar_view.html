@@ -9,18 +9,6 @@
             font-family: Arial, sans-serif;
             text-align: center;
         }
-        .color-picker {
-            margin: 10px;
-        }
-        .color-option {
-            width: 30px;
-            height: 30px;
-            display: inline-block;
-            border-radius: 50%;
-            cursor: pointer;
-            margin: 5px;
-            border: 2px solid black;
-        }
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -31,7 +19,7 @@
         .day {
             border: 1px solid #ccc;
             padding: 10px;
-            min-height: 80px;
+            min-height: 90px;
             text-align: center;
             position: relative;
         }
@@ -46,7 +34,7 @@
             justify-content: space-between;
             align-items: center;
             background: #f0f0f0;
-            padding: 2px 5px;
+            padding: 3px 5px;
             margin: 2px 0;
             border-radius: 5px;
         }
@@ -54,11 +42,10 @@
             cursor: pointer;
             color: red;
             font-size: 14px;
-            margin-left: 5px;
         }
         .name-input {
             width: 90%;
-            margin: 5px auto;
+            margin-top: 5px;
             display: block;
         }
         .weekdays {
@@ -72,13 +59,6 @@
 <body>
 
 <h2>월간 일정</h2>
-
-<div class="color-picker">
-    <div class="color-option" style="background-color: black;" onclick="selectColor('black')"></div>
-    <div class="color-option" style="background-color: red;" onclick="selectColor('red')"></div>
-    <div class="color-option" style="background-color: blue;" onclick="selectColor('blue')"></div>
-    <div class="color-option" style="background-color: green;" onclick="selectColor('green')"></div>
-</div>
 
 <select id="monthSelect" onchange="updateCalendar()">
     <option value="1">1월</option>
@@ -108,32 +88,26 @@
 <div class="calendar" id="calendar"></div>
 
 <script>
-    let selectedColor = "black";
-
-    function selectColor(color) {
-        selectedColor = color;
-    }
-
-    function saveName(month, day, name) {
-        let savedData = localStorage.getItem("calendarData") ? JSON.parse(localStorage.getItem("calendarData")) : {};
+    function saveName(month, day, input) {
+        let savedData = JSON.parse(localStorage.getItem("calendarData")) || {};
         if (!savedData[month]) savedData[month] = {};
         if (!savedData[month][day]) savedData[month][day] = [];
 
-        if (savedData[month][day].length < 5) { // 최대 5명까지 추가 가능
+        let name = input.value.trim();
+        if (name && savedData[month][day].length < 5) {
             savedData[month][day].push(name);
             localStorage.setItem("calendarData", JSON.stringify(savedData));
-            updateNameList(month, day);
-        } else {
-            alert("최대 5명까지 입력 가능합니다!");
+            input.value = "";  // 입력창 초기화
+            setTimeout(() => updateNameList(month, day), 50); // UI 업데이트
         }
     }
 
     function removeName(month, day, index) {
         let savedData = JSON.parse(localStorage.getItem("calendarData"));
         if (savedData[month] && savedData[month][day]) {
-            savedData[month][day].splice(index, 1); // 해당 인덱스의 이름 삭제
+            savedData[month][day].splice(index, 1);
             localStorage.setItem("calendarData", JSON.stringify(savedData));
-            updateNameList(month, day);
+            setTimeout(() => updateNameList(month, day), 50);
         }
     }
 
@@ -143,7 +117,7 @@
         if (!dayCell) return;
 
         let nameList = dayCell.querySelector(".name-list");
-        nameList.innerHTML = ""; // 기존 리스트 초기화
+        nameList.innerHTML = "";
 
         if (savedData[month] && savedData[month][day]) {
             savedData[month][day].forEach((name, index) => {
@@ -156,8 +130,8 @@
     }
 
     function loadNames(month) {
-        let savedData = JSON.parse(localStorage.getItem("calendarData"));
-        if (!savedData || !savedData[month]) return;
+        let savedData = JSON.parse(localStorage.getItem("calendarData")) || {};
+        if (!savedData[month]) return;
 
         Object.keys(savedData[month]).forEach(day => {
             updateNameList(month, day);
@@ -186,7 +160,8 @@
             dayCell.setAttribute("data-day", day);
             dayCell.innerHTML = `<div>${day}</div>
                 <ul class="name-list"></ul>
-                <input type="text" class="name-input" placeholder="이름 입력" onkeypress="if(event.key==='Enter') { saveName(${month}, ${day}, this.value); this.value=''; return false; }">`;
+                <input type="text" class="name-input" placeholder="이름 입력" 
+                    onkeydown="if(event.key==='Enter') { saveName(${month}, ${day}, this); return false; }">`;
             calendar.appendChild(dayCell);
         }
 
