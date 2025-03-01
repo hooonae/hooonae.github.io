@@ -127,12 +127,12 @@
         </div>
     </div>
 
-    <!-- ✅ Firebase 최신 버전 (Import 방식 사용) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+    <!-- ✅ Firebase 최신 버전 (script 방식으로 변경) -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"></script>
 
-        // ✅ Firebase 설정
+    <script>
+        // ✅ Firebase 초기화
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -143,16 +143,15 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        // ✅ Firebase 초기화
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         function loadNotices() {
             const noticeList = document.getElementById("noticeList");
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
-            const noticesRef = ref(db, "notices");
-            onValue(noticesRef, (snapshot) => {
+            const noticesRef = db.ref("notices");
+            noticesRef.on("value", (snapshot) => {
                 noticeList.innerHTML = "";
                 console.log("📡 Firebase에서 데이터 가져오기 시도...");
 
