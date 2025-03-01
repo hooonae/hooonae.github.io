@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
+    <!-- ✅ 네이버 지도 API 추가 (YOUR_NAVER_CLIENT_ID를 네이버 API 키로 변경) -->
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=2EQgPUVMhg7k4Hees8Pir3hTg7EN0aQ3XSweQjqq"></script>
+
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
         h1 { color: #333; }
@@ -13,6 +16,7 @@
         button { background: #8B5E3C; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
         .delete-btn { background: #ff4d4d; }
         img { max-width: 200px; margin-top: 10px; }
+        #map { width: 100%; height: 300px; margin-top: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -24,6 +28,8 @@
         <input type="text" id="title" placeholder="맛집 이름">
         <input type="text" id="content" placeholder="맛집 설명">
         <input type="text" id="nickname" placeholder="작성자">
+        <input type="text" id="address" placeholder="맛집 주소 (지도에서 선택)">
+        <div id="map"></div> <!-- ✅ 지도 추가 -->
         <input type="file" id="image" accept="image/*">
         <button onclick="submitPlace()">등록하기</button>
     </div>
@@ -33,7 +39,7 @@
         <div id="placesList"></div>
     </div>
 
-    <!-- ✅ Firebase 최신 버전 SDK 추가 (CDN 방식) -->
+    <!-- ✅ Firebase 최신 버전 SDK 추가 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
@@ -54,15 +60,30 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
+        // ✅ 네이버 지도 초기화
+        var map = new naver.maps.Map("map", {
+            center: new naver.maps.LatLng(37.5665, 126.9780), // 기본 위치: 서울
+            zoom: 14
+        });
+
+        var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
+
+        // ✅ 지도 클릭 시 주소 입력
+        naver.maps.Event.addListener(map, "click", function(e) {
+            marker.setPosition(e.coord);
+            document.getElementById("address").value = `위도: ${e.coord.y}, 경도: ${e.coord.x}`;
+        });
+
         // ✅ 맛집 등록 함수
         function submitPlace() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
             const nickname = document.getElementById("nickname").value.trim();
+            const address = document.getElementById("address").value.trim();
             const fileInput = document.getElementById("image");
             const file = fileInput.files[0];
 
-            if (!title || !content || !nickname) {
+            if (!title || !content || !nickname || !address) {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
@@ -71,44 +92,24 @@
             if (file) {
                 uploadToCloudinary(file).then(url => {
                     imageUrl = url;
-                    savePlaceToDatabase(title, content, nickname, imageUrl);
+                    savePlaceToDatabase(title, content, nickname, address, imageUrl);
                 }).catch(error => {
                     console.error("❌ 이미지 업로드 실패:", error);
                     alert("이미지 업로드 중 오류가 발생했습니다.");
                 });
             } else {
-                savePlaceToDatabase(title, content, nickname, imageUrl);
+                savePlaceToDatabase(title, content, nickname, address, imageUrl);
             }
         }
 
-        // ✅ Cloudinary 이미지 업로드
-        function uploadToCloudinary(file) {
-            return new Promise((resolve, reject) => {
-                const cloudName = "dddmgnzlu"; // Cloudinary 계정의 Cloud Name 입력
-                const uploadPreset = "firebase_uploads"; // 업로드 프리셋 입력
-                const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", uploadPreset);
-
-                fetch(url, {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => resolve(data.secure_url))
-                .catch(error => reject(error));
-            });
-        }
-
         // ✅ Firebase에 맛집 데이터 저장
-        function savePlaceToDatabase(title, content, nickname, imageUrl) {
+        function savePlaceToDatabase(title, content, nickname, address, imageUrl) {
             const newPlaceRef = db.ref("places").push();
             newPlaceRef.set({
                 title,
                 content,
                 nickname,
+                address,
                 imageUrl,
                 date: new Date().toISOString()
             })
@@ -140,15 +141,17 @@
                     places.push({ key, ...data });
                 });
 
-                places.reverse(); // 최신 글이 위로 오도록 정렬
+                places.reverse();
 
                 places.forEach((place) => {
                     let div = document.createElement("div");
                     div.innerHTML = `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
+                        <p>📍 <strong>${place.address}</strong></p>
                         <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
-                        ${place.imageUrl ? `<img src="${place.imageUrl}" width="200" onerror="this.style.display='none'">` : ""}
+                        ${place.imageUrl ? `<img src="${place.imageUrl}" width="200">` : ""}
+                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
                         <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
                     `;
                     placesList.appendChild(div);
@@ -156,19 +159,6 @@
             });
         }
 
-        // ✅ 맛집 삭제 기능
-        function deletePlace(placeId) {
-            if (confirm("⚠️ 정말 삭제하시겠습니까?")) {
-                db.ref("places/" + placeId).remove()
-                    .then(() => {
-                        alert("🗑️ 맛집이 삭제되었습니다.");
-                        location.reload();
-                    })
-                    .catch(error => console.error("❌ 삭제 실패:", error));
-            }
-        }
-
-        // ✅ 페이지 로딩 시 실행
         document.addEventListener("DOMContentLoaded", loadPlaces);
     </script>
 
