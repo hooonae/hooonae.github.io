@@ -25,7 +25,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ✅ 최신 공지사항 3개 불러오기 (이미지 포함 + 중앙 정렬)
+        // ✅ 최신 공지사항 3개 불러오기
         function loadLatestNotices() {
             const noticeList = document.getElementById("noticeList");
             if (!noticeList) {
@@ -154,23 +154,18 @@
         .notice li:last-child { border-bottom: none; }
         .notice .more-btn {
             display: block;
-            margin-top: 10px;
+            margin: 10px auto; /* ✅ 중앙 정렬 */
             background: #8B5E3C;
             color: white;
             padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            width: 150px;
+            text-align: center;
         }
 
-        /* ✅ 공지사항 이미지 스타일 */
-        .notice-image {
-            width: 120px; /* 🔥 기존보다 약간 더 키움 */
-            border-radius: 5px;
-            margin-top: 5px;
-        }
-
-        /* ✅ 카드 스타일 */
+        /* ✅ 카드 스타일 (그대로 유지) */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -195,7 +190,7 @@
 
     <!-- ✅ 배너 추가 -->
     <div class="banner">
-        <button class="menu-toggle" onclick="toggleMenu()">☰</button> <!-- 햄버거 메뉴 -->
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
     </div>
 
     <!-- ✅ 햄버거 메뉴 -->
@@ -216,11 +211,11 @@
         <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
     </div>
 
-    <!-- ✅ 카드 섹션 (전체 메뉴 추가) -->
+    <!-- ✅ 카드 섹션 (그대로 유지) -->
     <div class="cards">
-        <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">이동</button></div>
-        <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">이동</button></div>
         <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">이동</button></div>
+        <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">이동</button></div>
+        <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">이동</button></div>
         <div class="card"><h3>📦 필요 비품</h3><button onclick="location.href='supplies.html'">이동</button></div>
         <div class="card"><h3>🗣 건의 사항</h3><button onclick="location.href='suggestions.html'">이동</button></div>
         <div class="card"><h3>📢 공지사항</h3><button onclick="location.href='notices.html'">이동</button></div>
@@ -234,4 +229,3 @@
 
 </body>
 </html>
-
