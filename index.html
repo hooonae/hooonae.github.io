@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>서울공예박물관 홈페이지</title>
-    
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -95,29 +95,6 @@
             cursor: pointer;
         }
 
-        /* ✅ 카드 스타일 */
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            max-width: 900px;
-            margin: auto;
-            margin-top: 30px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            transition: transform 0.3s ease-in-out;
-        }
-        .card:hover { transform: translateY(-5px); }
-
-        @media (max-width: 600px) {
-            h1 { font-size: 2em; }
-            .cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-        }
     </style>
 </head>
 <body>
@@ -150,11 +127,12 @@
         </div>
     </div>
 
-    <!-- ✅ Firebase에서 공지사항 불러오기 (최신순) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+    <!-- ✅ Firebase SDK 연결 -->
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js"></script>
 
+    <script>
+        // ✅ Firebase 초기화
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -165,16 +143,20 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         function loadNotices() {
             const noticeList = document.getElementById("noticeList");
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
-            onValue(ref(db, "notices"), (snapshot) => {
+            const noticesRef = db.ref("notices");
+            noticesRef.on("value", (snapshot) => {
                 noticeList.innerHTML = "";
+                console.log("📡 Firebase에서 데이터 가져오기 시도...");
+
                 if (!snapshot.exists()) {
+                    console.log("❌ 공지사항 없음");
                     noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
                     return;
                 }
@@ -186,10 +168,12 @@
                     notices.push({ key, ...data });
                 });
 
-                // 🔹 최신순 정렬 (날짜가 최신인 공지 먼저)
+                console.log("✅ Firebase에서 가져온 데이터:", notices);
+
+                // 최신순 정렬
                 notices.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                // 🔹 최신 3개만 표시
+                // 최신 3개만 표시
                 notices.slice(0, 3).forEach((notice) => {
                     let li = document.createElement("li");
                     li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
