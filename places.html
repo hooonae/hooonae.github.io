@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
-    <!-- ✅ 네이버 지도 API 추가 (YOUR_NAVER_CLIENT_ID를 네이버 API 키로 변경) -->
+    <!-- ✅ 네이버 지도 API -->
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph"></script>
 
     <style>
@@ -68,39 +68,35 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ 지도 클릭 시 주소 입력
+        // ✅ 지도 클릭 시 주소 변환 (Reverse Geocoding)
+        function reverseGeocode(lat, lng) {
+            var apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
+
+            fetch(apiUrl, {
+                method: "GET",
+                headers: {
+                    "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
+                    "X-NCP-APIGW-API-KEY": "2EQgPUVMhg7k4Hees8Pir3hTg7EN0aQ3XSweQjqq"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.results.length > 0) {
+                    let address = data.results[0].region.area1.name + " " + 
+                                  data.results[0].region.area2.name + " " + 
+                                  data.results[0].land.name;
+                    document.getElementById("address").value = address;
+                } else {
+                    document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
+                }
+            })
+            .catch(error => console.error("❌ Reverse Geocoding 실패:", error));
+        }
+
         naver.maps.Event.addListener(map, "click", function(e) {
             marker.setPosition(e.coord);
-            document.getElementById("address").value = `위도: ${e.coord.y}, 경도: ${e.coord.x}`;
+            reverseGeocode(e.coord.y, e.coord.x);
         });
-
-        // ✅ 맛집 등록 함수
-        function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
-            const fileInput = document.getElementById("image");
-            const file = fileInput.files[0];
-
-            if (!title || !content || !nickname || !address) {
-                alert("⚠️ 모든 필드를 입력하세요.");
-                return;
-            }
-
-            let imageUrl = "";
-            if (file) {
-                uploadToCloudinary(file).then(url => {
-                    imageUrl = url;
-                    savePlaceToDatabase(title, content, nickname, address, imageUrl);
-                }).catch(error => {
-                    console.error("❌ 이미지 업로드 실패:", error);
-                    alert("이미지 업로드 중 오류가 발생했습니다.");
-                });
-            } else {
-                savePlaceToDatabase(title, content, nickname, address, imageUrl);
-            }
-        }
 
         // ✅ Firebase에 맛집 데이터 저장
         function savePlaceToDatabase(title, content, nickname, address, imageUrl) {
