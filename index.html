@@ -83,7 +83,6 @@
         .notice h2 { color: #8B5E3C; }
         .notice ul { list-style-type: none; padding: 0; }
         .notice li { padding: 10px; font-size: 1em; border-bottom: 1px solid #ddd; text-align: left; }
-        .notice li:last-child { border-bottom: none; }
         .notice img { max-width: 100%; height: auto; display: block; margin: 5px auto; }
         .notice .more-btn {
             display: block;
@@ -95,6 +94,25 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        /* ✅ 카드 스타일 */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: auto;
+            margin-top: 30px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover { transform: translateY(-5px); }
 
     </style>
 </head>
@@ -126,6 +144,25 @@
             <ul id="noticeList"></ul>
             <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
         </div>
+
+        <!-- ✅ 카드 섹션 -->
+        <div class="cards">
+            <div class="card">
+                <h3>📌 지킴이 일정</h3>
+                <p>지킴이들의 근무 일정을 확인하세요.</p>
+                <button onclick="location.href='calendar.html'">일정 보기</button>
+            </div>
+            <div class="card">
+                <h3>📅 전시 일정</h3>
+                <p>다가오는 전시 일정을 확인하세요!</p>
+                <button onclick="location.href='events.html'">일정 보기</button>
+            </div>
+            <div class="card">
+                <h3>📢 공지사항 작성</h3>
+                <p>관리자만 공지사항을 작성할 수 있습니다.</p>
+                <button onclick="location.href='notice_form.html'">작성하기</button>
+            </div>
+        </div>
     </div>
 
     <!-- ✅ Firebase 최신 버전 -->
@@ -133,7 +170,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"></script>
 
     <script>
-        // ✅ Firebase 초기화
         const firebaseConfig = { /* 여기에 Firebase 설정 값 넣기 */ };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -143,7 +179,9 @@
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
             db.ref("notices").on("value", (snapshot) => {
+                console.log("📡 Firebase 응답 받음:", snapshot.exists());
                 noticeList.innerHTML = "";
+
                 if (!snapshot.exists()) {
                     noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
                     return;
@@ -151,12 +189,10 @@
 
                 let notices = [];
                 snapshot.forEach((childSnapshot) => {
-                    let key = childSnapshot.key;
                     let data = childSnapshot.val();
-                    notices.push({ key, ...data });
+                    notices.push(data);
                 });
 
-                // 🔹 최신순 정렬 후 3개만 표시
                 notices.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3).forEach((notice) => {
                     let li = document.createElement("li");
                     li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
@@ -167,13 +203,6 @@
         }
 
         document.addEventListener("DOMContentLoaded", loadNotices);
-    </script>
-
-    <!-- ✅ 모바일 메뉴 토글 기능 -->
-    <script>
-        function toggleMenu() {
-            document.querySelector('.menu').classList.toggle('open');
-        }
     </script>
 
 </body>
