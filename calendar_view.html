@@ -14,7 +14,7 @@
             padding: 20px;
         }
         .calendar-container {
-            max-width: 900px;
+            max-width: 95%; /* 반응형 */
             margin: auto;
             background: white;
             padding: 15px;
@@ -29,15 +29,18 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            table-layout: fixed;
+            table-layout: fixed; /* 일정한 칸 크기 유지 */
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 5px;
             text-align: left;
             vertical-align: top;
             height: 100px;
             position: relative;
+            font-size: 12px; /* 모바일 가독성 개선 */
+            word-break: keep-all; /* 글자가 줄바꿈되지 않도록 */
+            white-space: nowrap; /* 한 줄 유지 */
         }
         th {
             background: #555;
@@ -57,16 +60,19 @@
         .name-list {
             list-style-type: none;
             padding: 0;
-            margin: 20px 5px 0 5px;
-            max-height: 60px;
+            margin: 5px 2px 0 2px;
+            max-height: 50px;
             overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
         }
         .name-list li {
-            font-size: 12px;
+            font-size: 10px; /* 모바일 가독성 조정 */
             background: lightgray;
-            padding: 2px 6px;
+            padding: 2px 4px;
             border-radius: 3px;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             margin: 2px;
         }
         .delete-btn {
@@ -104,6 +110,17 @@
             padding: 5px 10px;
             font-size: 14px;
             cursor: pointer;
+        }
+
+        /* 📱 반응형 개선 */
+        @media screen and (max-width: 768px) {
+            td {
+                height: 80px; /* 모바일에서는 칸 크기 조정 */
+            }
+            .name-list {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -173,7 +190,6 @@
         }
 
         function createCalendar(year, month) {
-            console.log(`📅 캘린더 생성: ${year}년 ${month}월`);
             document.getElementById("monthTitle").innerText = `${year}년 ${month}월`;
 
             const table = document.getElementById("calendarTable");
@@ -230,16 +246,6 @@
         function addName(year, month, day, name) {
             if (!name.trim()) return;
             db.ref(`calendar/${year}/${month}/${day}`).push({ name, color: selectedColor });
-        }
-
-        function loadNames(year, month, day, nameList) {
-            db.ref(`calendar/${year}/${month}/${day}`).on("value", (snapshot) => {
-                nameList.innerHTML = "";
-                snapshot.forEach((child) => {
-                    let data = child.val();
-                    nameList.innerHTML += `<li style="color:${data.color};">${data.name}</li>`;
-                });
-            });
         }
 
         document.addEventListener("DOMContentLoaded", function () {
