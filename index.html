@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>서울공예박물관 홈페이지</title>
+    <title>서울공예박물관 지킴이</title>
 
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
@@ -28,7 +28,12 @@
         // ✅ 최신 공지사항 3개 불러오기
         function loadLatestNotices() {
             const noticeList = document.getElementById("noticeList");
-            noticeList.innerHTML = "<p>로딩 중...</p>";
+            if (!noticeList) {
+                console.error("❌ 'noticeList' 요소를 찾을 수 없습니다.");
+                return;
+            }
+
+            noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
             const noticesQuery = query(ref(db, "notices"), limitToLast(3)); // 최신 3개 가져오기
 
@@ -47,27 +52,17 @@
                     notices.push({ key, ...data });
                 });
 
-                // 🔹 최신순 정렬
                 notices.reverse(); // Firebase는 오래된 데이터부터 가져오므로, 최신 글이 위로 가게 변경
 
                 notices.forEach((notice) => {
                     let li = document.createElement("li");
-                    
-                    let imageHTML = "";
-                    if (notice.imageUrl) {
-                        imageHTML = `<img src="${notice.imageUrl}" alt="공지 이미지" class="notice-image">`;
-                    }
-
-                    li.innerHTML = `
-                        ${imageHTML}
-                        <a href="notice_view.html?id=${notice.key}">${notice.title}</a>
-                    `;
+                    li.innerHTML = `<a href="notice_view.html?id=${notice.key}">${notice.title}</a>`;
                     noticeList.appendChild(li);
                 });
             });
         }
 
-        // ✅ 페이지 로드 시 공지사항 불러오기
+        // ✅ 페이지가 로드된 후 공지사항 불러오기
         document.addEventListener("DOMContentLoaded", loadLatestNotices);
     </script>
 
@@ -88,15 +83,15 @@
             position: relative;
         }
 
-        /* ✅ 햄버거 메뉴 스타일 (복구) */
+        /* ✅ 햄버거 메뉴 스타일 */
         .menu-toggle {
-            font-size: 2.2em; /* 크기 복구 */
+            font-size: 2.2em;
             color: white;
             background: none;
             border: none;
             cursor: pointer;
             position: absolute;
-            right: 15px; /* 오른쪽 정렬 */
+            right: 15px;
             top: 15px;
             z-index: 2000;
         }
@@ -141,14 +136,7 @@
         }
         .notice h2 { color: #8B5E3C; }
         .notice ul { list-style-type: none; padding: 0; }
-        .notice li { 
-            padding: 10px 0; 
-            font-size: 1em; 
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .notice li { padding: 10px 0; font-size: 1em; border-bottom: 1px solid #ddd; }
         .notice li:last-child { border-bottom: none; }
         .notice .more-btn {
             display: block;
@@ -179,6 +167,13 @@
         <a href="supplies.html">📦 필요 비품</a>
         <a href="suggestions.html">🗣 건의 사항</a>
         <a href="notices.html">📢 공지사항</a>
+    </div>
+
+    <!-- ✅ 공지사항 -->
+    <div class="notice">
+        <h2>📢 공지사항</h2>
+        <ul id="noticeList"></ul> <!-- ✅ 공지사항 목록 -->
+        <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
     </div>
 
     <!-- ✅ 모바일 메뉴 토글 기능 -->
