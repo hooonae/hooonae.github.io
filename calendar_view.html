@@ -4,61 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>달력</title>
+    <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            max-width: 400px;
-            margin: auto;
-        }
-        .day {
-            border: 1px solid #ccc;
-            padding: 10px;
-            min-height: 90px;
-            text-align: center;
-            position: relative;
-        }
-        .name-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            font-size: 12px;
-        }
-        .name-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f0f0f0;
-            padding: 3px 5px;
-            margin: 2px 0;
-            border-radius: 5px;
-        }
-        .delete-btn {
-            cursor: pointer;
-            color: red;
-            font-size: 14px;
-        }
-        .name-input {
-            width: 90%;
-            margin-top: 5px;
-            display: block;
-        }
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 400px; margin: auto; }
+        .day { border: 1px solid #ccc; padding: 10px; min-height: 90px; text-align: center; position: relative; }
+        .name-list { list-style-type: none; padding: 0; margin: 0; font-size: 12px; }
+        .name-item { display: flex; justify-content: space-between; align-items: center; background: #f0f0f0; padding: 3px 5px; margin: 2px 0; border-radius: 5px; }
+        .delete-btn { cursor: pointer; color: red; font-size: 14px; }
+        .name-input { width: 90%; margin-top: 5px; display: block; }
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); font-weight: bold; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-<h2>월간 일정</h2>
+<h2>월간 일정 (Firebase 저장)</h2>
 
 <select id="monthSelect" onchange="updateCalendar()">
     <option value="1">1월</option>
@@ -76,65 +37,87 @@
 </select>
 
 <div class="weekdays">
-    <div>월</div>
-    <div>화</div>
-    <div>수</div>
-    <div>목</div>
-    <div>금</div>
-    <div>토</div>
-    <div>일</div>
+    <div>월</div> <div>화</div> <div>수</div> <div>목</div> <div>금</div> <div>토</div> <div>일</div>
 </div>
 
 <div class="calendar" id="calendar"></div>
 
 <script>
-    function saveName(month, day, input) {
-        let savedData = JSON.parse(localStorage.getItem("calendarData")) || {};
-        if (!savedData[month]) savedData[month] = {};
-        if (!savedData[month][day]) savedData[month][day] = [];
+    // 🔥 Firebase 설정
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function saveName(month, day, input) {
         let name = input.value.trim();
-        if (name && savedData[month][day].length < 5) {
-            savedData[month][day].push(name);
-            localStorage.setItem("calendarData", JSON.stringify(savedData));
-            input.value = "";  // 입력창 초기화
-            setTimeout(() => updateNameList(month, day), 50); // UI 업데이트
-        }
+        if (!name) return;
+        
+        let docRef = db.collection("calendar").doc(`${month}-${day}`);
+
+        docRef.get().then(doc => {
+            let names = doc.exists ? doc.data().names : [];
+            if (names.length < 5) {
+                names.push(name);
+                docRef.set({ names }).then(() => {
+                    input.value = "";  // 입력 초기화
+                    updateNameList(month, day);
+                });
+            } else {
+                alert("최대 5명까지 입력 가능합니다!");
+            }
+        });
     }
 
     function removeName(month, day, index) {
-        let savedData = JSON.parse(localStorage.getItem("calendarData"));
-        if (savedData[month] && savedData[month][day]) {
-            savedData[month][day].splice(index, 1);
-            localStorage.setItem("calendarData", JSON.stringify(savedData));
-            setTimeout(() => updateNameList(month, day), 50);
-        }
+        let docRef = db.collection("calendar").doc(`${month}-${day}`);
+
+        docRef.get().then(doc => {
+            if (doc.exists) {
+                let names = doc.data().names;
+                names.splice(index, 1);
+                docRef.set({ names }).then(() => {
+                    updateNameList(month, day);
+                });
+            }
+        });
     }
 
     function updateNameList(month, day) {
-        let savedData = JSON.parse(localStorage.getItem("calendarData"));
+        let docRef = db.collection("calendar").doc(`${month}-${day}`);
         let dayCell = document.querySelector(`[data-month="${month}"][data-day="${day}"]`);
         if (!dayCell) return;
 
         let nameList = dayCell.querySelector(".name-list");
         nameList.innerHTML = "";
 
-        if (savedData[month] && savedData[month][day]) {
-            savedData[month][day].forEach((name, index) => {
-                let listItem = document.createElement("li");
-                listItem.classList.add("name-item");
-                listItem.innerHTML = `${name} <span class="delete-btn" onclick="removeName(${month}, ${day}, ${index})">✖</span>`;
-                nameList.appendChild(listItem);
-            });
-        }
+        docRef.get().then(doc => {
+            if (doc.exists) {
+                doc.data().names.forEach((name, index) => {
+                    let listItem = document.createElement("li");
+                    listItem.classList.add("name-item");
+                    listItem.innerHTML = `${name} <span class="delete-btn" onclick="removeName(${month}, ${day}, ${index})">✖</span>`;
+                    nameList.appendChild(listItem);
+                });
+            }
+        });
     }
 
     function loadNames(month) {
-        let savedData = JSON.parse(localStorage.getItem("calendarData")) || {};
-        if (!savedData[month]) return;
-
-        Object.keys(savedData[month]).forEach(day => {
-            updateNameList(month, day);
+        db.collection("calendar").get().then(snapshot => {
+            snapshot.forEach(doc => {
+                let [docMonth, docDay] = doc.id.split("-");
+                if (parseInt(docMonth) === month) {
+                    updateNameList(docMonth, docDay);
+                }
+            });
         });
     }
 
@@ -144,7 +127,6 @@
 
         const firstDay = new Date(year, month - 1, 1).getDay();
         const daysInMonth = new Date(year, month, 0).getDate();
-
         const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
 
         for (let i = 0; i < adjustedFirstDay; i++) {
