@@ -57,7 +57,8 @@
             margin-top: 5px;
         }
         .name-item {
-            display: inline;
+            display: inline-flex;
+            align-items: center;
             font-size: 12px;
             white-space: nowrap;
             padding: 2px 6px;
@@ -216,22 +217,8 @@
         function addName(year, month, day, name) {
             if (!name.trim()) return;
 
-            const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
-            dayRef.once("value", (snapshot) => {
-                let isDuplicate = false;
-                snapshot.forEach((childSnapshot) => {
-                    if (childSnapshot.val().name === name) {
-                        isDuplicate = true;
-                    }
-                });
-
-                if (isDuplicate) {
-                    alert("이미 등록된 이름입니다!");
-                } else {
-                    const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                    newRef.set({ name, color: selectedColor });
-                }
-            });
+            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+            newRef.set({ name, color: selectedColor });
         }
 
         function loadNames(year, month, day, nameList) {
@@ -240,7 +227,16 @@
                 nameList.innerHTML = "";
                 snapshot.forEach((childSnapshot) => {
                     let nameData = childSnapshot.val();
-                    nameList.innerHTML += `<span class="name-item" style="color:${nameData.color};">${nameData.name} <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button></span> `;
+                    let nameItem = document.createElement("span");
+                    nameItem.className = "name-item";
+                    nameItem.style.color = nameData.color;
+                    nameItem.innerHTML = `${nameData.name} <button class="delete-btn">❌</button>`;
+
+                    nameItem.querySelector(".delete-btn").addEventListener("click", () => {
+                        db.ref(`calendar/${year}/${month}/${day}/${childSnapshot.key}`).remove();
+                    });
+
+                    nameList.appendChild(nameItem);
                 });
             });
         }
