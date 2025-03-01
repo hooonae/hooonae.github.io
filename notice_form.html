@@ -54,15 +54,14 @@
         <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
     </div>
 
-    <!-- ✅ Firebase SDK 추가 (오류 해결) -->
+    <!-- ✅ Firebase SDK 추가 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
 
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
-        // ✅ Firebase 초기화 (오류 해결)
+        // ✅ Firebase 초기화
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -75,7 +74,6 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const storage = firebase.storage(); // ✅ Firebase Storage 추가
         console.log("✅ Firebase 초기화 완료!");
 
         // ✅ 공지사항 등록 함수
@@ -91,7 +89,7 @@
             }
 
             if (file) {
-                uploadToFirebaseStorage(file)
+                uploadToCloudinary(file)
                     .then(url => saveNoticeToDatabase(title, content, url))
                     .catch(error => {
                         console.error("❌ 이미지 업로드 실패:", error);
@@ -102,27 +100,28 @@
             }
         }
 
-        // ✅ Firebase Storage에 이미지 업로드
-        function uploadToFirebaseStorage(file) {
+        // ✅ Cloudinary 이미지 업로드
+        function uploadToCloudinary(file) {
             return new Promise((resolve, reject) => {
-                const storageRef = storage.ref("notices/" + file.name);
-                const uploadTask = storageRef.put(file);
+                const cloudName = "dddmgnzlu"; // 🔥 Cloudinary 계정의 Cloud Name 입력
+                const uploadPreset = "firebase_uploads"; // 🔥 Cloudinary 업로드 프리셋 입력
+                const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-                uploadTask.on("state_changed", 
-                    snapshot => {
-                        console.log(`🔄 업로드 중: ${(snapshot.bytesTransferred / snapshot.totalBytes) * 100}%`);
-                    },
-                    error => reject(error),
-                    () => {
-                        uploadTask.snapshot.ref.getDownloadURL()
-                            .then(downloadURL => resolve(downloadURL))
-                            .catch(error => reject(error));
-                    }
-                );
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", uploadPreset);
+
+                fetch(url, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => resolve(data.secure_url))
+                .catch(error => reject(error));
             });
         }
 
-        // ✅ Firebase에 공지사항 저장
+        // ✅ Firebase에 공지사항 저장 (이미지 URL 포함)
         function saveNoticeToDatabase(title, content, imageUrl) {
             const newNoticeRef = db.ref("notices").push();
             newNoticeRef.set({
