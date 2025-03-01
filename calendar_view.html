@@ -3,139 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지킴이 일정</title>
-
-    <!-- ✅ Firebase SDK 추가 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-        import { getDatabase, ref, get, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-
-        // ✅ Firebase 설정 정보
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-
-        // ✅ Firebase 초기화
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // ✅ 월 제목 설정
-        let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-        document.getElementById("monthTitle").textContent = `${selectedMonth}월 지킴이 일정`;
-
-        // ✅ 공휴일 목록
-        const holidays = {
-            "1-1": "신정",
-            "3-1": "삼일절",
-            "5-5": "어린이날",
-            "6-6": "현충일",
-            "8-15": "광복절",
-            "10-3": "개천절",
-            "10-9": "한글날",
-            "12-25": "성탄절"
-        };
-
-        // ✅ 달력 생성 함수
-        function createCalendar(year, month) {
-            const table = document.getElementById("calendarTable");
-            table.innerHTML = ""; // 기존 데이터 초기화
-
-            const daysInMonth = new Date(year, month, 0).getDate();
-            const firstDay = new Date(year, month - 1, 1).getDay();
-
-            // ✅ 요일 헤더 생성
-            const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
-            let thead = table.createTHead();
-            let headerRow = thead.insertRow();
-            weekdays.forEach((day, index) => {
-                let th = document.createElement("th");
-                th.textContent = day;
-                if (index === 0) th.classList.add("sunday");
-                headerRow.appendChild(th);
-            });
-
-            let tbody = table.createTBody();
-            let row = tbody.insertRow();
-            for (let i = 0; i < firstDay; i++) {
-                row.insertCell();
-            }
-
-            // ✅ 날짜 채우기
-            for (let day = 1; day <= daysInMonth; day++) {
-                if ((firstDay + day - 1) % 7 === 0) {
-                    row = tbody.insertRow();
-                }
-                let cell = row.insertCell();
-                cell.innerHTML = `<strong>${day}</strong>`;
-
-                const dateKey = `${month}-${day}`;
-                if (holidays[dateKey]) {
-                    cell.innerHTML += `<br><span class="holiday">${holidays[dateKey]}</span>`;
-                    cell.classList.add("holiday-cell");
-                }
-
-                const input = document.createElement("input");
-                input.type = "text";
-                input.placeholder = "이름 입력";
-                input.className = "name-input";
-                input.onchange = function () {
-                    saveName(year, month, day, input.value);
-                };
-
-                let nameList = document.createElement("div");
-                nameList.className = "name-list";
-
-                cell.appendChild(nameList);
-                cell.appendChild(input);
-
-                loadNames(year, month, day, nameList);
-            }
-        }
-
-        // ✅ Firebase에서 데이터 불러오기
-        function loadNames(year, month, day, nameList) {
-            const dayRef = ref(db, `calendar/${year}/${month}/${day}`);
-            onValue(dayRef, (snapshot) => {
-                nameList.innerHTML = "";
-                if (snapshot.exists()) {
-                    snapshot.forEach((childSnapshot) => {
-                        let nameData = childSnapshot.val();
-                        let nameItem = document.createElement("div");
-                        nameItem.className = "name-item";
-                        nameItem.innerHTML = `
-                            <span>${nameData.name}</span>
-                            <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button>
-                        `;
-                        nameList.appendChild(nameItem);
-                    });
-                }
-            });
-        }
-
-        // ✅ Firebase에 데이터 저장
-        function saveName(year, month, day, name) {
-            if (!name.trim()) return;
-            const newRef = ref(db, `calendar/${year}/${month}/${day}/${Date.now()}`);
-            set(newRef, { name: name }).then(() => {
-                console.log("✅ 일정 저장 완료");
-            }).catch(error => console.error("❌ 저장 실패:", error));
-        }
-
-        // ✅ Firebase에서 데이터 삭제
-        function deleteName(year, month, day, nameId) {
-            remove(ref(db, `calendar/${year}/${month}/${day}/${nameId}`)).then(() => {
-                console.log("🗑️ 일정 삭제 완료");
-            }).catch(error => console.error("❌ 삭제 실패:", error));
-        }
-
-        createCalendar(new Date().getFullYear(), selectedMonth);
-    </script>
+    <title>📅 지킴이 일정</title>
 
     <style>
         body {
@@ -212,6 +80,130 @@
     <div class="calendar-container">
         <table id="calendarTable"></table>
     </div>
+
+    <!-- ✅ Firebase 최신 버전 SDK 추가 (CDN 방식) -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <script>
+        console.log("📡 Firebase 스크립트 로드됨!");
+
+        // ✅ Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        console.log("✅ Firebase 초기화 완료!");
+
+        // ✅ 월 제목 설정
+        let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+        document.getElementById("monthTitle").textContent = `${selectedMonth}월 지킴이 일정`;
+
+        // ✅ 공휴일 목록
+        const holidays = {
+            "1-1": "신정",
+            "3-1": "삼일절",
+            "5-5": "어린이날",
+            "6-6": "현충일",
+            "8-15": "광복절",
+            "10-3": "개천절",
+            "10-9": "한글날",
+            "12-25": "성탄절"
+        };
+
+        // ✅ 달력 생성 함수
+        function createCalendar(year, month) {
+            const table = document.getElementById("calendarTable");
+            table.innerHTML = ""; // 기존 데이터 초기화
+
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const firstDay = new Date(year, month - 1, 1).getDay();
+
+            // ✅ 요일 헤더 생성
+            const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+            let thead = table.createTHead();
+            let headerRow = thead.insertRow();
+            weekdays.forEach((day, index) => {
+                let th = document.createElement("th");
+                th.textContent = day;
+                if (index === 0) th.classList.add("sunday");
+                headerRow.appendChild(th);
+            });
+
+            let tbody = table.createTBody();
+            let row = tbody.insertRow();
+            for (let i = 0; i < firstDay; i++) {
+                row.insertCell();
+            }
+
+            // ✅ 날짜 채우기
+            for (let day = 1; day <= daysInMonth; day++) {
+                if ((firstDay + day - 1) % 7 === 0) {
+                    row = tbody.insertRow();
+                }
+                let cell = row.insertCell();
+                cell.innerHTML = `<strong>${day}</strong>`;
+
+                const dateKey = `${month}-${day}`;
+                if (holidays[dateKey]) {
+                    cell.innerHTML += `<br><span class="holiday">${holidays[dateKey]}</span>`;
+                    cell.classList.add("holiday-cell");
+                }
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.placeholder = "이름 입력";
+                input.className = "name-input";
+                input.onchange = function () {
+                    saveName(year, month, day, input.value);
+                };
+
+                let nameList = document.createElement("div");
+                nameList.className = "name-list";
+
+                cell.appendChild(nameList);
+                cell.appendChild(input);
+
+                loadNames(year, month, day, nameList);
+            }
+        }
+
+        // ✅ Firebase에서 데이터 불러오기
+        function loadNames(year, month, day, nameList) {
+            const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
+            dayRef.on("value", (snapshot) => {
+                nameList.innerHTML = "";
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        let nameData = childSnapshot.val();
+                        let nameItem = document.createElement("div");
+                        nameItem.className = "name-item";
+                        nameItem.innerHTML = `
+                            <span>${nameData.name}</span>
+                            <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button>
+                        `;
+                        nameList.appendChild(nameItem);
+                    });
+                }
+            });
+        }
+
+        // ✅ Firebase에 데이터 저장
+        function saveName(year, month, day, name) {
+            if (!name.trim()) return;
+            const newRef = db.ref(`calendar/${year}/${month}/${day}/${Date.now()}`);
+            newRef.set({ name });
+        }
+
+        createCalendar(new Date().getFullYear(), selectedMonth);
+    </script>
 
 </body>
 </html>
