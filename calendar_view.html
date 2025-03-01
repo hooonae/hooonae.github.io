@@ -14,7 +14,7 @@
             padding: 20px;
         }
         .calendar-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: auto;
             background: white;
             padding: 15px;
@@ -33,47 +33,56 @@
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
+            padding: 5px;
+            text-align: left;
             vertical-align: top;
-            height: 90px;
+            height: 100px;
+            position: relative;
         }
         th {
             background: #555;
             color: white;
             font-weight: bold;
+            text-align: center;
         }
         .sunday { color: red; }
         .saturday { color: blue; }
-        .name-input {
-            width: 100%;
-            padding: 3px;
-            margin-top: 3px;
-            text-align: center;
-            font-size: 10px;
+        .date-num {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 14px;
+            font-weight: bold;
         }
         .name-list {
-            display: block; /* 이름이 자동 줄바꿈되도록 변경 */
-            max-height: 80px; /* 너무 길어지지 않게 제한 */
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 5px 0 5px;
+            max-height: 60px;
             overflow-y: auto;
-            text-align: center;
-            padding: 2px;
         }
-        .name-item {
-            display: inline-block;
-            font-size: 10px;
-            padding: 2px 5px;
+        .name-list li {
+            font-size: 12px;
             background: lightgray;
-            border-radius: 5px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
             margin: 2px;
         }
         .delete-btn {
             background: transparent;
             border: none;
             color: red;
-            font-size: 8px;
+            font-size: 10px;
             cursor: pointer;
-            margin-left: 5px;
+            margin-left: 3px;
+        }
+        .name-input {
+            width: 95%;
+            padding: 3px;
+            margin-top: 5px;
+            text-align: center;
+            font-size: 12px;
         }
         .color-picker {
             display: flex;
@@ -180,70 +189,4 @@
             `;
 
             const daysInMonth = new Date(year, month, 0).getDate();
-            const firstDay = new Date(year, month - 1, 1).getDay();
-
-            let tbody = table.createTBody();
-            let row = tbody.insertRow();
-            for (let i = 0; i < firstDay; i++) {
-                row.insertCell();
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                if ((firstDay + day - 1) % 7 === 0) {
-                    row = tbody.insertRow();
-                }
-                let cell = row.insertCell();
-                cell.innerHTML = `<strong>${day}</strong>`;
-
-                const input = document.createElement("input");
-                input.type = "text";
-                input.placeholder = "이름 입력";
-                input.className = "name-input";
-                input.onkeypress = function (e) {
-                    if (e.key === "Enter") {
-                        addName(year, month, day, input.value);
-                        input.value = "";
-                    }
-                };
-
-                let nameList = document.createElement("div");
-                nameList.className = "name-list";
-
-                cell.appendChild(nameList);
-                cell.appendChild(input);
-                loadNames(year, month, day, nameList);
-            }
-        }
-
-        function addName(year, month, day, name) {
-            if (!name.trim()) return;
-
-            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-            newRef.set({ name, color: selectedColor });
-        }
-
-        function loadNames(year, month, day, nameList) {
-            const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
-            dayRef.on("value", (snapshot) => {
-                nameList.innerHTML = "";
-                snapshot.forEach((childSnapshot) => {
-                    let nameData = childSnapshot.val();
-                    let nameItem = document.createElement("span");
-                    nameItem.className = "name-item";
-                    nameItem.style.color = nameData.color;
-                    nameItem.innerHTML = `${nameData.name} <button class="delete-btn">❌</button>`;
-
-                    nameItem.querySelector(".delete-btn").addEventListener("click", () => {
-                        db.ref(`calendar/${year}/${month}/${day}/${childSnapshot.key}`).remove();
-                    });
-
-                    nameList.appendChild(nameItem);
-                });
-            });
-        }
-
-        createCalendar(currentYear, currentMonth);
-    </script>
-
-</body>
-</html>
+            const firstDay
