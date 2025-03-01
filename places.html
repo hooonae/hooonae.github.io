@@ -6,7 +6,7 @@
     <title>🍽 추천 맛집 목록</title>
 
     <!-- ✅ 네이버 지도 API -->
-    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId="tjkbm85mph"></script>
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph"></script>
 
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
@@ -28,7 +28,7 @@
         <input type="text" id="title" placeholder="맛집 이름">
         <input type="text" id="content" placeholder="맛집 설명">
         <input type="text" id="nickname" placeholder="작성자">
-        <input type="text" id="address" placeholder="맛집 주소 (지도에서 선택)">
+        <input type="text" id="address" placeholder="맛집 주소 (지도에서 선택)" readonly>
         <div id="map"></div> <!-- ✅ 지도 추가 -->
         <input type="file" id="image" accept="image/*">
         <button onclick="submitPlace()">등록하기</button>
@@ -68,7 +68,7 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ 지도 클릭 시 주소 변환 (Reverse Geocoding)
+        // ✅ 지도 클릭 시 Reverse Geocoding 실행
         function reverseGeocode(lat, lng) {
             var apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
 
@@ -99,14 +99,23 @@
         });
 
         // ✅ Firebase에 맛집 데이터 저장
-        function savePlaceToDatabase(title, content, nickname, address, imageUrl) {
+        function submitPlace() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
+            const address = document.getElementById("address").value.trim();
+
+            if (!title || !content || !nickname || !address) {
+                alert("⚠️ 모든 필드를 입력하세요.");
+                return;
+            }
+
             const newPlaceRef = db.ref("places").push();
             newPlaceRef.set({
                 title,
                 content,
                 nickname,
                 address,
-                imageUrl,
                 date: new Date().toISOString()
             })
             .then(() => {
@@ -146,7 +155,6 @@
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
                         <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
-                        ${place.imageUrl ? `<img src="${place.imageUrl}" width="200">` : ""}
                         <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
                         <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
                     `;
