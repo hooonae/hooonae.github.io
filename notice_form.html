@@ -81,7 +81,7 @@
             // ✅ Firebase Realtime Database에 저장
             push(ref(db, "notices"), newNotice).then(() => {
                 alert("✅ 공지사항이 등록되었습니다!");
-                location.href = "notice.html"; // 작성 후 목록으로 이동
+                location.href = "notices.html"; // 작성 후 목록으로 이동
             }).catch(error => {
                 console.error("❌ 등록 실패:", error);
                 alert("⚠️ 공지사항 등록 중 오류가 발생했습니다.");
