@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>공지사항 작성</title>
-    
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
             margin: 0;
             padding: 20px;
-            background: #F8F1E9;
-            text-align: center;
         }
         .container {
             max-width: 600px;
@@ -37,9 +37,6 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        .delete-btn {
-            background: red;
-        }
     </style>
 </head>
 <body>
@@ -50,94 +47,82 @@
         <input type="text" id="title" placeholder="공지 제목">
         <textarea id="content" placeholder="공지 내용"></textarea>
         <input type="file" id="image" accept="image/*">
-        <button onclick="submitNotice()">등록하기</button>
+        <button id="submitBtn">등록하기</button>
     </div>
 
-    <h2>📋 기존 공지사항</h2>
-    <div id="noticesList"></div>
-
-    <!-- ✅ Firebase 최신 버전 -->
+    <!-- ✅ Firebase & Cloudinary 최신 버전 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"></script>
 
     <script>
+        // ✅ Firebase 초기화
         const firebaseConfig = { /* 여기에 Firebase 설정 값 넣기 */ };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function submitNotice() {
+        // ✅ Cloudinary 설정
+        const CLOUD_NAME = "dddmgnzlu";
+        const UPLOAD_PRESET = "firebase_uploads";
+
+        async function uploadToCloudinary(file) {
+            console.log("🚀 이미지 업로드 시작...");
+            const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(url, { method: "POST", body: formData });
+                const data = await response.json();
+                console.log("✅ Cloudinary 업로드 완료:", data.secure_url);
+                return data.secure_url;
+            } catch (error) {
+                console.error("❌ Cloudinary 업로드 실패:", error);
+                return "";
+            }
+        }
+
+        async function submitNotice() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
             const file = document.getElementById("image").files[0];
+
+            console.log("🚀 입력값 확인:", { title, content, file });
 
             if (!title || !content) {
                 alert("⚠️ 제목과 내용을 입력하세요.");
                 return;
             }
 
-            let newNoticeRef = db.ref("notices").push();
-            let noticeData = {
+            let imageUrl = "";
+            if (file) {
+                imageUrl = await uploadToCloudinary(file);
+                if (!imageUrl) {
+                    alert("⚠️ 이미지 업로드에 실패했습니다.");
+                    return;
+                }
+            }
+
+            const newNoticeRef = db.ref("notices").push();
+            const noticeData = {
                 title,
                 content,
-                date: new Date().toLocaleString(),
-                imageUrl: ""
+                imageUrl,
+                date: new Date().toISOString()
             };
+
+            console.log("📡 Firebase 저장 중:", noticeData);
 
             newNoticeRef.set(noticeData)
                 .then(() => {
+                    console.log("✅ 공지사항 등록 완료!");
                     alert("✅ 공지사항이 등록되었습니다.");
-                    location.reload();
+                    location.href = "notices.html";
                 })
                 .catch(error => console.error("❌ 등록 실패:", error));
         }
 
-        function loadNotices() {
-            const noticesList = document.getElementById("noticesList");
-            noticesList.innerHTML = "<p>📡 로딩 중...</p>";
-
-            db.ref("notices").on("value", (snapshot) => {
-                noticesList.innerHTML = "";
-                if (!snapshot.exists()) {
-                    noticesList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
-                    return;
-                }
-
-                let notices = [];
-                snapshot.forEach((childSnapshot) => {
-                    let key = childSnapshot.key;
-                    let data = childSnapshot.val();
-                    notices.push({ key, ...data });
-                });
-
-                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                notices.forEach((notice) => {
-                    let div = document.createElement("div");
-                    div.classList.add("notice-item");
-                    div.innerHTML = `
-                        <h3>${notice.title}</h3>
-                        <p>${notice.date}</p>
-                        <p>${notice.content}</p>
-                        ${notice.imageUrl ? `<img src="${notice.imageUrl}" width="100">` : ""}
-                        <button class="delete-btn" onclick="deleteNotice('${notice.key}')">🗑 삭제</button>
-                    `;
-                    noticesList.appendChild(div);
-                });
-            });
-        }
-
-        function deleteNotice(noticeId) {
-            if (confirm("정말로 삭제하시겠습니까?")) {
-                db.ref("notices/" + noticeId).remove()
-                    .then(() => {
-                        alert("✅ 공지사항이 삭제되었습니다.");
-                        loadNotices();
-                    })
-                    .catch(error => console.error("❌ 삭제 실패:", error));
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", loadNotices);
+        document.getElementById("submitBtn").addEventListener("click", submitNotice);
     </script>
 
 </body>
