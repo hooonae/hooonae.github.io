@@ -95,25 +95,6 @@
             cursor: pointer;
         }
 
-        /* ✅ 카드 스타일 */
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            max-width: 900px;
-            margin: auto;
-            margin-top: 30px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            transition: transform 0.3s ease-in-out;
-        }
-        .card:hover { transform: translateY(-5px); }
-
     </style>
 </head>
 <body>
@@ -144,37 +125,44 @@
             <ul id="noticeList"></ul>
             <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
         </div>
-
-        <!-- ✅ 카드 섹션 -->
-        <div class="cards">
-            <div class="card">
-                <h3>📌 지킴이 일정</h3>
-                <p>지킴이들의 근무 일정을 확인하세요.</p>
-                <button onclick="location.href='calendar.html'">일정 보기</button>
-            </div>
-            <div class="card">
-                <h3>📅 전시 일정</h3>
-                <p>다가오는 전시 일정을 확인하세요!</p>
-                <button onclick="location.href='events.html'">일정 보기</button>
-            </div>
-            <div class="card">
-                <h3>📢 공지사항 작성</h3>
-                <p>관리자만 공지사항을 작성할 수 있습니다.</p>
-                <button onclick="location.href='notice_form.html'">작성하기</button>
-            </div>
-        </div>
     </div>
 
-    <!-- ✅ Firebase 최신 버전 -->
+    <!-- ✅ Firebase 최신 버전 SDK 추가 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"></script>
 
     <script>
-        const firebaseConfig = { /* 여기에 Firebase 설정 값 넣기 */ };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        console.log("📡 Firebase 스크립트 로드됨!");
+
+        // ✅ Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        // ✅ Firebase가 중복 초기화되지 않도록 확인
+        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        } else if (typeof firebase !== 'undefined') {
+            firebase.app();
+        } else {
+            console.error("❌ Firebase가 로드되지 않았습니다.");
+        }
+
+        const db = typeof firebase !== 'undefined' ? firebase.database() : null;
+        if (db) console.log("✅ Firebase 초기화 완료!");
 
         function loadNotices() {
+            if (!db) {
+                console.error("❌ Firebase 데이터베이스가 초기화되지 않음");
+                return;
+            }
+
             const noticeList = document.getElementById("noticeList");
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
@@ -192,7 +180,10 @@
                     notices.push(data);
                 });
 
-                notices.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3).forEach((notice) => {
+                // 🔹 최신순 정렬 (날짜가 최신인 공지 먼저)
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                notices.slice(0, 3).forEach((notice) => {
                     let li = document.createElement("li");
                     li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
                         ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지" width="100">` : ""}`;
