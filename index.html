@@ -88,6 +88,47 @@
             position: relative;
         }
 
+        /* ✅ 햄버거 메뉴 스타일 (복구) */
+        .menu-toggle {
+            font-size: 2.2em; /* 크기 복구 */
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: absolute;
+            right: 15px; /* 오른쪽 정렬 */
+            top: 15px;
+            z-index: 2000;
+        }
+
+        .menu {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            background: rgba(139, 94, 60, 0.95);
+            width: 100%;
+            top: 60px;
+            left: 0;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .menu a {
+            display: block;
+            padding: 15px;
+            color: white;
+            font-size: 1.2em;
+            text-decoration: none;
+        }
+
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu.open {
+            display: flex;
+        }
+
         /* ✅ 공지사항 */
         .notice {
             background: #ffeb99;
@@ -119,72 +160,34 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
-        /* ✅ 공지 이미지 스타일 */
-        .notice-image {
-            max-width: 80px;
-            height: auto;
-            border-radius: 5px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        /* ✅ 카드 스타일 */
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            max-width: 900px;
-            margin: auto;
-            margin-top: 30px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            transition: transform 0.3s ease-in-out;
-        }
-        .card:hover { transform: translateY(-5px); }
     </style>
 </head>
 <body>
 
     <!-- ✅ 배너 추가 -->
     <div class="banner">
-        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button> <!-- 햄버거 메뉴 -->
     </div>
 
-    <!-- ✅ 공지사항 섹션 -->
-    <div class="notice">
-        <h2>📢 공지사항</h2>
-        <ul id="noticeList"></ul>
-        <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
+    <!-- ✅ 햄버거 메뉴 -->
+    <div class="menu">
+        <a href="index.html">🏠 홈</a>
+        <a href="open_close.html">🔔 오픈, 마감 업데이트</a>
+        <a href="places.html">🍽 맛집 추천</a>
+        <a href="events.html">📅 전시 일정</a>
+        <a href="calendar.html">📌 지킴이 일정</a>
+        <a href="supplies.html">📦 필요 비품</a>
+        <a href="suggestions.html">🗣 건의 사항</a>
+        <a href="notices.html">📢 공지사항</a>
     </div>
 
-    <!-- ✅ 카드 섹션 추가 -->
-    <div class="cards">
-        <div class="card">
-            <h3>📌 지킴이 일정</h3>
-            <p>지킴이들의 근무 일정을 확인하세요.</p>
-            <button onclick="location.href='calendar.html'">일정 보기</button>
-        </div>
-        <div class="card">
-            <h3>📅 전시 일정</h3>
-            <p>다가오는 전시 일정을 확인하세요!</p>
-            <button onclick="location.href='events.html'">일정 보기</button>
-        </div>
-        <div class="card">
-            <h3>🍽 맛집 추천</h3>
-            <p>박물관 주변의 맛집을 추천해주세요!</p>
-            <button onclick="location.href='places.html'">맛집 보기</button>
-        </div>
-        <div class="card">
-            <h3>📢 공지사항 작성</h3>
-            <p>관리자만 공지사항을 작성할 수 있습니다.</p>
-            <button onclick="location.href='notice_form.html'">작성하기</button>
-        </div>
-    </div>
+    <!-- ✅ 모바일 메뉴 토글 기능 -->
+    <script>
+        function toggleMenu() {
+            document.querySelector('.menu').classList.toggle('open');
+        }
+    </script>
 
 </body>
 </html>
+
