@@ -179,7 +179,6 @@
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
             db.ref("notices").on("value", (snapshot) => {
-                console.log("📡 Firebase 응답 받음:", snapshot.exists());
                 noticeList.innerHTML = "";
 
                 if (!snapshot.exists()) {
@@ -200,6 +199,10 @@
                     noticeList.appendChild(li);
                 });
             });
+        }
+
+        function toggleMenu() {
+            document.querySelector('.menu').classList.toggle('open');
         }
 
         document.addEventListener("DOMContentLoaded", loadNotices);
