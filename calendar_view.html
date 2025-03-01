@@ -26,13 +26,26 @@
             margin-bottom: 20px;
         }
         #calendar {
-            width: 90%;
-            max-width: 1000px;
+            width: 100%;
+            max-width: 700px;
             margin: auto;
             background: white;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 700px) {
+            #calendar {
+                width: 100%;
+                height: auto;
+            }
+        }
+
+        /* FullCalendar 날짜 크기 및 정렬 조정 */
+        .fc-daygrid-day-number {
+            font-size: 14px !important; /* 날짜 크기 줄이기 */
+            text-align: left !important; /* 왼쪽 정렬 */
+            padding-left: 5px !important; /* 왼쪽 여백 추가 */
         }
     </style>
 </head>
@@ -90,10 +103,10 @@
                         failureCallback(error);
                     }
                 },
-                dateClick: function(info) {
+                dateClick: async function(info) {
                     let name = prompt("일정 이름을 입력하세요:");
                     if (name) {
-                        addEvent(info.date, name);
+                        await addEvent(info.date, name);
                     }
                 },
                 eventClick: function(info) {
@@ -108,9 +121,17 @@
                 let year = date.getFullYear();
                 let month = date.getMonth() + 1;
                 let day = date.getDate();
+                
                 const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
                 await newRef.set({ name, color: "blue" });
-                calendar.refetchEvents();
+
+                // ✅ 새 일정 즉시 반영
+                calendar.addEvent({
+                    id: newRef.key,
+                    title: name,
+                    start: date,
+                    color: "blue"
+                });
             }
 
             async function deleteEvent(event) {
@@ -118,6 +139,7 @@
                 let year = date.getFullYear();
                 let month = date.getMonth() + 1;
                 let day = date.getDate();
+                
                 await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
                 event.remove();
             }
@@ -126,4 +148,3 @@
 
 </body>
 </html>
-
