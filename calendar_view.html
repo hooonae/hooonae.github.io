@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>달력</title>
+    <title>달력 (Firebase 저장)</title>
     <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 400px; margin: auto; }
-        .day { border: 1px solid #ccc; padding: 10px; min-height: 90px; text-align: center; position: relative; }
+        .day { border: 1px solid #ccc; padding: 10px; min-height: 100px; text-align: center; position: relative; }
         .name-list { list-style-type: none; padding: 0; margin: 0; font-size: 12px; }
         .name-item { display: flex; justify-content: space-between; align-items: center; background: #f0f0f0; padding: 3px 5px; margin: 2px 0; border-radius: 5px; }
         .delete-btn { cursor: pointer; color: red; font-size: 14px; }
@@ -43,30 +43,29 @@
 <div class="calendar" id="calendar"></div>
 
 <script>
-    // 🔥 Firebase 설정
+    // 🔥 Firebase 초기화
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const db = firebase.database();
 
     function saveName(month, day, input) {
         let name = input.value.trim();
         if (!name) return;
-        
-        let docRef = db.collection("calendar").doc(`${month}-${day}`);
 
-        docRef.get().then(doc => {
-            let names = doc.exists ? doc.data().names : [];
+        let ref = db.ref(`calendar/${month}/${day}`);
+
+        ref.once("value").then(snapshot => {
+            let names = snapshot.val() ? snapshot.val() : [];
             if (names.length < 5) {
                 names.push(name);
-                docRef.set({ names }).then(() => {
+                ref.set(names).then(() => {
                     input.value = "";  // 입력 초기화
                     updateNameList(month, day);
                 });
@@ -77,13 +76,13 @@
     }
 
     function removeName(month, day, index) {
-        let docRef = db.collection("calendar").doc(`${month}-${day}`);
+        let ref = db.ref(`calendar/${month}/${day}`);
 
-        docRef.get().then(doc => {
-            if (doc.exists) {
-                let names = doc.data().names;
+        ref.once("value").then(snapshot => {
+            let names = snapshot.val();
+            if (names) {
                 names.splice(index, 1);
-                docRef.set({ names }).then(() => {
+                ref.set(names).then(() => {
                     updateNameList(month, day);
                 });
             }
@@ -91,16 +90,17 @@
     }
 
     function updateNameList(month, day) {
-        let docRef = db.collection("calendar").doc(`${month}-${day}`);
+        let ref = db.ref(`calendar/${month}/${day}`);
         let dayCell = document.querySelector(`[data-month="${month}"][data-day="${day}"]`);
         if (!dayCell) return;
 
         let nameList = dayCell.querySelector(".name-list");
         nameList.innerHTML = "";
 
-        docRef.get().then(doc => {
-            if (doc.exists) {
-                doc.data().names.forEach((name, index) => {
+        ref.once("value").then(snapshot => {
+            let names = snapshot.val();
+            if (names) {
+                names.forEach((name, index) => {
                     let listItem = document.createElement("li");
                     listItem.classList.add("name-item");
                     listItem.innerHTML = `${name} <span class="delete-btn" onclick="removeName(${month}, ${day}, ${index})">✖</span>`;
@@ -111,13 +111,15 @@
     }
 
     function loadNames(month) {
-        db.collection("calendar").get().then(snapshot => {
-            snapshot.forEach(doc => {
-                let [docMonth, docDay] = doc.id.split("-");
-                if (parseInt(docMonth) === month) {
-                    updateNameList(docMonth, docDay);
-                }
-            });
+        let ref = db.ref(`calendar/${month}`);
+
+        ref.once("value").then(snapshot => {
+            let days = snapshot.val();
+            if (days) {
+                Object.keys(days).forEach(day => {
+                    updateNameList(month, day);
+                });
+            }
         });
     }
 
