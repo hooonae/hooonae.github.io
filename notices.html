@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지사항</title>
+    <title>📢 공지사항</title>
     
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
@@ -16,7 +16,7 @@
             authDomain: "museum-web-370cd.firebaseapp.com",
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.firebasestorage.app",
+            storageBucket: "museum-web-370cd.appspot.com",
             messagingSenderId: "154810876093",
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
@@ -25,21 +25,36 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ✅ Firebase에서 모든 공지사항 불러오기
+        // ✅ Firebase에서 공지사항 불러오기
         function loadAllNotices() {
             const noticesList = document.getElementById("noticesList");
             noticesList.innerHTML = "<p>로딩 중...</p>";
 
             onValue(ref(db, "notices"), (snapshot) => {
                 noticesList.innerHTML = ""; // 기존 목록 초기화
+
+                if (!snapshot.exists()) {
+                    noticesList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
+                    return;
+                }
+
+                let notices = [];
                 snapshot.forEach((childSnapshot) => {
-                    const notice = childSnapshot.val();
+                    let key = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    notices.push({ key, ...data });
+                });
+
+                // 🔹 최신순 정렬
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                notices.forEach((notice) => {
                     let div = document.createElement("div");
                     div.classList.add("notice-card");
                     div.innerHTML = `
                         <h3>${notice.title}</h3>
-                        <p>${notice.date}</p>
-                        <button onclick="viewNotice('${childSnapshot.key}')">자세히 보기</button>
+                        <p>🕒 ${notice.date}</p>
+                        <button onclick="viewNotice('${notice.key}')">자세히 보기</button>
                     `;
                     noticesList.appendChild(div);
                 });
@@ -47,12 +62,12 @@
         }
 
         // ✅ 특정 공지사항 보기
-        function viewNotice(noticeId) {
+        window.viewNotice = function(noticeId) {
             window.location.href = `notice_view.html?id=${noticeId}`;
-        }
+        };
 
-        // ✅ 페이지 로딩 시 실행
-        window.onload = loadAllNotices;
+        // ✅ 페이지가 로드되면 공지사항 불러오기
+        document.addEventListener("DOMContentLoaded", loadAllNotices);
     </script>
 
     <style>
@@ -102,7 +117,7 @@
     <div class="container">
         <div id="noticesList"></div>
 
-        <button onclick="location.href='notice_form.html'">공지사항 작성</button>
+        <button onclick="location.href='notice_form.html'">➕ 공지사항 작성</button>
         <button onclick="location.href='index.html'">🏠 홈으로</button>
     </div>
 
