@@ -4,81 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>지킴이 일정</title>
-    <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
-        h1 { color: #333; }
-        .calendar { 
-            display: grid; 
-            grid-template-columns: repeat(7, 1fr); 
-            gap: 5px; 
-            max-width: 700px; 
-            margin: auto;
-        }
-        .day, .weekday { 
-            background: white; 
-            padding: 10px; 
-            border-radius: 5px; 
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); 
-            min-height: 120px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-            justify-content: space-between;
-        }
-        .weekday { font-weight: bold; background: #ddd; }
-        .sunday { color: red; }
-        .holiday { color: red; font-weight: bold; }
-        .name-list { 
-            margin-top: 5px; 
-            font-size: 0.9em; 
-            text-align: center; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-        input { 
-            width: 90%; 
-            padding: 5px; 
-            margin-top: 5px; 
-            text-align: center;
-        }
-        .color-picker { display: flex; justify-content: center; margin-bottom: 10px; }
-        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: none; margin: 0 5px; cursor: pointer; }
-        .name-item { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-        .delete-btn {
-            background: transparent; 
-            border: none; 
-            color: red; 
-            font-size: 14px; 
-            cursor: pointer;
-            margin-left: 5px;
-        }
-    </style>
-</head>
-<body>
 
-    <h1 id="monthTitle"></h1>
+    <!-- ✅ Firebase SDK 추가 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { getDatabase, ref, get, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-    <div class="color-picker">
-        <button class="color-btn" style="background: black;" onclick="setColor('black')"></button>
-        <button class="color-btn" style="background: red;" onclick="setColor('red')"></button>
-        <button class="color-btn" style="background: blue;" onclick="setColor('blue')"></button>
-        <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
-    </div>
+        // ✅ Firebase 설정 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
 
-    <div id="calendarContainer" class="calendar"></div>
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    <script>
-        let selectedMonth = localStorage.getItem("selectedMonth");
-        document.getElementById("monthTitle").textContent = selectedMonth + "월 지킴이 일정";
+        // ✅ 월 제목 설정
+        let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+        document.getElementById("monthTitle").textContent = `${selectedMonth}월 지킴이 일정`;
 
-        let selectedColor = "black"; 
-
-        function setColor(color) {
-            selectedColor = color;
-        }
-
+        // ✅ 공휴일 목록
         const holidays = {
             "1-1": "신정",
             "3-1": "삼일절",
@@ -90,113 +41,177 @@
             "12-25": "성탄절"
         };
 
+        // ✅ 달력 생성 함수
         function createCalendar(year, month) {
-            const container = document.getElementById("calendarContainer");
-            container.innerHTML = "";
+            const table = document.getElementById("calendarTable");
+            table.innerHTML = ""; // 기존 데이터 초기화
 
             const daysInMonth = new Date(year, month, 0).getDate();
             const firstDay = new Date(year, month - 1, 1).getDay();
-            let calendarData = JSON.parse(localStorage.getItem(`calendar_${year}_${month}`)) || {};
 
-            // 요일 헤더 추가
+            // ✅ 요일 헤더 생성
             const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+            let thead = table.createTHead();
+            let headerRow = thead.insertRow();
             weekdays.forEach((day, index) => {
-                let dayHeader = document.createElement("div");
-                dayHeader.className = "weekday";
-                if (index === 0) dayHeader.classList.add("sunday");
-                dayHeader.textContent = day;
-                container.appendChild(dayHeader);
+                let th = document.createElement("th");
+                th.textContent = day;
+                if (index === 0) th.classList.add("sunday");
+                headerRow.appendChild(th);
             });
 
-            // 빈 칸 추가 (첫 요일 맞추기)
+            let tbody = table.createTBody();
+            let row = tbody.insertRow();
             for (let i = 0; i < firstDay; i++) {
-                let emptyCell = document.createElement("div");
-                emptyCell.className = "day";
-                container.appendChild(emptyCell);
+                row.insertCell();
             }
 
-            // 날짜 채우기
+            // ✅ 날짜 채우기
             for (let day = 1; day <= daysInMonth; day++) {
-                const dayDiv = document.createElement("div");
-                dayDiv.className = "day";
-                const dateKey = `${month}-${day}`;
+                if ((firstDay + day - 1) % 7 === 0) {
+                    row = tbody.insertRow();
+                }
+                let cell = row.insertCell();
+                cell.innerHTML = `<strong>${day}</strong>`;
 
+                const dateKey = `${month}-${day}`;
                 if (holidays[dateKey]) {
-                    dayDiv.innerHTML = `<strong class="holiday">${day}<br>${holidays[dateKey]}</strong>`;
-                } else if (new Date(year, month - 1, day).getDay() === 0) {
-                    dayDiv.innerHTML = `<strong class="sunday">${day}</strong>`;
-                } else {
-                    dayDiv.innerHTML = `<strong>${day}</strong>`;
+                    cell.innerHTML += `<br><span class="holiday">${holidays[dateKey]}</span>`;
+                    cell.classList.add("holiday-cell");
                 }
 
                 const input = document.createElement("input");
-                input.placeholder = "이름 입력";
                 input.type = "text";
-                input.onkeypress = function (e) {
-                    if (e.key === "Enter") {
-                        addName(year, month, day, input.value);
-                        input.value = "";
-                    }
+                input.placeholder = "이름 입력";
+                input.className = "name-input";
+                input.onchange = function () {
+                    saveName(year, month, day, input.value);
                 };
 
-                const nameList = document.createElement("div");
+                let nameList = document.createElement("div");
                 nameList.className = "name-list";
-                if (calendarData[day]) {
-                    calendarData[day].forEach((nameData, index) => {
-                        addNameToUI(nameList, nameData.name, nameData.color, year, month, day, index);
+
+                cell.appendChild(nameList);
+                cell.appendChild(input);
+
+                loadNames(year, month, day, nameList);
+            }
+        }
+
+        // ✅ Firebase에서 데이터 불러오기
+        function loadNames(year, month, day, nameList) {
+            const dayRef = ref(db, `calendar/${year}/${month}/${day}`);
+            onValue(dayRef, (snapshot) => {
+                nameList.innerHTML = "";
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        let nameData = childSnapshot.val();
+                        let nameItem = document.createElement("div");
+                        nameItem.className = "name-item";
+                        nameItem.innerHTML = `
+                            <span>${nameData.name}</span>
+                            <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button>
+                        `;
+                        nameList.appendChild(nameItem);
                     });
                 }
-
-                dayDiv.appendChild(nameList);
-                dayDiv.appendChild(input);
-                container.appendChild(dayDiv);
-            }
+            });
         }
 
-        function addName(year, month, day, name) {
+        // ✅ Firebase에 데이터 저장
+        function saveName(year, month, day, name) {
             if (!name.trim()) return;
-            let calendarData = JSON.parse(localStorage.getItem(`calendar_${year}_${month}`)) || {};
-            if (!calendarData[day]) calendarData[day] = [];
-
-            if (calendarData[day].length < 6) {
-                calendarData[day].push({ name, color: selectedColor });
-                localStorage.setItem(`calendar_${year}_${month}`, JSON.stringify(calendarData));
-                createCalendar(year, month);
-            } else {
-                alert("최대 6명까지 추가할 수 있습니다.");
-            }
+            const newRef = ref(db, `calendar/${year}/${month}/${day}/${Date.now()}`);
+            set(newRef, { name: name }).then(() => {
+                console.log("✅ 일정 저장 완료");
+            }).catch(error => console.error("❌ 저장 실패:", error));
         }
 
-        function addNameToUI(nameList, name, color, year, month, day, index) {
-            const nameItem = document.createElement("div");
-            nameItem.className = "name-item";
-
-            const nameSpan = document.createElement("span");
-            nameSpan.textContent = name;
-            nameSpan.style.color = color;
-            nameSpan.style.whiteSpace = "nowrap"; // 이름이 한 줄로 표시되도록 수정
-
-            const deleteBtn = document.createElement("button");
-            deleteBtn.className = "delete-btn";
-            deleteBtn.textContent = "❌";
-            deleteBtn.onclick = function () {
-                deleteName(year, month, day, index);
-            };
-
-            nameItem.appendChild(nameSpan);
-            nameItem.appendChild(deleteBtn);
-            nameList.appendChild(nameItem);
+        // ✅ Firebase에서 데이터 삭제
+        function deleteName(year, month, day, nameId) {
+            remove(ref(db, `calendar/${year}/${month}/${day}/${nameId}`)).then(() => {
+                console.log("🗑️ 일정 삭제 완료");
+            }).catch(error => console.error("❌ 삭제 실패:", error));
         }
 
-        function deleteName(year, month, day, index) {
-            let calendarData = JSON.parse(localStorage.getItem(`calendar_${year}_${month}`)) || {};
-            calendarData[day].splice(index, 1);
-            localStorage.setItem(`calendar_${year}_${month}`, JSON.stringify(calendarData));
-            createCalendar(year, month);
-        }
-
-        createCalendar(2025, selectedMonth);
+        createCalendar(new Date().getFullYear(), selectedMonth);
     </script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            margin: 0;
+            padding: 20px;
+        }
+        .calendar-container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background: #555;
+            color: white;
+            font-weight: bold;
+        }
+        .sunday {
+            color: red;
+        }
+        .holiday {
+            color: red;
+            font-weight: bold;
+        }
+        .holiday-cell {
+            background: #ffeeee;
+        }
+        .name-input {
+            width: 90%;
+            padding: 5px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .name-list {
+            margin-top: 5px;
+        }
+        .name-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: red;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="monthTitle"></h1>
+    <div class="calendar-container">
+        <table id="calendarTable"></table>
+    </div>
 
 </body>
 </html>
