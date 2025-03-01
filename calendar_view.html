@@ -31,17 +31,35 @@
         .day {
             border: 1px solid #ccc;
             padding: 10px;
-            min-height: 60px;
+            min-height: 80px;
             text-align: center;
             position: relative;
         }
+        .name-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+        }
+        .name-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f0f0f0;
+            padding: 2px 5px;
+            margin: 2px 0;
+            border-radius: 5px;
+        }
+        .delete-btn {
+            cursor: pointer;
+            color: red;
+            font-size: 14px;
+            margin-left: 5px;
+        }
         .name-input {
-            display: block;
             width: 90%;
             margin: 5px auto;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: block;
         }
         .weekdays {
             display: grid;
@@ -96,41 +114,64 @@
         selectedColor = color;
     }
 
-    function saveName(month, day, input) {
+    function saveName(month, day, name) {
         let savedData = localStorage.getItem("calendarData") ? JSON.parse(localStorage.getItem("calendarData")) : {};
-
         if (!savedData[month]) savedData[month] = {};
-        savedData[month][day] = input.value; // input 태그의 값을 저장
-        localStorage.setItem("calendarData", JSON.stringify(savedData));
+        if (!savedData[month][day]) savedData[month][day] = [];
 
-        console.log("저장됨:", savedData); // 디버깅용 콘솔 출력
+        if (savedData[month][day].length < 5) { // 최대 5명까지 추가 가능
+            savedData[month][day].push(name);
+            localStorage.setItem("calendarData", JSON.stringify(savedData));
+            updateNameList(month, day);
+        } else {
+            alert("최대 5명까지 입력 가능합니다!");
+        }
+    }
+
+    function removeName(month, day, index) {
+        let savedData = JSON.parse(localStorage.getItem("calendarData"));
+        if (savedData[month] && savedData[month][day]) {
+            savedData[month][day].splice(index, 1); // 해당 인덱스의 이름 삭제
+            localStorage.setItem("calendarData", JSON.stringify(savedData));
+            updateNameList(month, day);
+        }
+    }
+
+    function updateNameList(month, day) {
+        let savedData = JSON.parse(localStorage.getItem("calendarData"));
+        let dayCell = document.querySelector(`[data-month="${month}"][data-day="${day}"]`);
+        if (!dayCell) return;
+
+        let nameList = dayCell.querySelector(".name-list");
+        nameList.innerHTML = ""; // 기존 리스트 초기화
+
+        if (savedData[month] && savedData[month][day]) {
+            savedData[month][day].forEach((name, index) => {
+                let listItem = document.createElement("li");
+                listItem.classList.add("name-item");
+                listItem.innerHTML = `${name} <span class="delete-btn" onclick="removeName(${month}, ${day}, ${index})">✖</span>`;
+                nameList.appendChild(listItem);
+            });
+        }
     }
 
     function loadNames(month) {
-        let savedData = localStorage.getItem("calendarData") ? JSON.parse(localStorage.getItem("calendarData")) : {};
-        if (!savedData[month]) return;
+        let savedData = JSON.parse(localStorage.getItem("calendarData"));
+        if (!savedData || !savedData[month]) return;
 
-        document.querySelectorAll(".day").forEach((dayCell, index) => {
-            let dayInputs = dayCell.querySelector(".name-input");
-            if (dayInputs) {
-                let day = parseInt(dayCell.querySelector("div").innerText);
-                if (savedData[month][day]) {
-                    dayInputs.value = savedData[month][day];
-                }
-            }
+        Object.keys(savedData[month]).forEach(day => {
+            updateNameList(month, day);
         });
-
-        console.log("불러옴:", savedData); // 디버깅용 콘솔 출력
     }
 
     function createCalendar(year, month) {
         const calendar = document.getElementById("calendar");
         calendar.innerHTML = "";
 
-        const firstDay = new Date(year, month - 1, 1).getDay(); // 첫날 요일 (0: 일요일)
-        const daysInMonth = new Date(year, month, 0).getDate(); // 해당 월의 일 수
+        const firstDay = new Date(year, month - 1, 1).getDay();
+        const daysInMonth = new Date(year, month, 0).getDate();
 
-        const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // 월요일부터 시작하도록 조정
+        const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
 
         for (let i = 0; i < adjustedFirstDay; i++) {
             const emptyCell = document.createElement("div");
@@ -141,12 +182,15 @@
         for (let day = 1; day <= daysInMonth; day++) {
             const dayCell = document.createElement("div");
             dayCell.classList.add("day");
-            dayCell.innerHTML = `<div>${day}</div> 
-                <input type="text" class="name-input" placeholder="이름 입력" oninput="saveName(${month}, ${day}, this)">`;
+            dayCell.setAttribute("data-month", month);
+            dayCell.setAttribute("data-day", day);
+            dayCell.innerHTML = `<div>${day}</div>
+                <ul class="name-list"></ul>
+                <input type="text" class="name-input" placeholder="이름 입력" onkeypress="if(event.key==='Enter') { saveName(${month}, ${day}, this.value); this.value=''; return false; }">`;
             calendar.appendChild(dayCell);
         }
 
-        loadNames(month); // 저장된 이름 불러오기
+        loadNames(month);
     }
 
     function updateCalendar() {
@@ -154,7 +198,7 @@
         createCalendar(2025, month);
     }
 
-    createCalendar(2025, 3); // 기본적으로 3월 달력 생성
+    createCalendar(2025, 3);
 </script>
 
 </body>
