@@ -16,15 +16,37 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
             background-color: #F8F1E9;
             padding: 20px;
             margin: 0;
         }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 700px;
+            margin: auto;
         }
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: left;
+        }
+        .color-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+        .black { background-color: black; }
+        .blue { background-color: blue; }
+        .red { background-color: red; }
+        .green { background-color: green; }
         #calendar {
             width: 100%;
             max-width: 700px;
@@ -33,25 +55,10 @@
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            height: 900px; /* 전체 캘린더 세로 크기 증가 */
+            height: 900px;
         }
-        @media (max-width: 700px) {
-            #calendar {
-                width: 100%;
-                height: 900px; /* 모바일에서도 크기 유지 */
-            }
-        }
-
-        /* 날짜 크기 및 정렬 */
-        .fc-daygrid-day-number {
-            font-size: 14px !important; /* 날짜 크기 */
-            text-align: left !important; /* 왼쪽 정렬 */
-            padding-left: 5px !important; /* 여백 */
-        }
-
-        /* 날짜 칸 크기 증가 */
         .fc-daygrid-day-frame {
-            min-height: 120px !important; /* 각 날짜 칸의 높이 증가 */
+            min-height: 120px !important;
         }
         .fc-daygrid-day {
             height: 120px !important;
@@ -60,7 +67,16 @@
 </head>
 <body>
 
-    <h1>📅 지킴이 일정 관리</h1>
+    <div class="header">
+        <div class="title">📅 지킴이 일정 관리</div>
+        <div class="color-buttons">
+            <button class="color-btn black" onclick="setColor('black')"></button>
+            <button class="color-btn blue" onclick="setColor('blue')"></button>
+            <button class="color-btn red" onclick="setColor('red')"></button>
+            <button class="color-btn green" onclick="setColor('green')"></button>
+        </div>
+    </div>
+
     <div id="calendar"></div>
 
     <script>
@@ -76,6 +92,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let selectedColor = "black"; // 기본 색상
+
+        function setColor(color) {
+            selectedColor = color;
+            console.log("선택한 색상:", selectedColor);
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             var calendarEl = document.getElementById("calendar");
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -83,7 +106,7 @@
                 locale: "ko",
                 editable: true,
                 selectable: true,
-                contentHeight: "auto", // 캘린더 높이를 자동 조정
+                contentHeight: "auto",
                 events: async function (fetchInfo, successCallback, failureCallback) {
                     console.log("📡 Firebase에서 일정 불러오기...");
                     const year = fetchInfo.start.getFullYear();
@@ -116,7 +139,7 @@
                 dateClick: async function(info) {
                     let name = prompt("일정 이름을 입력하세요:");
                     if (name) {
-                        await addEvent(info.date, name);
+                        await addEvent(info.date, name, selectedColor);
                     }
                 },
                 eventClick: function(info) {
@@ -127,20 +150,20 @@
             });
             calendar.render();
 
-            async function addEvent(date, name) {
+            async function addEvent(date, name, color) {
                 let year = date.getFullYear();
                 let month = date.getMonth() + 1;
                 let day = date.getDate();
                 
                 const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name, color: "blue" });
+                await newRef.set({ name, color });
 
                 // ✅ 새 일정 즉시 반영
                 calendar.addEvent({
                     id: newRef.key,
                     title: name,
                     start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                    color: "blue"
+                    color: color
                 });
             }
 
@@ -158,3 +181,4 @@
 
 </body>
 </html>
+
