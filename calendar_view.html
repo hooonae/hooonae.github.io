@@ -16,23 +16,28 @@
             margin: 0;
             padding: 20px;
         }
+
         h1 {
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-size: 20px; /* 제목 크기 줄이기 */
         }
+
         .calendar-container {
-            max-width: 900px;
+            max-width: 100%; /* 모바일에서 꽉 찬 크기로 */
             margin: auto;
             background: white;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .color-picker {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
         }
+
         .color-btn {
             width: 25px;
             height: 25px;
@@ -41,15 +46,22 @@
             margin: 0 5px;
             cursor: pointer;
         }
-        .name-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 5px 2px 0 2px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            justify-content: center;
+
+        /* 달력 표 크기 키우기 */
+        .fc-daygrid-day-frame {
+            height: 120px !important; /* 표의 높이 키우기 */
         }
+
+        /* 달력 내 텍스트 스타일 */
+        .fc-daygrid-day-number {
+            font-size: 18px; /* 날짜 글자 크기 키우기 */
+        }
+
+        .fc-event-title {
+            font-size: 14px; /* 일정 제목 글자 크기 키우기 */
+        }
+
+        /* 일정 내용 색상 */
         .name-list li {
             font-size: 12px;
             background: lightgray;
@@ -59,6 +71,11 @@
             align-items: center;
             margin: 2px;
         }
+
+        .name-list li span {
+            font-weight: bold;
+        }
+
         .delete-btn {
             background: transparent;
             border: none;
@@ -67,12 +84,26 @@
             cursor: pointer;
             margin-left: 5px;
         }
+
         .name-input {
             width: 95%;
             padding: 3px;
             margin-top: 5px;
             text-align: center;
             font-size: 12px;
+        }
+
+        /* 모바일 최적화 */
+        @media screen and (max-width: 768px) {
+            .calendar-container {
+                padding: 10px;
+            }
+            .fc-daygrid-day-frame {
+                height: 100px !important;
+            }
+            h1 {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -113,7 +144,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let selectedColor = "black"; 
+        let selectedColor = "black"; // 초기 색상 설정
 
         // 색상 선택 함수
         function setColor(color) {
@@ -164,11 +195,7 @@
                 dateClick: function(info) {
                     let name = prompt("일정 이름을 입력하세요:");
                     if (name) {
-                        let color = prompt("일정 색상을 입력하세요 (예: red, blue, green):", selectedColor);
-                        if (color) {
-                            selectedColor = color;
-                            addEvent(info.date, name, selectedColor);
-                        }
+                        addEvent(info.date, name, selectedColor); // 선택된 색상 사용
                     }
                 },
                 eventClick: function(info) {
@@ -238,4 +265,3 @@
 
 </body>
 </html>
-
