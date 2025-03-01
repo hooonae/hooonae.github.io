@@ -9,6 +9,18 @@
             font-family: Arial, sans-serif;
             text-align: center;
         }
+        .color-picker {
+            margin: 10px;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            border-radius: 50%;
+            cursor: pointer;
+            margin: 5px;
+            border: 2px solid black;
+        }
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -19,15 +31,15 @@
         .day {
             border: 1px solid #ccc;
             padding: 10px;
-            position: relative;
             min-height: 60px;
             text-align: center;
+            position: relative;
         }
         .name-input {
             display: block;
             width: 90%;
             margin: 5px auto;
-            white-space: nowrap; /* 줄바꿈 방지 */
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -43,6 +55,28 @@
 
 <h2>월간 일정</h2>
 
+<div class="color-picker">
+    <div class="color-option" style="background-color: black;" onclick="selectColor('black')"></div>
+    <div class="color-option" style="background-color: red;" onclick="selectColor('red')"></div>
+    <div class="color-option" style="background-color: blue;" onclick="selectColor('blue')"></div>
+    <div class="color-option" style="background-color: green;" onclick="selectColor('green')"></div>
+</div>
+
+<select id="monthSelect" onchange="updateCalendar()">
+    <option value="1">1월</option>
+    <option value="2">2월</option>
+    <option value="3">3월</option>
+    <option value="4">4월</option>
+    <option value="5">5월</option>
+    <option value="6">6월</option>
+    <option value="7">7월</option>
+    <option value="8">8월</option>
+    <option value="9">9월</option>
+    <option value="10">10월</option>
+    <option value="11">11월</option>
+    <option value="12">12월</option>
+</select>
+
 <div class="weekdays">
     <div>월</div>
     <div>화</div>
@@ -56,14 +90,20 @@
 <div class="calendar" id="calendar"></div>
 
 <script>
+    let selectedColor = "black";
+
+    function selectColor(color) {
+        selectedColor = color;
+    }
+
     function createCalendar(year, month) {
         const calendar = document.getElementById("calendar");
         calendar.innerHTML = "";
 
-        const firstDay = new Date(year, month - 1, 1).getDay(); // 첫날 요일 (0: 일요일, 1: 월요일)
-        const daysInMonth = new Date(year, month, 0).getDate();
+        const firstDay = new Date(year, month - 1, 1).getDay(); // 해당 월의 첫날 요일 (0: 일요일)
+        const daysInMonth = new Date(year, month, 0).getDate(); // 해당 월의 총 날짜 수
 
-        const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // 월요일부터 시작하도록 조정
+        const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // 월요일 시작 기준으로 조정
 
         for (let i = 0; i < adjustedFirstDay; i++) {
             const emptyCell = document.createElement("div");
@@ -75,12 +115,38 @@
             const dayCell = document.createElement("div");
             dayCell.classList.add("day");
             dayCell.innerHTML = `<div>${day}</div> 
-                <input type="text" class="name-input" placeholder="이름 입력">`;
+                <input type="text" class="name-input" placeholder="이름 입력" oninput="saveName(${month}, ${day}, this.value)">`;
             calendar.appendChild(dayCell);
         }
+
+        loadNames(month);
     }
 
-    createCalendar(2025, 3); // 2025년 3월 예제
+    function updateCalendar() {
+        const month = parseInt(document.getElementById("monthSelect").value);
+        createCalendar(2025, month);
+    }
+
+    function saveName(month, day, value) {
+        let savedData = localStorage.getItem("calendarData") ? JSON.parse(localStorage.getItem("calendarData")) : {};
+        if (!savedData[month]) savedData[month] = {};
+        savedData[month][day] = value;
+        localStorage.setItem("calendarData", JSON.stringify(savedData));
+    }
+
+    function loadNames(month) {
+        let savedData = localStorage.getItem("calendarData") ? JSON.parse(localStorage.getItem("calendarData")) : {};
+        if (!savedData[month]) return;
+
+        document.querySelectorAll(".day").forEach((dayCell, index) => {
+            let day = index + 1 - (new Date(2025, month - 1, 1).getDay() === 0 ? 6 : new Date(2025, month - 1, 1).getDay() - 1);
+            if (savedData[month][day]) {
+                dayCell.querySelector(".name-input").value = savedData[month][day];
+            }
+        });
+    }
+
+    createCalendar(2025, 3); // 기본적으로 3월 달력 생성
 </script>
 
 </body>
