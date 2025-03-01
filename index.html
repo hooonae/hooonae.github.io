@@ -82,7 +82,7 @@
         }
         .notice h2 { color: #8B5E3C; }
         .notice ul { list-style-type: none; padding: 0; }
-        .notice li { padding: 10px; font-size: 1em; border-bottom: 1px solid #ddd; }
+        .notice li { padding: 10px; font-size: 1em; border-bottom: 1px solid #ddd; text-align: left; }
         .notice li:last-child { border-bottom: none; }
         .notice img { max-width: 100%; height: auto; display: block; margin: 5px auto; }
         .notice .more-btn {
@@ -142,7 +142,7 @@
             const noticeList = document.getElementById("noticeList");
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
-            db.ref("notices").once("value", (snapshot) => {
+            db.ref("notices").on("value", (snapshot) => {
                 noticeList.innerHTML = "";
                 if (!snapshot.exists()) {
                     noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
@@ -156,19 +156,13 @@
                     notices.push({ key, ...data });
                 });
 
-                // 🔹 최신순 정렬 (날짜가 최신인 공지 먼저)
-                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                // 🔹 최신 3개만 표시
-                notices.slice(0, 3).forEach((notice) => {
+                // 🔹 최신순 정렬 후 3개만 표시
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3).forEach((notice) => {
                     let li = document.createElement("li");
                     li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
                         ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지" width="100">` : ""}`;
                     noticeList.appendChild(li);
                 });
-            }).catch(error => {
-                console.error("❌ 공지사항 불러오기 실패:", error);
-                noticeList.innerHTML = "<p>⚠️ 공지사항을 불러오지 못했습니다.</p>";
             });
         }
 
