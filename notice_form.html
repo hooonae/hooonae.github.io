@@ -3,92 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📌 공지사항 작성</title>
+    <title>공지사항 작성</title>
     
-    <!-- ✅ Firebase SDK 추가 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
-        // ✅ Firebase 설정 정보
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-
-        // ✅ Firebase 초기화
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // ✅ Cloudinary 설정
-        const CLOUD_NAME = "dddmgnzlu";
-        const UPLOAD_PRESET = "firebase_uploads";
-
-        // ✅ Cloudinary 이미지 업로드 함수
-        async function uploadToCloudinary(file) {
-            const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", UPLOAD_PRESET);
-
-            const response = await fetch(url, {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-            return data.secure_url; // Cloudinary에서 제공하는 이미지 URL 반환
-        }
-
-        // ✅ 공지사항 작성 함수
-        window.submitNotice = async function() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const file = document.getElementById("image").files[0];
-            const uploadStatus = document.getElementById("uploadStatus");
-
-            if (!title || !content) {
-                alert("⚠️ 제목과 내용을 입력하세요.");
-                return;
-            }
-
-            let imageUrl = ""; // 기본값 (이미지 없을 경우 빈 값)
-
-            if (file) {
-                try {
-                    uploadStatus.innerText = "📤 이미지 업로드 중...";
-                    imageUrl = await uploadToCloudinary(file);
-                    uploadStatus.innerText = "✅ 이미지 업로드 완료!";
-                } catch (error) {
-                    console.error("❌ 이미지 업로드 실패:", error);
-                    alert("⚠️ 이미지 업로드 중 오류가 발생했습니다.");
-                    return;
-                }
-            }
-
-            const newNotice = {
-                title,
-                content,
-                date: new Date().toLocaleString(),
-                imageUrl // 이미지 URL 저장 (없으면 빈 값)
-            };
-
-            // ✅ Firebase Realtime Database에 저장
-            push(ref(db, "notices"), newNotice).then(() => {
-                alert("✅ 공지사항이 등록되었습니다!");
-                location.href = "notices.html"; // 작성 후 목록으로 이동
-            }).catch(error => {
-                console.error("❌ 등록 실패:", error);
-                alert("⚠️ 공지사항 등록 중 오류가 발생했습니다.");
-            });
-        };
-    </script>
-
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -103,16 +19,12 @@
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: left;
-        }
-        h1 {
-            text-align: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
         }
         input, textarea {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
+            margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
@@ -123,34 +35,110 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            width: 100%;
             margin-top: 10px;
         }
-        #uploadStatus {
-            font-size: 0.9em;
-            color: #888;
-            margin-top: 5px;
+        .delete-btn {
+            background: red;
         }
     </style>
 </head>
 <body>
 
-    <h1>📌 공지사항 작성</h1>
+    <h1>📢 공지사항 작성</h1>
 
     <div class="container">
-        <label for="title">제목</label>
-        <input type="text" id="title" placeholder="제목을 입력하세요">
-
-        <label for="content">내용</label>
-        <textarea id="content" rows="5" placeholder="내용을 입력하세요"></textarea>
-
-        <label for="image">이미지 (선택)</label>
+        <input type="text" id="title" placeholder="공지 제목">
+        <textarea id="content" placeholder="공지 내용"></textarea>
         <input type="file" id="image" accept="image/*">
-        <p id="uploadStatus"></p>
-
-        <button onclick="submitNotice()">📢 등록하기</button>
-        <button onclick="location.href='notice.html'">📜 목록으로</button>
+        <button onclick="submitNotice()">등록하기</button>
     </div>
+
+    <h2>📋 기존 공지사항</h2>
+    <div id="noticesList"></div>
+
+    <!-- ✅ Firebase 최신 버전 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"></script>
+
+    <script>
+        const firebaseConfig = { /* 여기에 Firebase 설정 값 넣기 */ };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function submitNotice() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const file = document.getElementById("image").files[0];
+
+            if (!title || !content) {
+                alert("⚠️ 제목과 내용을 입력하세요.");
+                return;
+            }
+
+            let newNoticeRef = db.ref("notices").push();
+            let noticeData = {
+                title,
+                content,
+                date: new Date().toLocaleString(),
+                imageUrl: ""
+            };
+
+            newNoticeRef.set(noticeData)
+                .then(() => {
+                    alert("✅ 공지사항이 등록되었습니다.");
+                    location.reload();
+                })
+                .catch(error => console.error("❌ 등록 실패:", error));
+        }
+
+        function loadNotices() {
+            const noticesList = document.getElementById("noticesList");
+            noticesList.innerHTML = "<p>📡 로딩 중...</p>";
+
+            db.ref("notices").on("value", (snapshot) => {
+                noticesList.innerHTML = "";
+                if (!snapshot.exists()) {
+                    noticesList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
+                    return;
+                }
+
+                let notices = [];
+                snapshot.forEach((childSnapshot) => {
+                    let key = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    notices.push({ key, ...data });
+                });
+
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                notices.forEach((notice) => {
+                    let div = document.createElement("div");
+                    div.classList.add("notice-item");
+                    div.innerHTML = `
+                        <h3>${notice.title}</h3>
+                        <p>${notice.date}</p>
+                        <p>${notice.content}</p>
+                        ${notice.imageUrl ? `<img src="${notice.imageUrl}" width="100">` : ""}
+                        <button class="delete-btn" onclick="deleteNotice('${notice.key}')">🗑 삭제</button>
+                    `;
+                    noticesList.appendChild(div);
+                });
+            });
+        }
+
+        function deleteNotice(noticeId) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                db.ref("notices/" + noticeId).remove()
+                    .then(() => {
+                        alert("✅ 공지사항이 삭제되었습니다.");
+                        loadNotices();
+                    })
+                    .catch(error => console.error("❌ 삭제 실패:", error));
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadNotices);
+    </script>
 
 </body>
 </html>
