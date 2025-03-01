@@ -7,8 +7,8 @@
     
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
         // ✅ Firebase 설정 정보
         const firebaseConfig = {
@@ -35,7 +35,7 @@
         function loadNotice() {
             const noticeId = getNoticeIdFromURL();
             if (!noticeId) {
-                alert("공지사항 ID가 없습니다.");
+                alert("❌ 공지사항 ID가 없습니다.");
                 window.location.href = "notices.html";
                 return;
             }
@@ -43,14 +43,14 @@
             const noticeRef = ref(db, `notices/${noticeId}`);
             get(noticeRef).then(snapshot => {
                 if (!snapshot.exists()) {
-                    alert("공지사항을 찾을 수 없습니다.");
+                    alert("❌ 공지사항을 찾을 수 없습니다.");
                     window.location.href = "notices.html";
                     return;
                 }
 
                 const notice = snapshot.val();
                 document.getElementById("title").textContent = notice.title;
-                document.getElementById("date").textContent = `작성일: ${notice.date}`;
+                document.getElementById("date").textContent = `📅 작성일: ${notice.date}`;
                 document.getElementById("content").textContent = notice.content;
 
                 // ✅ 이미지 표시 (이미지가 있는 경우)
@@ -59,27 +59,39 @@
                     document.getElementById("image").style.display = "block";
                 }
             }).catch(error => {
-                console.error("공지사항 로드 실패:", error);
+                console.error("❌ 공지사항 로드 실패:", error);
             });
         }
 
         // ✅ 공지사항 삭제 기능
         function deleteNotice() {
             const noticeId = getNoticeIdFromURL();
-            if (!noticeId) return;
+            if (!noticeId) {
+                console.error("❌ 삭제 실패: noticeId 없음");
+                return;
+            }
 
-            if (confirm("정말로 이 공지사항을 삭제하시겠습니까?")) {
+            console.log(`🗑️ 삭제 요청: ${noticeId}`);
+
+            if (confirm("⚠️ 정말로 이 공지사항을 삭제하시겠습니까?")) {
                 remove(ref(db, `notices/${noticeId}`))
                     .then(() => {
-                        alert("공지사항이 삭제되었습니다.");
+                        alert("✅ 공지사항이 삭제되었습니다.");
+                        console.log("🗑️ 삭제 완료");
                         window.location.href = "notices.html";
                     })
-                    .catch(error => console.error("삭제 실패:", error));
+                    .catch(error => {
+                        console.error("❌ 삭제 실패:", error);
+                        alert("⚠️ 삭제 중 오류가 발생했습니다.");
+                    });
             }
         }
 
         // ✅ 페이지 로드 시 공지사항 불러오기
-        window.onload = loadNotice;
+        document.addEventListener("DOMContentLoaded", () => {
+            loadNotice();
+            document.getElementById("delete-btn").addEventListener("click", deleteNotice);
+        });
     </script>
 
     <style>
@@ -139,7 +151,7 @@
 
         <div class="button-container">
             <button onclick="window.location.href='notices.html'">⬅ 목록으로</button>
-            <button class="delete-btn" onclick="deleteNotice()">🗑️ 삭제</button>
+            <button id="delete-btn" class="delete-btn">🗑️ 삭제</button>
         </div>
     </div>
 
