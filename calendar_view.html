@@ -3,92 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 지킴이 일정 관리</title>
+    <title>📅 지킴이 일정 관리 - TUI Calendar</title>
 
-    <!-- Pikaday CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/pikaday.min.css">
+    <!-- TUI Calendar CSS -->
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.css">
+    
+    <!-- TUI Calendar JavaScript -->
+    <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment-timezone@0.5.34/moment-timezone-with-data.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <style>
         body {
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: Arial, sans-serif;
             text-align: center;
-            background: #F8F1E9;
+            background-color: #F8F1E9;
             padding: 20px;
             margin: 0;
         }
 
         h1 {
             color: #333;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-
-        .calendar-container {
-            max-width: 100%;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .input-container {
-            margin-bottom: 10px;
-        }
-
-        input[type="text"] {
-            padding: 12px;
-            width: 90%;
-            margin: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .color-picker {
-            display: flex;
-            justify-content: center;
             margin-bottom: 20px;
         }
 
-        .color-btn {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            border: none;
-            margin: 0 8px;
-            cursor: pointer;
+        #calendar {
+            margin: auto;
+            width: 90%;
+            max-width: 1000px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        /* 모바일 최적화 */
+        /* 반응형 스타일 */
         @media screen and (max-width: 768px) {
-            .color-picker {
-                margin-bottom: 15px;
-            }
-            .calendar-container {
-                padding: 10px;
-            }
-            h1 {
-                font-size: 20px;
-            }
-            input[type="text"], button {
+            #calendar {
                 width: 100%;
+                padding: 10px;
             }
         }
     </style>
@@ -96,36 +53,10 @@
 <body>
 
     <h1>📅 지킴이 일정 관리</h1>
-
-    <!-- 색상 선택 -->
-    <div class="color-picker">
-        <button class="color-btn" style="background: black;" onclick="setColor('black')"></button>
-        <button class="color-btn" style="background: red;" onclick="setColor('red')"></button>
-        <button class="color-btn" style="background: blue;" onclick="setColor('blue')"></button>
-        <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
-    </div>
-
-    <div class="calendar-container">
-        <div class="input-container">
-            <input type="text" id="datepicker" placeholder="날짜를 선택하세요">
-        </div>
-
-        <div class="input-container">
-            <input type="text" id="textInput" placeholder="일정에 대한 추가 정보를 입력하세요">
-        </div>
-
-        <button onclick="submitData()">제출</button>
-        <h3>저장된 일정</h3>
-        <div id="saved-events"></div> <!-- Firebase에서 가져온 이벤트 표시 -->
-    </div>
-
-    <!-- Pikaday JS -->
-    <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <div id="calendar"></div>
 
     <script>
-        // Firebase 설정
+        // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -139,62 +70,64 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let selectedColor = "black"; // 초기 색상 설정
-
-        // 색상 선택 함수
-        function setColor(color) {
-            selectedColor = color;
-        }
-
-        // Pikaday 날짜 선택기
-        var picker = new Pikaday({
-            field: document.getElementById('datepicker'),
-            format: 'YYYY-MM-DD',
-            minDate: new Date(), // 오늘 이후의 날짜만 선택 가능
-            maxDate: new Date(2025, 12, 31), // 최대 날짜 설정
+        // ✅ TUI Calendar 초기화
+        const calendar = new tui.Calendar('#calendar', {
+            defaultView: 'month',
+            locale: 'ko',
+            useCreationPopup: true,
+            useDetailPopup: true,
+            taskView: true,
+            scheduleView: true,
         });
 
-        // Firebase에서 일정 불러오기
-        function loadEvents() {
-            const savedEventsDiv = document.getElementById("saved-events");
-            savedEventsDiv.innerHTML = ""; // 초기화
+        // ✅ Firebase에서 일정 불러오기
+        function loadSchedules() {
+            db.ref("events").once("value", function(snapshot) {
+                calendar.clear(); // 기존 일정 삭제 후 다시 불러오기
 
-            const eventsRef = db.ref("events");
-            eventsRef.once("value", function(snapshot) {
                 snapshot.forEach(function(childSnapshot) {
                     const event = childSnapshot.val();
-                    const eventElement = document.createElement("div");
-                    eventElement.style.color = event.color;
-                    eventElement.innerHTML = `<strong>${event.date}</strong>: ${event.name}`;
-                    savedEventsDiv.appendChild(eventElement);
+                    calendar.createSchedules([{
+                        id: childSnapshot.key, // Firebase의 고유 ID 사용
+                        calendarId: "1",
+                        title: event.title,
+                        start: event.start,
+                        end: event.end,
+                        category: "time",
+                        color: event.color || "#007bff", // 색상이 없으면 기본 색상 사용
+                    }]);
                 });
             });
         }
 
-        // 제출 버튼 클릭 시 Firebase에 저장하고 화면에 반영
-        function submitData() {
-            const selectedDate = document.getElementById('datepicker').value;
-            const text = document.getElementById('textInput').value;
+        // ✅ 일정 추가 및 Firebase 저장
+        calendar.on("beforeCreateSchedule", function(event) {
+            const schedule = event;
+            const newEventRef = db.ref("events").push();
 
-            if (selectedDate && text) {
-                // Firebase에 저장
-                const newEventRef = db.ref("events").push();
-                newEventRef.set({
-                    date: selectedDate,
-                    name: text,
-                    color: selectedColor
-                });
+            const newEvent = {
+                title: schedule.title,
+                start: schedule.start.toISOString(),
+                end: schedule.end.toISOString(),
+                color: "#FF6F61"
+            };
 
-                alert("일정이 저장되었습니다!");
-                loadEvents(); // 저장된 일정 새로고침
-            } else {
-                alert("날짜와 내용을 모두 입력해주세요.");
-            }
-        }
+            newEventRef.set(newEvent).then(() => {
+                loadSchedules(); // 일정 다시 불러오기
+            });
+        });
 
-        // 페이지 로딩 시 Firebase에서 이벤트 불러오기
+        // ✅ 일정 삭제 및 Firebase에서 제거
+        calendar.on("beforeDeleteSchedule", function(event) {
+            const scheduleId = event.schedule.id;
+            db.ref("events/" + scheduleId).remove().then(() => {
+                loadSchedules(); // 일정 다시 불러오기
+            });
+        });
+
+        // ✅ Firebase에서 일정 불러오기 (초기 실행)
         window.onload = function() {
-            loadEvents();
+            loadSchedules();
         };
     </script>
 
