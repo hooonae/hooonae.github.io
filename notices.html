@@ -25,10 +25,26 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // ✅ 날짜 포맷 변경 함수 (YYYY-MM-DD HH:MM)
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        // ✅ 글 내용 일부만 표시 (최대 50자)
+        function shortenContent(content, maxLength = 50) {
+            return content.length > maxLength ? content.substring(0, maxLength) + "..." : content;
+        }
+
         // ✅ Firebase에서 공지사항 불러오기
         function loadAllNotices() {
             const noticesList = document.getElementById("noticesList");
-            noticesList.innerHTML = "<p>로딩 중...</p>";
+            noticesList.innerHTML = "<p>📡 로딩 중...</p>";
 
             onValue(ref(db, "notices"), (snapshot) => {
                 noticesList.innerHTML = ""; // 기존 목록 초기화
@@ -53,7 +69,8 @@
                     div.classList.add("notice-card");
                     div.innerHTML = `
                         <h3>${notice.title}</h3>
-                        <p>🕒 ${notice.date}</p>
+                        <p class="notice-date">🕒 ${formatDate(notice.date)}</p>
+                        <p class="notice-content">${shortenContent(notice.content)}</p>
                         <button onclick="viewNotice('${notice.key}')">자세히 보기</button>
                     `;
                     noticesList.appendChild(div);
@@ -96,8 +113,14 @@
         .notice-card h3 {
             margin: 0;
         }
-        .notice-card p {
+        .notice-date {
             color: #666;
+            font-size: 0.9em;
+        }
+        .notice-content {
+            color: #444;
+            font-size: 1em;
+            margin-top: 5px;
         }
         button {
             background: #8B5E3C;
@@ -123,3 +146,4 @@
 
 </body>
 </html>
+
