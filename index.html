@@ -17,14 +17,14 @@
         /* ✅ 배너 스타일 */
         .banner {
             width: 100%;
-            height: 200px;
+            height: 250px;
             background: url('banner.png') no-repeat center center/cover;
             position: relative;
         }
 
-        /* ✅ 모바일 메뉴 */
+        /* ✅ 모바일 메뉴 (햄버거 메뉴) */
         .menu-toggle {
-            font-size: 2em;
+            font-size: 2.2em;
             color: white;
             background: none;
             border: none;
@@ -41,18 +41,17 @@
             position: absolute;
             background: rgba(139, 94, 60, 0.95);
             width: 100%;
-            top: 50px;
+            top: 60px;
             left: 0;
             text-align: center;
             z-index: 1000;
-            padding: 10px 0;
         }
 
         .menu a {
             display: block;
-            padding: 12px;
+            padding: 15px;
             color: white;
-            font-size: 1em;
+            font-size: 1.2em;
             text-decoration: none;
         }
 
@@ -66,7 +65,7 @@
 
         /* ✅ 메인 컨테이너 */
         .container {
-            padding: 20px;
+            padding: 30px 20px 50px;
             text-align: center;
         }
 
@@ -82,8 +81,8 @@
         }
         .notice h2 { color: #8B5E3C; }
         .notice ul { list-style-type: none; padding: 0; }
-        .notice li { padding: 10px; font-size: 1em; border-bottom: 1px solid #ddd; text-align: left; }
-        .notice img { max-width: 100%; height: auto; display: block; margin: 5px auto; }
+        .notice li { padding: 10px 0; font-size: 1em; border-bottom: 1px solid #ddd; }
+        .notice li:last-child { border-bottom: none; }
         .notice .more-btn {
             display: block;
             margin-top: 10px;
@@ -93,6 +92,30 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+        }
+
+        /* ✅ 카드 스타일 */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: auto;
+            margin-top: 30px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover { transform: translateY(-5px); }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            .cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
         }
     </style>
 </head>
@@ -124,62 +147,37 @@
             <ul id="noticeList"></ul>
             <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
         </div>
+
+        <!-- ✅ 카드 섹션 추가 -->
+        <div class="cards">
+            <div class="card">
+                <h3>📌 지킴이 일정</h3>
+                <p>지킴이들의 근무 일정을 확인하세요.</p>
+                <button onclick="location.href='calendar.html'">일정 보기</button>
+            </div>
+            <div class="card">
+                <h3>📅 전시 일정</h3>
+                <p>다가오는 전시 일정을 확인하세요!</p>
+                <button onclick="location.href='events.html'">일정 보기</button>
+            </div>
+            <div class="card">
+                <h3>🍽 맛집 추천</h3>
+                <p>박물관 주변의 맛집을 추천해주세요!</p>
+                <button onclick="location.href='places.html'">맛집 보기</button>
+            </div>
+            <div class="card">
+                <h3>📢 공지사항 작성</h3>
+                <p>관리자만 공지사항을 작성할 수 있습니다.</p>
+                <button onclick="location.href='notice_form.html'">작성하기</button>
+            </div>
+        </div>
     </div>
 
-    <!-- ✅ Firebase 최신 버전 SDK 추가 (CDN 방식) -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
+    <!-- ✅ 모바일 메뉴 토글 기능 -->
     <script>
-        console.log("📡 Firebase 스크립트 로드됨!");
-
-        // ✅ Firebase 초기화
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        console.log("✅ Firebase 초기화 완료!");
-
-        function loadNotices() {
-            const noticeList = document.getElementById("noticeList");
-            noticeList.innerHTML = "<p>📡 로딩 중...</p>";
-
-            db.ref("notices").on("value", (snapshot) => {
-                noticeList.innerHTML = "";
-
-                if (!snapshot.exists()) {
-                    noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
-                    return;
-                }
-
-                let notices = [];
-                snapshot.forEach((childSnapshot) => {
-                    let data = childSnapshot.val();
-                    notices.push(data);
-                });
-
-                notices.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3).forEach((notice) => {
-                    let li = document.createElement("li");
-                    li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
-                        ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지" width="100">` : ""}`;
-                    noticeList.appendChild(li);
-                });
-            });
-        }
-
         function toggleMenu() {
             document.querySelector('.menu').classList.toggle('open');
         }
-
-        document.addEventListener("DOMContentLoaded", loadNotices);
     </script>
 
 </body>
