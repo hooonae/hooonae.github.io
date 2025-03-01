@@ -25,7 +25,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ✅ 최신 공지사항 3개 불러오기
+        // ✅ 최신 공지사항 3개 불러오기 (이미지 포함)
         function loadLatestNotices() {
             const noticeList = document.getElementById("noticeList");
             if (!noticeList) {
@@ -56,7 +56,12 @@
 
                 notices.forEach((notice) => {
                     let li = document.createElement("li");
-                    li.innerHTML = `<a href="notice_view.html?id=${notice.key}">${notice.title}</a>`;
+                    li.innerHTML = `
+                        <a href="notice_view.html?id=${notice.key}">
+                            <strong>${notice.title}</strong><br>
+                            ${notice.imageUrl ? `<img src="${notice.imageUrl}" width="100" style="border-radius:5px;">` : ""}
+                        </a>
+                    `;
                     noticeList.appendChild(li);
                 });
             });
@@ -200,6 +205,8 @@
         <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">일정 보기</button></div>
         <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">일정 보기</button></div>
         <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">맛집 보기</button></div>
+        <div class="card"><h3>📦 필요 비품</h3><button onclick="location.href='supplies.html'">비품 보기</button></div>
+        <div class="card"><h3>🗣 건의 사항</h3><button onclick="location.href='suggestions.html'">건의하기</button></div>
     </div>
 
     <script>
@@ -210,3 +217,4 @@
 
 </body>
 </html>
+
