@@ -148,31 +148,12 @@
             <ul id="noticeList"></ul>
             <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
         </div>
-
-        <!-- ✅ 카드 섹션 -->
-        <div class="cards">
-            <div class="card">
-                <h3>📌 지킴이 일정</h3>
-                <p>지킴이들의 근무 일정을 확인하세요.</p>
-                <button onclick="location.href='calendar.html'">일정 보기</button>
-            </div>
-            <div class="card">
-                <h3>📅 전시 일정</h3>
-                <p>다가오는 전시 일정을 확인하세요!</p>
-                <button onclick="location.href='events.html'">일정 보기</button>
-            </div>
-            <div class="card">
-                <h3>📢 공지사항 작성</h3>
-                <p>관리자만 공지사항을 작성할 수 있습니다.</p>
-                <button onclick="location.href='notice_form.html'">작성하기</button>
-            </div>
-        </div>
     </div>
 
-    <!-- ✅ Firebase에서 공지사항 불러오기 -->
+    <!-- ✅ Firebase에서 공지사항 불러오기 (최신순) -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
@@ -200,16 +181,19 @@
 
                 let notices = [];
                 snapshot.forEach((childSnapshot) => {
+                    let key = childSnapshot.key;
                     let data = childSnapshot.val();
-                    notices.push(data);
+                    notices.push({ key, ...data });
                 });
 
+                // 🔹 최신순 정렬 (날짜가 최신인 공지 먼저)
                 notices.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+                // 🔹 최신 3개만 표시
                 notices.slice(0, 3).forEach((notice) => {
                     let li = document.createElement("li");
                     li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
-                        ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지">` : ""}`;
+                        ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지" width="100">` : ""}`;
                     noticeList.appendChild(li);
                 });
             });
