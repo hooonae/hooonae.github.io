@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 지킴이 일정</title>
+    <title>📅 FullCalendar + Firebase 일정 관리</title>
+
+    <!-- FullCalendar CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
 
     <style>
         body {
@@ -14,77 +17,52 @@
             padding: 20px;
         }
         .calendar-container {
-            max-width: 95%;
+            max-width: 900px;
             margin: auto;
             background: white;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            table-layout: fixed;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: left;
-            vertical-align: top;
-            height: 100px;
-            position: relative;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        .date-num {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .name-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 5px 2px 0 2px;
-            max-height: 50px;
-            overflow-y: auto;
+        .color-picker {
             display: flex;
-            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
         }
-        .name-list li {
-            font-size: 10px;
-            background: lightgray;
-            padding: 2px 4px;
-            border-radius: 3px;
-            display: inline-flex;
-            align-items: center;
-            margin: 2px;
-        }
-        .delete-btn {
-            background: transparent;
+        .color-btn {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
             border: none;
-            color: red;
-            font-size: 10px;
+            margin: 0 5px;
             cursor: pointer;
-            margin-left: 3px;
         }
     </style>
 </head>
 <body>
 
-    <h1 id="monthTitle"></h1>
-    <div class="calendar-container">
-        <table id="calendarTable"></table>
+    <h1>📅 FullCalendar + Firebase 일정 관리</h1>
+
+    <div class="color-picker">
+        <button class="color-btn" style="background: black;" onclick="setColor('black')"></button>
+        <button class="color-btn" style="background: red;" onclick="setColor('red')"></button>
+        <button class="color-btn" style="background: blue;" onclick="setColor('blue')"></button>
+        <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
     </div>
 
+    <div class="calendar-container">
+        <div id="calendar"></div>
+    </div>
+
+    <!-- FullCalendar & Firebase -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
+        // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -99,84 +77,118 @@
 
         let selectedColor = "black"; 
 
-        function createCalendar(year, month) {
-            document.getElementById("monthTitle").innerText = `${year}년 ${month}월`;
-            const table = document.getElementById("calendarTable");
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
-                    </tr>
-                </thead>
-            `;
-
-            const daysInMonth = new Date(year, month, 0).getDate();
-            const firstDay = new Date(year, month - 1, 1).getDay();
-
-            let tbody = table.createTBody();
-            let row = tbody.insertRow();
-            for (let i = 0; i < firstDay; i++) {
-                row.insertCell();
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                if ((firstDay + day - 1) % 7 === 0) {
-                    row = tbody.insertRow();
-                }
-                let cell = row.insertCell();
-                cell.innerHTML = `<span class="date-num">${day}</span>`;
-
-                let nameList = document.createElement("ul");
-                nameList.className = "name-list";
-
-                let input = document.createElement("input");
-                input.type = "text";
-                input.placeholder = "이름 입력";
-                input.className = "name-input";
-                input.onkeypress = function (e) {
-                    if (e.key === "Enter") {
-                        addName(year, month, day, input.value);
-                        input.value = "";
-                    }
-                };
-
-                cell.appendChild(nameList);
-                cell.appendChild(input);
-                loadNames(year, month, day, nameList);
-            }
-        }
-
-        function addName(year, month, day, name) {
-            if (!name.trim()) return;
-            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-            newRef.set({ name, color: selectedColor });
-        }
-
-        function loadNames(year, month, day, nameList) {
-            const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
-            dayRef.on("value", (snapshot) => {
-                nameList.innerHTML = "";
-                snapshot.forEach((childSnapshot) => {
-                    let data = childSnapshot.val();
-                    let nameItem = document.createElement("li");
-                    nameItem.style.color = data.color;
-                    nameItem.innerHTML = `${data.name} <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button>`;
-                    nameList.appendChild(nameItem);
-                });
-            });
-        }
-
-        function deleteName(year, month, day, nameId) {
-            db.ref(`calendar/${year}/${month}/${day}/${nameId}`).remove();
+        function setColor(color) {
+            selectedColor = color;
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            let currentYear = new Date().getFullYear();
-            let currentMonth = new Date().getMonth() + 1;
-            createCalendar(currentYear, currentMonth);
+            let calendarEl = document.getElementById("calendar");
+            let calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                locale: "ko",
+                editable: true,
+                selectable: true,
+                events: async function (fetchInfo, successCallback, failureCallback) {
+                    console.log("📡 Firebase에서 일정 불러오기...");
+                    const year = fetchInfo.start.getFullYear();
+                    const month = fetchInfo.start.getMonth() + 1;
+
+                    try {
+                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
+                        if (snapshot.exists()) {
+                            let events = [];
+                            snapshot.forEach(daySnapshot => {
+                                const day = daySnapshot.key;
+                                daySnapshot.forEach(eventSnapshot => {
+                                    const event = eventSnapshot.val();
+                                    events.push({
+                                        id: eventSnapshot.key,
+                                        title: event.name,
+                                        start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                        color: event.color
+                                    });
+                                });
+                            });
+                            successCallback(events);
+                        }
+                    } catch (error) {
+                        console.error("🚨 이벤트 불러오기 오류:", error);
+                        failureCallback(error);
+                    }
+                },
+                dateClick: function(info) {
+                    let name = prompt("일정 이름을 입력하세요:");
+                    if (name) {
+                        addEvent(info.date, name);
+                    }
+                },
+                eventClick: function(info) {
+                    if (confirm("일정을 삭제하시겠습니까?")) {
+                        deleteEvent(info.event);
+                    }
+                },
+                eventDrop: function(info) {
+                    updateEventDate(info.event);
+                }
+            });
+            calendar.render();
+
+            async function addEvent(date, name) {
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+
+                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                await newRef.set({ name, color: selectedColor });
+
+                calendar.addEvent({
+                    id: newRef.key,
+                    title: name,
+                    start: date,
+                    color: selectedColor
+                });
+            }
+
+            async function deleteEvent(event) {
+                let date = new Date(event.start);
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                event.remove();
+            }
+
+            async function updateEventDate(event) {
+                let oldDate = new Date(event._def.extendedProps.start);
+                let oldYear = oldDate.getFullYear();
+                let oldMonth = oldDate.getMonth() + 1;
+                let oldDay = oldDate.getDate();
+
+                let newDate = new Date(event.start);
+                let newYear = newDate.getFullYear();
+                let newMonth = newDate.getMonth() + 1;
+                let newDay = newDate.getDate();
+
+                if (oldYear !== newYear || oldMonth !== newMonth || oldDay !== newDay) {
+                    let eventData = {
+                        name: event.title,
+                        color: event.backgroundColor
+                    };
+
+                    await db.ref(`calendar/${oldYear}/${oldMonth}/${oldDay}/${event.id}`).remove();
+                    const newRef = db.ref(`calendar/${newYear}/${newMonth}/${newDay}`).push();
+                    await newRef.set(eventData);
+
+                    event.setProp("id", newRef.key);
+                    event.setStart(newDate);
+                }
+            }
         });
     </script>
 
 </body>
+</html>
+
 </html>
 
