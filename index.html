@@ -126,9 +126,9 @@
         </div>
     </div>
 
-    <!-- ✅ Firebase 최신 버전 SDK 추가 -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"></script>
+    <!-- ✅ Firebase 최신 버전 SDK 추가 (CDN 방식) -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
@@ -144,27 +144,11 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        if (typeof firebase !== 'undefined' && firebase?.apps?.length === 0) {
-            firebase.initializeApp(firebaseConfig);
-        } else if (typeof firebase !== 'undefined') {
-            firebase.app();
-        } else {
-            console.error("❌ Firebase가 로드되지 않았습니다.");
-        }
-
-        const db = typeof firebase !== 'undefined' ? firebase.database() : null;
-        if (!db) {
-            console.error("❌ Firebase 데이터베이스가 초기화되지 않음");
-        } else {
-            console.log("✅ Firebase 초기화 완료!");
-        }
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        console.log("✅ Firebase 초기화 완료!");
 
         function loadNotices() {
-            if (!db) {
-                console.error("❌ Firebase 데이터베이스가 초기화되지 않음");
-                return;
-            }
-
             const noticeList = document.getElementById("noticeList");
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
