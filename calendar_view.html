@@ -14,7 +14,7 @@
             padding: 20px;
         }
         .calendar-container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: auto;
             background: white;
             padding: 15px;
@@ -30,10 +30,11 @@
             border-collapse: collapse;
             margin-top: 10px;
             table-layout: fixed;
+            display: table; /* 달력이 항상 보이도록 수정 */
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 5px;
+            padding: 10px;
             text-align: left;
             vertical-align: top;
             height: 100px;
@@ -131,6 +132,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
+        console.log("📡 Firebase 스크립트 로드됨!");
+
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -171,6 +174,7 @@
         }
 
         function createCalendar(year, month) {
+            console.log(`📅 캘린더 생성: ${year}년 ${month}월`);
             document.getElementById("monthTitle").innerText = `${year}년 ${month}월`;
 
             const table = document.getElementById("calendarTable");
@@ -189,4 +193,52 @@
             `;
 
             const daysInMonth = new Date(year, month, 0).getDate();
-            const firstDay
+            const firstDay = new Date(year, month - 1, 1).getDay();
+
+            let tbody = table.createTBody();
+            let row = tbody.insertRow();
+            for (let i = 0; i < firstDay; i++) {
+                row.insertCell();
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                if ((firstDay + day - 1) % 7 === 0) {
+                    row = tbody.insertRow();
+                }
+                let cell = row.insertCell();
+                cell.innerHTML = `<span class="date-num">${day}</span>`;
+
+                let nameList = document.createElement("ul");
+                nameList.className = "name-list";
+
+                let input = document.createElement("input");
+                input.type = "text";
+                input.placeholder = "이름 입력";
+                input.className = "name-input";
+                input.onkeypress = function (e) {
+                    if (e.key === "Enter") {
+                        addName(year, month, day, input.value);
+                        input.value = "";
+                    }
+                };
+
+                cell.appendChild(nameList);
+                cell.appendChild(input);
+                loadNames(year, month, day, nameList);
+            }
+        }
+
+        function addName(year, month, day, name) {
+            if (!name.trim()) return;
+            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+            newRef.set({ name, color: selectedColor });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("✅ 문서 로드 완료, 캘린더 생성 시작");
+            createCalendar(currentYear, currentMonth);
+        });
+    </script>
+
+</body>
+</html>
