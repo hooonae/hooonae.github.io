@@ -5,31 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 지킴이 일정 관리</title>
 
-    <!-- FullCalendar CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <!-- Pikaday CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/pikaday.min.css">
 
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
             text-align: center;
             background: #F8F1E9;
-            margin: 0;
             padding: 20px;
+            margin: 0;
         }
 
         h1 {
             color: #333;
-            margin-bottom: 10px;
-            font-size: 20px; /* 제목 크기 줄이기 */
+            font-size: 24px;
+            margin-bottom: 15px;
         }
 
         .calendar-container {
-            max-width: 100%; /* 모바일에서 꽉 찬 크기로 */
+            max-width: 100%;
             margin: auto;
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .input-container {
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            width: 90%;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
         }
 
         .color-picker {
@@ -39,69 +68,27 @@
         }
 
         .color-btn {
-            width: 25px;
-            height: 25px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             border: none;
-            margin: 0 5px;
+            margin: 0 8px;
             cursor: pointer;
-        }
-
-        /* 달력 표 크기 키우기 */
-        .fc-daygrid-day-frame {
-            height: 120px !important; /* 표의 높이 키우기 */
-        }
-
-        /* 달력 내 텍스트 스타일 */
-        .fc-daygrid-day-number {
-            font-size: 18px; /* 날짜 글자 크기 키우기 */
-        }
-
-        .fc-event-title {
-            font-size: 14px; /* 일정 제목 글자 크기 키우기 */
-        }
-
-        /* 일정 내용 색상 */
-        .name-list li {
-            font-size: 12px;
-            padding: 3px 6px;
-            border-radius: 3px;
-            display: inline-flex;
-            align-items: center;
-            margin: 2px;
-        }
-
-        .name-list li span {
-            font-weight: bold;
-        }
-
-        .delete-btn {
-            background: transparent;
-            border: none;
-            color: red;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 5px;
-        }
-
-        .name-input {
-            width: 95%;
-            padding: 3px;
-            margin-top: 5px;
-            text-align: center;
-            font-size: 12px;
         }
 
         /* 모바일 최적화 */
         @media screen and (max-width: 768px) {
+            .color-picker {
+                margin-bottom: 15px;
+            }
             .calendar-container {
                 padding: 10px;
             }
-            .fc-daygrid-day-frame {
-                height: 100px !important;
-            }
             h1 {
-                font-size: 18px;
+                font-size: 20px;
+            }
+            input[type="text"], button {
+                width: 100%;
             }
         }
     </style>
@@ -119,17 +106,25 @@
     </div>
 
     <div class="calendar-container">
-        <div id="calendar"></div>
+        <div class="input-container">
+            <input type="text" id="datepicker" placeholder="날짜를 선택하세요">
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="textInput" placeholder="일정에 대한 추가 정보를 입력하세요">
+        </div>
+
+        <button onclick="submitData()">제출</button>
+        <h3>저장된 일정</h3>
+        <div id="saved-events"></div> <!-- Firebase에서 가져온 이벤트 표시 -->
     </div>
 
-    <!-- FullCalendar & Firebase -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <!-- Pikaday JS -->
+    <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
-        console.log("📡 Firebase 스크립트 로드됨!");
-
         // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
@@ -140,6 +135,7 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
+        // Firebase 초기화
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -150,116 +146,56 @@
             selectedColor = color;
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            let calendarEl = document.getElementById("calendar");
-            let calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: "dayGridMonth",
-                locale: "ko",
-                editable: true,
-                selectable: true,
-                events: async function (fetchInfo, successCallback, failureCallback) {
-                    console.log("📡 Firebase에서 일정 불러오기...");
-                    const year = fetchInfo.start.getFullYear();
-                    const month = fetchInfo.start.getMonth() + 1;
-
-                    try {
-                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
-                        console.log("📡 Firebase 데이터:", snapshot.val());
-
-                        if (!snapshot.exists()) {
-                            console.log("📡 데이터 없음, 빈 배열 반환");
-                            successCallback([]); // Firebase에 데이터가 없을 경우 빈 배열 반환
-                            return;
-                        }
-
-                        let events = [];
-                        snapshot.forEach(daySnapshot => {
-                            const day = daySnapshot.key;
-                            daySnapshot.forEach(eventSnapshot => {
-                                const event = eventSnapshot.val();
-                                events.push({
-                                    id: eventSnapshot.key,
-                                    title: event.name,
-                                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                                    color: event.color
-                                });
-                            });
-                        });
-                        successCallback(events);
-                    } catch (error) {
-                        console.error("🚨 이벤트 불러오기 오류:", error);
-                        failureCallback(error);
-                    }
-                },
-                dateClick: function(info) {
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(info.date, name, selectedColor); // 선택된 색상 사용
-                    }
-                },
-                eventClick: function(info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(info.event);
-                    }
-                },
-                eventDrop: function(info) {
-                    updateEventDate(info.event);
-                }
-            });
-            calendar.render();
-
-            async function addEvent(date, name, color) {
-                let year = date.getFullYear();
-                let month = date.getMonth() + 1;
-                let day = date.getDate();
-
-                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name, color });
-
-                calendar.addEvent({
-                    id: newRef.key,
-                    title: name,
-                    start: date,
-                    color: color
-                });
-            }
-
-            async function deleteEvent(event) {
-                let date = new Date(event.start);
-                let year = date.getFullYear();
-                let month = date.getMonth() + 1;
-                let day = date.getDate();
-
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                event.remove();
-            }
-
-            async function updateEventDate(event) {
-                let oldDate = new Date(event._def.extendedProps.start);
-                let oldYear = oldDate.getFullYear();
-                let oldMonth = oldDate.getMonth() + 1;
-                let oldDay = oldDate.getDate();
-
-                let newDate = new Date(event.start);
-                let newYear = newDate.getFullYear();
-                let newMonth = newDate.getMonth() + 1;
-                let newDay = newDate.getDate();
-
-                if (oldYear !== newYear || oldMonth !== newMonth || oldDay !== newDay) {
-                    let eventData = {
-                        name: event.title,
-                        color: event.backgroundColor
-                    };
-
-                    await db.ref(`calendar/${oldYear}/${oldMonth}/${oldDay}/${event.id}`).remove();
-                    const newRef = db.ref(`calendar/${newYear}/${newMonth}/${newDay}`).push();
-                    await newRef.set(eventData);
-
-                    event.setProp("id", newRef.key);
-                    event.setStart(newDate);
-                }
-            }
+        // Pikaday 날짜 선택기
+        var picker = new Pikaday({
+            field: document.getElementById('datepicker'),
+            format: 'YYYY-MM-DD',
+            minDate: new Date(), // 오늘 이후의 날짜만 선택 가능
+            maxDate: new Date(2025, 12, 31), // 최대 날짜 설정
         });
+
+        // Firebase에서 일정 불러오기
+        function loadEvents() {
+            const savedEventsDiv = document.getElementById("saved-events");
+            savedEventsDiv.innerHTML = ""; // 초기화
+
+            const eventsRef = db.ref("events");
+            eventsRef.once("value", function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+                    const event = childSnapshot.val();
+                    const eventElement = document.createElement("div");
+                    eventElement.style.color = event.color;
+                    eventElement.innerHTML = `<strong>${event.date}</strong>: ${event.name}`;
+                    savedEventsDiv.appendChild(eventElement);
+                });
+            });
+        }
+
+        // 제출 버튼 클릭 시 Firebase에 저장하고 화면에 반영
+        function submitData() {
+            const selectedDate = document.getElementById('datepicker').value;
+            const text = document.getElementById('textInput').value;
+
+            if (selectedDate && text) {
+                // Firebase에 저장
+                const newEventRef = db.ref("events").push();
+                newEventRef.set({
+                    date: selectedDate,
+                    name: text,
+                    color: selectedColor
+                });
+
+                alert("일정이 저장되었습니다!");
+                loadEvents(); // 저장된 일정 새로고침
+            } else {
+                alert("날짜와 내용을 모두 입력해주세요.");
+            }
+        }
+
+        // 페이지 로딩 시 Firebase에서 이벤트 불러오기
+        window.onload = function() {
+            loadEvents();
+        };
     </script>
 
 </body>
