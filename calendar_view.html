@@ -3,48 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>달력 (Firebase 저장)</title>
+    <title>📅 지킴이 일정</title>
+
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 400px; margin: auto; }
-        .day { border: 1px solid #ccc; padding: 10px; min-height: 100px; text-align: center; position: relative; }
-        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); font-weight: bold; margin-bottom: 5px; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            margin: 0;
+            padding: 20px;
+        }
+        .calendar-container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background: #555;
+            color: white;
+            font-weight: bold;
+        }
+        .sunday {
+            color: red;
+        }
+        .name-input {
+            width: 90%;
+            padding: 5px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .name-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        .name-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 8px;
+            border-radius: 10px;
+            background: lightgray;
+        }
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: red;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .color-picker {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .month-nav {
+            margin-bottom: 10px;
+        }
+        .month-nav button {
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-<h2>월간 일정 (Firebase 저장)</h2>
+    <h1 id="monthTitle"></h1>
 
-<select id="monthSelect" onchange="updateCalendar()">
-    <option value="1">1월</option>
-    <option value="2">2월</option>
-    <option value="3" selected>3월</option>
-    <option value="4">4월</option>
-    <option value="5">5월</option>
-    <option value="6">6월</option>
-    <option value="7">7월</option>
-    <option value="8">8월</option>
-    <option value="9">9월</option>
-    <option value="10">10월</option>
-    <option value="11">11월</option>
-    <option value="12">12월</option>
-</select>
+    <div class="month-nav">
+        <button onclick="prevMonth()">⬅️ 이전 달</button>
+        <button onclick="nextMonth()">다음 달 ➡️</button>
+    </div>
 
-<div class="weekdays">
-    <div>월</div> <div>화</div> <div>수</div> <div>목</div> <div>금</div> <div>토</div> <div>일</div>
-</div>
+    <div class="color-picker">
+        <button class="color-btn" style="background: black;" onclick="setColor('black')"></button>
+        <button class="color-btn" style="background: red;" onclick="setColor('red')"></button>
+        <button class="color-btn" style="background: blue;" onclick="setColor('blue')"></button>
+        <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
+    </div>
 
-<div class="calendar" id="calendar"></div>
+    <div class="calendar-container">
+        <table id="calendarTable"></table>
+    </div>
 
-<!-- 🔥 Firebase 스크립트를 BODY 끝부분에 배치 -->
-<script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("문서 로딩 완료!");
-
-        // 🔥 Firebase 초기화
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -54,54 +128,125 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        } else {
-            console.warn("⚠️ Firebase 이미 초기화됨");
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let selectedColor = "black"; 
+
+        function setColor(color) {
+            selectedColor = color;
         }
 
-        const db = firebase.database();
-        console.log("✅ Firebase 초기화 성공!");
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth() + 1;
+
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 1) {
+                currentMonth = 12;
+                currentYear--;
+            }
+            createCalendar(currentYear, currentMonth);
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear++;
+            }
+            createCalendar(currentYear, currentMonth);
+        }
 
         function createCalendar(year, month) {
-            console.log(`달력 생성 중: ${year}-${month}`);
-            const calendar = document.getElementById("calendar");
-            if (!calendar) {
-                console.error("⚠️ 달력 요소를 찾을 수 없습니다!");
-                return;
-            }
+            document.getElementById("monthTitle").innerText = `${year}년 ${month}월`;
 
-            calendar.innerHTML = "";
+            const table = document.getElementById("calendarTable");
+            table.innerHTML = ""; 
 
-            const firstDay = new Date(year, month - 1, 1).getDay();
             const daysInMonth = new Date(year, month, 0).getDate();
-            const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
+            const firstDay = new Date(year, month - 1, 1).getDay();
 
-            for (let i = 0; i < adjustedFirstDay; i++) {
-                const emptyCell = document.createElement("div");
-                emptyCell.classList.add("day");
-                calendar.appendChild(emptyCell);
+            let tbody = table.createTBody();
+            let row = tbody.insertRow();
+            for (let i = 0; i < firstDay; i++) {
+                row.insertCell();
             }
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const dayCell = document.createElement("div");
-                dayCell.classList.add("day");
-                dayCell.innerHTML = `<div>${day}</div>`;
-                calendar.appendChild(dayCell);
+                if ((firstDay + day - 1) % 7 === 0) {
+                    row = tbody.insertRow();
+                }
+                let cell = row.insertCell();
+                cell.innerHTML = `<strong>${day}</strong>`;
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.placeholder = "이름 입력";
+                input.className = "name-input";
+                input.onkeypress = function (e) {
+                    if (e.key === "Enter") {
+                        addName(year, month, day, input.value);
+                        input.value = "";
+                    }
+                };
+
+                let nameList = document.createElement("div");
+                nameList.className = "name-list";
+
+                cell.appendChild(nameList);
+                cell.appendChild(input);
+                loadNames(year, month, day, nameList);
             }
-
-            console.log("✅ 달력 생성 완료!");
         }
 
-        function updateCalendar() {
-            const month = parseInt(document.getElementById("monthSelect").value);
-            console.log(`🌟 선택된 월: ${month}`);
-            createCalendar(2025, month);
+        function addName(year, month, day, name) {
+            if (!name.trim()) return;
+
+            const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
+            dayRef.once("value", (snapshot) => {
+                let isDuplicate = false;
+                snapshot.forEach((childSnapshot) => {
+                    if (childSnapshot.val().name === name) {
+                        isDuplicate = true;
+                    }
+                });
+
+                if (isDuplicate) {
+                    alert("이미 등록된 이름입니다!");
+                } else {
+                    const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                    newRef.set({ name, color: selectedColor });
+                }
+            });
         }
 
-        createCalendar(2025, 3);
-    });
-</script>
+        function loadNames(year, month, day, nameList) {
+            const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
+            dayRef.on("value", (snapshot) => {
+                nameList.innerHTML = "";
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        let nameData = childSnapshot.val();
+                        let nameItem = document.createElement("div");
+                        nameItem.className = "name-item";
+                        nameItem.style.color = nameData.color;
+                        nameItem.innerHTML = `
+                            <span>${nameData.name}</span>
+                            <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button>
+                        `;
+                        nameList.appendChild(nameItem);
+                    });
+                }
+            });
+        }
+
+        function deleteName(year, month, day, nameId) {
+            db.ref(`calendar/${year}/${month}/${day}/${nameId}`).remove();
+        }
+
+        createCalendar(currentYear, currentMonth);
+    </script>
 
 </body>
 </html>
