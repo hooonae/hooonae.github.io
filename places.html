@@ -29,9 +29,8 @@
         <input type="text" id="content" placeholder="맛집 설명">
         <input type="text" id="nickname" placeholder="작성자">
         <input type="text" id="address" placeholder="맛집 주소 (지도에서 선택)" readonly>
-        <div id="map"></div> <!-- ✅ 지도 추가 -->
-        <input type="file" id="image" accept="image/*">
-        <button onclick="submitPlace()">등록하기</button>
+        <div id="map"></div>
+        <button id="submitBtn">등록하기</button>
     </div>
 
     <div class="container">
@@ -46,9 +45,8 @@
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
-        // ✅ Firebase 초기화
         const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            apiKey: "YOUR_API_KEY",
             authDomain: "museum-web-370cd.firebaseapp.com",
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
@@ -58,21 +56,12 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        console.log("✅ Firebase 초기화 완료!");
 
-        // ✅ 네이버 지도 초기화
-        var map = new naver.maps.Map("map", {
-            center: new naver.maps.LatLng(37.5665, 126.9780), // 기본 위치: 서울
-            zoom: 14
-        });
-
+        var map = new naver.maps.Map("map", { center: new naver.maps.LatLng(37.5665, 126.9780), zoom: 14 });
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ 지도 클릭 시 Reverse Geocoding 실행
         function reverseGeocode(lat, lng) {
-            var apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
-
-            fetch(apiUrl, {
+            fetch(`https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=jsonp&orders=roadaddr`, {
                 method: "GET",
                 headers: {
                     "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
@@ -82,88 +71,13 @@
             .then(response => response.json())
             .then(data => {
                 if (data.results.length > 0) {
-                    let address = data.results[0].region.area1.name + " " + 
-                                  data.results[0].region.area2.name + " " + 
-                                  data.results[0].land.name;
-                    document.getElementById("address").value = address;
-                } else {
-                    document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
+                    document.getElementById("address").value = data.results[0].land.name || "주소 정보 없음";
                 }
             })
             .catch(error => console.error("❌ Reverse Geocoding 실패:", error));
         }
 
-        naver.maps.Event.addListener(map, "click", function(e) {
-            marker.setPosition(e.coord);
-            reverseGeocode(e.coord.y, e.coord.x);
-        });
-
-        // ✅ Firebase에 맛집 데이터 저장
-        function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
-
-            if (!title || !content || !nickname || !address) {
-                alert("⚠️ 모든 필드를 입력하세요.");
-                return;
-            }
-
-            const newPlaceRef = db.ref("places").push();
-            newPlaceRef.set({
-                title,
-                content,
-                nickname,
-                address,
-                date: new Date().toISOString()
-            })
-            .then(() => {
-                alert("✅ 맛집이 등록되었습니다!");
-                location.reload();
-            })
-            .catch(error => {
-                console.error("❌ 맛집 저장 실패:", error);
-            });
-        }
-
-        // ✅ 맛집 목록 불러오기
-        function loadPlaces() {
-            const placesList = document.getElementById("placesList");
-            placesList.innerHTML = "<p>📡 로딩 중...</p>";
-
-            db.ref("places").on("value", (snapshot) => {
-                placesList.innerHTML = "";
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
-                    return;
-                }
-
-                let places = [];
-                snapshot.forEach((childSnapshot) => {
-                    let key = childSnapshot.key;
-                    let data = childSnapshot.val();
-                    places.push({ key, ...data });
-                });
-
-                places.reverse();
-
-                places.forEach((place) => {
-                    let div = document.createElement("div");
-                    div.innerHTML = `
-                        <h3>${place.title}</h3>
-                        <p>${place.content}</p>
-                        <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
-                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
-                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
-                    `;
-                    placesList.appendChild(div);
-                });
-            });
-        }
-
-        document.addEventListener("DOMContentLoaded", loadPlaces);
+        document.getElementById("submitBtn").addEventListener("click", submitPlace);
     </script>
 
 </body>
