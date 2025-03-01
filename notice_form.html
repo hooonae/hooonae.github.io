@@ -1,145 +1,95 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지사항 작성</title>
-    
-    <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            text-align: center;
-            background: #F8F1E9;
-            margin: 0;
-            padding: 20px;
+<script>
+    console.log("📡 Firebase 스크립트 로드됨!");
+
+    // ✅ Firebase 초기화
+    const firebaseConfig = {
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    console.log("✅ Firebase 초기화 완료!");
+
+    // ✅ 현재 시간을 "YYYY-MM-DD HH:MM" 형식으로 변환하는 함수
+    function getFormattedDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+    // ✅ 공지사항 등록 함수
+    function submitNotice() {
+        const title = document.getElementById("title").value.trim();
+        const content = document.getElementById("content").value.trim();
+        const fileInput = document.getElementById("image");
+        const file = fileInput.files[0];
+
+        if (!title || !content) {
+            alert("⚠️ 제목과 내용을 입력하세요.");
+            return;
         }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        input, textarea {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background: #8B5E3C;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        .back-btn {
-            background: #555;
-        }
-    </style>
-</head>
-<body>
 
-    <h1>📢 공지사항 작성</h1>
-
-    <div class="container">
-        <input type="text" id="title" placeholder="공지 제목">
-        <textarea id="content" placeholder="공지 내용을 입력하세요"></textarea>
-        <input type="file" id="image" accept="image/*">
-        <button onclick="submitNotice()">✅ 등록</button>
-        <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
-    </div>
-
-    <!-- ✅ Firebase 최신 버전 SDK 추가 (CDN 방식) -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
-    <script>
-        console.log("📡 Firebase 스크립트 로드됨!");
-
-        // ✅ Firebase 초기화
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        console.log("✅ Firebase 초기화 완료!");
-
-        // ✅ 공지사항 등록 함수
-        function submitNotice() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const fileInput = document.getElementById("image");
-            const file = fileInput.files[0];
-
-            if (!title || !content) {
-                alert("⚠️ 제목과 내용을 입력하세요.");
-                return;
-            }
-
-            let imageUrl = "";
-            if (file) {
-                uploadToCloudinary(file).then(url => {
-                    imageUrl = url;
-                    saveNoticeToDatabase(title, content, imageUrl);
-                }).catch(error => {
-                    console.error("❌ 이미지 업로드 실패:", error);
-                    alert("이미지 업로드 중 오류가 발생했습니다.");
-                });
-            } else {
+        let imageUrl = "";
+        if (file) {
+            uploadToCloudinary(file).then(url => {
+                imageUrl = url;
                 saveNoticeToDatabase(title, content, imageUrl);
-            }
-        }
-
-        // ✅ Cloudinary 이미지 업로드
-        function uploadToCloudinary(file) {
-            return new Promise((resolve, reject) => {
-                const cloudName = "dddmgnzlu"; // 여기에 Cloudinary 계정의 Cloud Name을 입력하세요
-                const uploadPreset = "firebase_uploads"; // 업로드 프리셋 입력
-                const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", uploadPreset);
-
-                fetch(url, {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => resolve(data.secure_url))
-                .catch(error => reject(error));
+            }).catch(error => {
+                console.error("❌ 이미지 업로드 실패:", error);
+                alert("이미지 업로드 중 오류가 발생했습니다.");
             });
+        } else {
+            saveNoticeToDatabase(title, content, imageUrl);
         }
+    }
 
-        // ✅ Firebase에 공지사항 저장
-        function saveNoticeToDatabase(title, content, imageUrl) {
-            const newNoticeRef = db.ref("notices").push();
-            newNoticeRef.set({
-                title,
-                content,
-                imageUrl,
-                date: new Date().toISOString()
-            })
-            .then(() => {
-                alert("✅ 공지사항이 등록되었습니다!");
-                window.location.href = "notices.html";
-            })
-            .catch(error => {
-                console.error("❌ 공지사항 저장 실패:", error);
-            });
-        }
-    </script>
+    // ✅ Cloudinary 이미지 업로드
+    function uploadToCloudinary(file) {
+        return new Promise((resolve, reject) => {
+            const cloudName = "dddmgnzlu"; // Cloudinary Cloud Name
+            const uploadPreset = "firebase_uploads"; // 업로드 프리셋
+            const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-</body>
-</html>
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", uploadPreset);
+
+            fetch(url, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => resolve(data.secure_url))
+            .catch(error => reject(error));
+        });
+    }
+
+    // ✅ Firebase에 공지사항 저장
+    function saveNoticeToDatabase(title, content, imageUrl) {
+        const newNoticeRef = db.ref("notices").push();
+        const formattedDate = getFormattedDate(); // 현재 시간 변환
+
+        newNoticeRef.set({
+            title,
+            content,
+            imageUrl,
+            date: formattedDate // ✅ 날짜를 깔끔한 포맷으로 저장
+        })
+        .then(() => {
+            alert("✅ 공지사항이 등록되었습니다!");
+            window.location.href = "notices.html";
+        })
+        .catch(error => {
+            console.error("❌ 공지사항 저장 실패:", error);
+        });
+    }
+</script>
