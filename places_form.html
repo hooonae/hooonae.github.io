@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지사항 작성</title>
+    <title>맛집 추천</title>
 
     <style>
         body {
@@ -41,11 +41,12 @@
 </head>
 <body>
 
-    <h1>📢 공지사항 작성</h1>
+    <h1>🍽 맛집 추천</h1>
 
     <div class="container">
-        <input type="text" id="title" placeholder="공지 제목">
-        <textarea id="content" placeholder="공지 내용"></textarea>
+        <input type="text" id="title" placeholder="맛집 이름">
+        <textarea id="content" placeholder="맛집 설명"></textarea>
+        <input type="text" id="nickname" placeholder="작성자">
         <input type="file" id="image" accept="image/*">
         <button id="submitBtn">등록하기</button>
     </div>
@@ -59,13 +60,13 @@
 
         // ✅ Firebase 초기화
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
         // ✅ Firebase가 중복 초기화되지 않도록 확인
@@ -100,15 +101,16 @@
             }
         }
 
-        async function submitNotice() {
+        async function submitPlace() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
             const file = document.getElementById("image").files[0];
 
-            console.log("🚀 입력값 확인:", { title, content, file });
+            console.log("🚀 입력값 확인:", { title, content, nickname, file });
 
-            if (!title || !content) {
-                alert("⚠️ 제목과 내용을 입력하세요.");
+            if (!title || !content || !nickname) {
+                alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
 
@@ -121,26 +123,27 @@
                 }
             }
 
-            const newNoticeRef = db.ref("notices").push();
-            const noticeData = {
+            const newPlaceRef = db.ref("places").push();
+            const placeData = {
                 title,
                 content,
+                nickname,
                 imageUrl,
                 date: new Date().toISOString()
             };
 
-            console.log("📡 Firebase 저장 중:", noticeData);
+            console.log("📡 Firebase 저장 중:", placeData);
 
-            newNoticeRef.set(noticeData)
+            newPlaceRef.set(placeData)
                 .then(() => {
-                    console.log("✅ 공지사항 등록 완료!");
-                    alert("✅ 공지사항이 등록되었습니다.");
-                    location.href = "notices.html";
+                    console.log("✅ 맛집 추천 등록 완료!");
+                    alert("✅ 맛집 추천이 등록되었습니다.");
+                    location.href = "places.html";
                 })
                 .catch(error => console.error("❌ 등록 실패:", error));
         }
 
-        document.getElementById("submitBtn").addEventListener("click", submitNotice);
+        document.getElementById("submitBtn").addEventListener("click", submitPlace);
     </script>
 
 </body>
