@@ -14,7 +14,7 @@
             padding: 20px;
         }
         .calendar-container {
-            max-width: 900px; /* 크기 롤백 */
+            max-width: 900px;
             margin: auto;
             background: white;
             padding: 15px;
@@ -29,14 +29,14 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            table-layout: fixed; /* 일정한 크기 유지 */
+            table-layout: fixed;
         }
         th, td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
             vertical-align: top;
-            height: 90px; /* 표 크기 롤백 */
+            height: 90px;
         }
         th {
             background: #555;
@@ -53,30 +53,27 @@
             font-size: 10px;
         }
         .name-list {
-            max-height: 40px; /* 크기 유지 */
+            display: block; /* 이름이 자동 줄바꿈되도록 변경 */
+            max-height: 80px; /* 너무 길어지지 않게 제한 */
             overflow-y: auto;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
+            text-align: center;
+            padding: 2px;
         }
         .name-item {
-            display: inline-flex;
-            align-items: center;
-            font-size: 10px; /* 글자 크기 줄임 */
-            white-space: nowrap;
+            display: inline-block;
+            font-size: 10px;
             padding: 2px 5px;
             background: lightgray;
             border-radius: 5px;
-            margin: 1px;
+            margin: 2px;
         }
         .delete-btn {
             background: transparent;
             border: none;
             color: red;
-            font-size: 8px; /* 삭제 버튼 크기 축소 */
+            font-size: 8px;
             cursor: pointer;
-            margin-left: 3px;
+            margin-left: 5px;
         }
         .color-picker {
             display: flex;
@@ -231,7 +228,16 @@
                 nameList.innerHTML = "";
                 snapshot.forEach((childSnapshot) => {
                     let nameData = childSnapshot.val();
-                    nameList.innerHTML += `<span class="name-item" style="color:${nameData.color};">${nameData.name}</span> `;
+                    let nameItem = document.createElement("span");
+                    nameItem.className = "name-item";
+                    nameItem.style.color = nameData.color;
+                    nameItem.innerHTML = `${nameData.name} <button class="delete-btn">❌</button>`;
+
+                    nameItem.querySelector(".delete-btn").addEventListener("click", () => {
+                        db.ref(`calendar/${year}/${month}/${day}/${childSnapshot.key}`).remove();
+                    });
+
+                    nameList.appendChild(nameItem);
                 });
             });
         }
