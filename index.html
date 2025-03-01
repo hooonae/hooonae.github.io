@@ -165,7 +165,14 @@
             text-align: center;
         }
 
-        /* ✅ 카드 스타일 (그대로 유지) */
+        /* ✅ 공지사항 이미지 크기 원래대로 */
+        .notice-image {
+            width: 100px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        /* ✅ 카드 스타일 유지 */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -211,10 +218,10 @@
         <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
     </div>
 
-    <!-- ✅ 카드 섹션 (그대로 유지) -->
+    <!-- ✅ 카드 섹션 완전 복구 -->
     <div class="cards">
-        <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">이동</button></div>
         <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">이동</button></div>
+        <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">이동</button></div>
         <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">이동</button></div>
         <div class="card"><h3>📦 필요 비품</h3><button onclick="location.href='supplies.html'">이동</button></div>
         <div class="card"><h3>🗣 건의 사항</h3><button onclick="location.href='suggestions.html'">이동</button></div>
@@ -229,3 +236,4 @@
 
 </body>
 </html>
+
