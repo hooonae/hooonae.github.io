@@ -50,7 +50,7 @@
         .date-num {
             position: absolute;
             top: 5px;
-            right: 5px;
+            left: 5px; /* 왼쪽 정렬 */
             font-size: 14px;
             font-weight: bold;
         }
@@ -225,6 +225,12 @@
                 cell.appendChild(input);
                 loadNames(year, month, day, nameList);
             }
+        }
+
+        function addName(year, month, day, name) {
+            if (!name.trim()) return;
+            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+            newRef.set({ name, color: selectedColor });
         }
 
         function loadNames(year, month, day, nameList) {
