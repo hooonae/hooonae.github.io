@@ -3,53 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📢 공지사항</title>
+    <title>📌 공지사항 작성</title>
     
+    <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-        const firebaseConfig = { /* 위와 동일한 설정 */ };
+        // ✅ Firebase 설정 정보
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
 
+        // ✅ Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        function loadNotices() {
-            const noticesList = document.getElementById("noticesList");
-            noticesList.innerHTML = "<p>로딩 중...</p>";
+        // ✅ Cloudinary 설정
+        const CLOUD_NAME = "dddmgnzlu";
+        const UPLOAD_PRESET = "firebase_uploads";
 
-            onValue(ref(db, "notices"), snapshot => {
-                noticesList.innerHTML = "";
-                snapshot.forEach(childSnapshot => {
-                    const notice = childSnapshot.val();
-                    let div = document.createElement("div");
-                    div.classList.add("notice-card");
-                    div.innerHTML = `
-                        <h3>${notice.title}</h3>
-                        <p>${notice.content}</p>
-                        <small>${notice.date}</small>
-                        <button onclick="deleteNotice('${childSnapshot.key}')">삭제</button>
-                    `;
-                    noticesList.appendChild(div);
-                });
+        // ✅ Cloudinary 이미지 업로드 함수
+        async function uploadToCloudinary(file) {
+            const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", UPLOAD_PRESET);
+
+            const response = await fetch(url, {
+                method: "POST",
+                body: formData
             });
+
+            const data = await response.json();
+            return data.secure_url; // Cloudinary에서 제공하는 이미지 URL 반환
         }
 
-        function deleteNotice(noticeId) {
-            remove(ref(db, `notices/${noticeId}`)).then(() => {
-                alert("공지사항이 삭제되었습니다.");
-                window.location.reload();
-            });
-        }
+        // ✅ 공지사항 작성 함수
+        window.submitNotice = async function() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const file = document.getElementById("image").files[0];
+            const uploadStatus = document.getElementById("uploadStatus");
 
-        window.onload = loadNotices;
+            if (!title || !content) {
+                alert("⚠️ 제목과 내용을 입력하세요.");
+                return;
+            }
+
+            let imageUrl = ""; // 기본값 (이미지 없을 경우 빈 값)
+
+            if (file) {
+                try {
+                    uploadStatus.innerText = "📤 이미지 업로드 중...";
+                    imageUrl = await uploadToCloudinary(file);
+                    uploadStatus.innerText = "✅ 이미지 업로드 완료!";
+                } catch (error) {
+                    console.error("❌ 이미지 업로드 실패:", error);
+                    alert("⚠️ 이미지 업로드 중 오류가 발생했습니다.");
+                    return;
+                }
+            }
+
+            const newNotice = {
+                title,
+                content,
+                date: new Date().toLocaleString(),
+                imageUrl // 이미지 URL 저장 (없으면 빈 값)
+            };
+
+            // ✅ Firebase Realtime Database에 저장
+            push(ref(db, "notices"), newNotice).then(() => {
+                alert("✅ 공지사항이 등록되었습니다!");
+                location.href = "notice.html"; // 작성 후 목록으로 이동
+            }).catch(error => {
+                console.error("❌ 등록 실패:", error);
+                alert("⚠️ 공지사항 등록 중 오류가 발생했습니다.");
+            });
+        };
     </script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F8F1E9;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        h1 {
+            text-align: center;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        #uploadStatus {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>📢 공지사항</h1>
-    <button onclick="location.href='notice_form.html'">공지사항 작성</button>
-    <div id="noticesList"></div>
+    <h1>📌 공지사항 작성</h1>
+
+    <div class="container">
+        <label for="title">제목</label>
+        <input type="text" id="title" placeholder="제목을 입력하세요">
+
+        <label for="content">내용</label>
+        <textarea id="content" rows="5" placeholder="내용을 입력하세요"></textarea>
+
+        <label for="image">이미지 (선택)</label>
+        <input type="file" id="image" accept="image/*">
+        <p id="uploadStatus"></p>
+
+        <button onclick="submitNotice()">📢 등록하기</button>
+        <button onclick="location.href='notice.html'">📜 목록으로</button>
+    </div>
 
 </body>
 </html>
