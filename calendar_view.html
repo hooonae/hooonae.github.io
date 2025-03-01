@@ -41,11 +41,19 @@
             }
         }
 
-        /* FullCalendar 날짜 크기 및 정렬 조정 */
+        /* 날짜 크기 및 정렬 */
         .fc-daygrid-day-number {
-            font-size: 14px !important; /* 날짜 크기 줄이기 */
+            font-size: 14px !important; /* 날짜 크기 */
             text-align: left !important; /* 왼쪽 정렬 */
-            padding-left: 5px !important; /* 왼쪽 여백 추가 */
+            padding-left: 5px !important; /* 여백 */
+        }
+
+        /* 칸 크기 두 배로 늘리기 */
+        .fc-daygrid-day-frame {
+            min-height: 120px !important; /* 각 날짜 셀의 높이 증가 */
+        }
+        .fc-daygrid-day {
+            height: 120px !important; /* 날짜 칸 크기 */
         }
     </style>
 </head>
@@ -129,16 +137,16 @@
                 calendar.addEvent({
                     id: newRef.key,
                     title: name,
-                    start: date,
+                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                     color: "blue"
                 });
             }
 
             async function deleteEvent(event) {
-                let date = new Date(event.start);
-                let year = date.getFullYear();
-                let month = date.getMonth() + 1;
-                let day = date.getDate();
+                let dateParts = event.startStr.split("-");
+                let year = dateParts[0];
+                let month = dateParts[1];
+                let day = dateParts[2];
                 
                 await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
                 event.remove();
@@ -148,3 +156,4 @@
 
 </body>
 </html>
+
