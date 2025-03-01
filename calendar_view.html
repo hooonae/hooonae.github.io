@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 지킴이 일정 관리 - TUI Calendar</title>
 
-    <!-- TUI Calendar CSS -->
-    <link rel="stylesheet" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.css">
-    
-    <!-- TUI Calendar JavaScript -->
-    <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.js"></script>
+    <!-- Moment.js (TUI Calendar의 의존성) -->
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-timezone@0.5.34/moment-timezone-with-data.js"></script>
+
+    <!-- 최신 TUI Calendar -->
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.min.css">
+    <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.min.js"></script>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -40,14 +40,6 @@
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        /* 반응형 스타일 */
-        @media screen and (max-width: 768px) {
-            #calendar {
-                width: 100%;
-                padding: 10px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -71,66 +63,43 @@
         const db = firebase.database();
 
         // ✅ TUI Calendar 초기화
-        const calendar = new tui.Calendar('#calendar', {
-            defaultView: 'month',
-            locale: 'ko',
-            useCreationPopup: true,
-            useDetailPopup: true,
-            taskView: true,
-            scheduleView: true,
-        });
+        window.onload = function() {
+            console.log("TUI Calendar 로드 시작...");
+
+            const calendar = new tui.Calendar('#calendar', {
+                defaultView: 'month',
+                locale: 'ko',
+                useCreationPopup: true,
+                useDetailPopup: true
+            });
+
+            console.log("TUI Calendar 로드 완료.");
+            loadSchedules(); // Firebase에서 일정 불러오기
+        };
 
         // ✅ Firebase에서 일정 불러오기
         function loadSchedules() {
+            console.log("Firebase에서 일정 불러오기...");
             db.ref("events").once("value", function(snapshot) {
                 calendar.clear(); // 기존 일정 삭제 후 다시 불러오기
 
                 snapshot.forEach(function(childSnapshot) {
                     const event = childSnapshot.val();
                     calendar.createSchedules([{
-                        id: childSnapshot.key, // Firebase의 고유 ID 사용
+                        id: childSnapshot.key,
                         calendarId: "1",
                         title: event.title,
                         start: event.start,
                         end: event.end,
                         category: "time",
-                        color: event.color || "#007bff", // 색상이 없으면 기본 색상 사용
+                        color: event.color || "#007bff",
                     }]);
                 });
+
+                console.log("일정 로드 완료!");
             });
         }
-
-        // ✅ 일정 추가 및 Firebase 저장
-        calendar.on("beforeCreateSchedule", function(event) {
-            const schedule = event;
-            const newEventRef = db.ref("events").push();
-
-            const newEvent = {
-                title: schedule.title,
-                start: schedule.start.toISOString(),
-                end: schedule.end.toISOString(),
-                color: "#FF6F61"
-            };
-
-            newEventRef.set(newEvent).then(() => {
-                loadSchedules(); // 일정 다시 불러오기
-            });
-        });
-
-        // ✅ 일정 삭제 및 Firebase에서 제거
-        calendar.on("beforeDeleteSchedule", function(event) {
-            const scheduleId = event.schedule.id;
-            db.ref("events/" + scheduleId).remove().then(() => {
-                loadSchedules(); // 일정 다시 불러오기
-            });
-        });
-
-        // ✅ Firebase에서 일정 불러오기 (초기 실행)
-        window.onload = function() {
-            loadSchedules();
-        };
     </script>
 
 </body>
 </html>
-
