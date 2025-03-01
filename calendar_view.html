@@ -41,39 +41,37 @@
             color: white;
             font-weight: bold;
         }
-        .sunday {
-            color: red;
-        }
-        .saturday {
-            color: blue;
-        }
+        .sunday { color: red; }
+        .saturday { color: blue; }
         .name-input {
             width: 90%;
             padding: 5px;
             margin-top: 5px;
             text-align: center;
+            font-size: 14px;
         }
         .name-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
             justify-content: center;
             margin-top: 5px;
         }
         .name-item {
-            display: inline-block;
-            padding: 5px 8px;
-            border-radius: 10px;
+            display: inline;
+            font-size: 12px;
+            white-space: nowrap;
+            padding: 2px 6px;
             background: lightgray;
+            border-radius: 5px;
             margin-right: 5px;
         }
         .delete-btn {
             background: transparent;
             border: none;
             color: red;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
-            margin-left: 5px;
+            margin-left: 3px;
         }
         .color-picker {
             display: flex;
@@ -240,16 +238,10 @@
             const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
             dayRef.on("value", (snapshot) => {
                 nameList.innerHTML = "";
-                if (snapshot.exists()) {
-                    snapshot.forEach((childSnapshot) => {
-                        let nameData = childSnapshot.val();
-                        let nameItem = document.createElement("div");
-                        nameItem.className = "name-item";
-                        nameItem.style.color = nameData.color;
-                        nameItem.textContent = nameData.name;
-                        nameList.appendChild(nameItem);
-                    });
-                }
+                snapshot.forEach((childSnapshot) => {
+                    let nameData = childSnapshot.val();
+                    nameList.innerHTML += `<span class="name-item" style="color:${nameData.color};">${nameData.name} <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button></span> `;
+                });
             });
         }
 
