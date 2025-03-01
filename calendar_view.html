@@ -44,6 +44,9 @@
         .sunday {
             color: red;
         }
+        .saturday {
+            color: blue;
+        }
         .name-input {
             width: 90%;
             padding: 5px;
@@ -58,17 +61,17 @@
             margin-top: 5px;
         }
         .name-item {
-            display: flex;
-            align-items: center;
+            display: inline-block;
             padding: 5px 8px;
             border-radius: 10px;
             background: lightgray;
+            margin-right: 5px;
         }
         .delete-btn {
             background: transparent;
             border: none;
             color: red;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             margin-left: 5px;
         }
@@ -162,7 +165,19 @@
             document.getElementById("monthTitle").innerText = `${year}년 ${month}월`;
 
             const table = document.getElementById("calendarTable");
-            table.innerHTML = ""; 
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th class="sunday">일</th>
+                        <th>월</th>
+                        <th>화</th>
+                        <th>수</th>
+                        <th>목</th>
+                        <th>금</th>
+                        <th class="saturday">토</th>
+                    </tr>
+                </thead>
+            `;
 
             const daysInMonth = new Date(year, month, 0).getDate();
             const firstDay = new Date(year, month - 1, 1).getDay();
@@ -231,18 +246,11 @@
                         let nameItem = document.createElement("div");
                         nameItem.className = "name-item";
                         nameItem.style.color = nameData.color;
-                        nameItem.innerHTML = `
-                            <span>${nameData.name}</span>
-                            <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button>
-                        `;
+                        nameItem.textContent = nameData.name;
                         nameList.appendChild(nameItem);
                     });
                 }
             });
-        }
-
-        function deleteName(year, month, day, nameId) {
-            db.ref(`calendar/${year}/${month}/${day}/${nameId}`).remove();
         }
 
         createCalendar(currentYear, currentMonth);
