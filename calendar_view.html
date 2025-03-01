@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 지킴이 일정 관리 - TUI Calendar</title>
+    <title>📅 지킴이 일정 관리 - FullCalendar</title>
 
-    <!-- Moment.js (TUI Calendar의 의존성) -->
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment-timezone@0.5.34/moment-timezone-with-data.js"></script>
-
-    <!-- 최신 TUI Calendar -->
-    <link rel="stylesheet" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.min.css">
-    <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.min.js"></script>
+    <!-- FullCalendar CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -25,16 +21,14 @@
             padding: 20px;
             margin: 0;
         }
-
         h1 {
             color: #333;
             margin-bottom: 20px;
         }
-
         #calendar {
-            margin: auto;
             width: 90%;
             max-width: 1000px;
+            margin: auto;
             background: white;
             padding: 15px;
             border-radius: 10px;
@@ -48,7 +42,7 @@
     <div id="calendar"></div>
 
     <script>
-        // ✅ Firebase 설정 (원래대로 복구)
+        // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -57,78 +51,77 @@
             messagingSenderId: "154810876093",
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
-
-        // ✅ Firebase 초기화
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ✅ TUI Calendar 로드
-        window.onload = function() {
-            console.log("📢 TUI Calendar 로드 시작...");
+        document.addEventListener("DOMContentLoaded", function () {
+            var calendarEl = document.getElementById("calendar");
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                locale: "ko",
+                editable: true,
+                selectable: true,
+                events: async function (fetchInfo, successCallback, failureCallback) {
+                    console.log("📡 Firebase에서 일정 불러오기...");
+                    const year = fetchInfo.start.getFullYear();
+                    const month = fetchInfo.start.getMonth() + 1;
+                    try {
+                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
+                        if (!snapshot.exists()) {
+                            successCallback([]);
+                            return;
+                        }
+                        let events = [];
+                        snapshot.forEach(daySnapshot => {
+                            const day = daySnapshot.key;
+                            daySnapshot.forEach(eventSnapshot => {
+                                const event = eventSnapshot.val();
+                                events.push({
+                                    id: eventSnapshot.key,
+                                    title: event.name,
+                                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                    color: event.color
+                                });
+                            });
+                        });
+                        successCallback(events);
+                    } catch (error) {
+                        console.error("🚨 이벤트 불러오기 오류:", error);
+                        failureCallback(error);
+                    }
+                },
+                dateClick: function(info) {
+                    let name = prompt("일정 이름을 입력하세요:");
+                    if (name) {
+                        addEvent(info.date, name);
+                    }
+                },
+                eventClick: function(info) {
+                    if (confirm("일정을 삭제하시겠습니까?")) {
+                        deleteEvent(info.event);
+                    }
+                }
+            });
+            calendar.render();
 
-            if (!tui || !tui.Calendar) {
-                console.error("🚨 TUI Calendar가 로드되지 않았습니다. CDN을 확인하세요.");
-                return;
+            async function addEvent(date, name) {
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                await newRef.set({ name, color: "blue" });
+                calendar.refetchEvents();
             }
 
-            const calendar = new tui.Calendar('#calendar', {
-                defaultView: 'month',
-                locale: 'ko',
-                useCreationPopup: true,
-                useDetailPopup: true
-            });
-
-            console.log("✅ TUI Calendar 로드 완료!");
-            loadSchedules(calendar); // Firebase에서 일정 불러오기
-
-            // ✅ 일정 추가 이벤트 (Firebase에 저장)
-            calendar.on("beforeCreateSchedule", function(event) {
-                const schedule = event;
-                const newEventRef = db.ref("events").push();
-
-                const newEvent = {
-                    title: schedule.title,
-                    start: schedule.start.toISOString(),
-                    end: schedule.end.toISOString(),
-                    color: "#FF6F61"
-                };
-
-                newEventRef.set(newEvent).then(() => {
-                    loadSchedules(calendar); // Firebase에서 일정 다시 불러오기
-                });
-            });
-
-            // ✅ 일정 삭제 이벤트 (Firebase에서도 삭제)
-            calendar.on("beforeDeleteSchedule", function(event) {
-                const scheduleId = event.schedule.id;
-                db.ref("events/" + scheduleId).remove().then(() => {
-                    loadSchedules(calendar); // Firebase에서 일정 다시 불러오기
-                });
-            });
-        };
-
-        // ✅ Firebase에서 일정 불러오기
-        function loadSchedules(calendar) {
-            console.log("📢 Firebase에서 일정 불러오기...");
-            db.ref("events").once("value", function(snapshot) {
-                calendar.clear(); // 기존 일정 삭제 후 다시 불러오기
-
-                snapshot.forEach(function(childSnapshot) {
-                    const event = childSnapshot.val();
-                    calendar.createSchedules([{
-                        id: childSnapshot.key, // Firebase의 고유 ID 사용
-                        calendarId: "1",
-                        title: event.title,
-                        start: event.start,
-                        end: event.end,
-                        category: "time",
-                        color: event.color || "#007bff", // 색상이 없으면 기본 색상 사용
-                    }]);
-                });
-
-                console.log("✅ 일정 로드 완료!");
-            });
-        }
+            async function deleteEvent(event) {
+                let date = new Date(event.start);
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                event.remove();
+            }
+        });
     </script>
 
 </body>
