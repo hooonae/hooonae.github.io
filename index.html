@@ -81,7 +81,9 @@
         }
         .notice h2 { color: #8B5E3C; }
         .notice ul { list-style-type: none; padding: 0; }
-        .notice li { padding: 5px 0; font-size: 1em; }
+        .notice li { padding: 10px 0; font-size: 1em; border-bottom: 1px solid #ddd; }
+        .notice li:last-child { border-bottom: none; }
+        .notice img { max-width: 100px; display: block; margin: 5px auto; }
         .notice .more-btn {
             display: block;
             margin-top: 10px;
@@ -167,11 +169,59 @@
         </div>
     </div>
 
+    <!-- ✅ Firebase에서 공지사항 불러오기 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        function loadNotices() {
+            const noticeList = document.getElementById("noticeList");
+            noticeList.innerHTML = "<p>📡 로딩 중...</p>";
+
+            onValue(ref(db, "notices"), (snapshot) => {
+                noticeList.innerHTML = "";
+                if (!snapshot.exists()) {
+                    noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
+                    return;
+                }
+
+                let notices = [];
+                snapshot.forEach((childSnapshot) => {
+                    let data = childSnapshot.val();
+                    notices.push(data);
+                });
+
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                notices.slice(0, 3).forEach((notice) => {
+                    let li = document.createElement("li");
+                    li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
+                        ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지">` : ""}`;
+                    noticeList.appendChild(li);
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", loadNotices);
+    </script>
+
     <!-- ✅ 모바일 메뉴 토글 기능 -->
     <script>
         function toggleMenu() {
-            const menu = document.querySelector('.menu');
-            menu.classList.toggle('open');
+            document.querySelector('.menu').classList.toggle('open');
         }
     </script>
 
