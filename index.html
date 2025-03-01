@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>서울공예박물관 홈페이지</title>
+    <title>서울공예박물관 지킴이</title>
 
     <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
@@ -25,7 +25,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ✅ 최신 공지사항 3개 불러오기 (이미지 포함)
+        // ✅ 최신 공지사항 3개 불러오기 (이미지 포함 + 중앙 정렬)
         function loadLatestNotices() {
             const noticeList = document.getElementById("noticeList");
             if (!noticeList) {
@@ -57,9 +57,9 @@
                 notices.forEach((notice) => {
                     let li = document.createElement("li");
                     li.innerHTML = `
-                        <a href="notice_view.html?id=${notice.key}">
+                        <a href="notice_view.html?id=${notice.key}" class="notice-item">
                             <strong>${notice.title}</strong><br>
-                            ${notice.imageUrl ? `<img src="${notice.imageUrl}" width="100" style="border-radius:5px;">` : ""}
+                            ${notice.imageUrl ? `<img src="${notice.imageUrl}" class="notice-image">` : ""}
                         </a>
                     `;
                     noticeList.appendChild(li);
@@ -138,10 +138,19 @@
             margin: auto;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
+            text-align: center;
         }
         .notice h2 { color: #8B5E3C; }
         .notice ul { list-style-type: none; padding: 0; }
-        .notice li { padding: 10px 0; font-size: 1em; border-bottom: 1px solid #ddd; }
+        .notice li { 
+            padding: 10px 0; 
+            font-size: 1em; 
+            border-bottom: 1px solid #ddd; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center;
+        }
         .notice li:last-child { border-bottom: none; }
         .notice .more-btn {
             display: block;
@@ -152,6 +161,13 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+        }
+
+        /* ✅ 공지사항 이미지 스타일 */
+        .notice-image {
+            width: 120px; /* 🔥 기존보다 약간 더 키움 */
+            border-radius: 5px;
+            margin-top: 5px;
         }
 
         /* ✅ 카드 스타일 */
@@ -200,13 +216,14 @@
         <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
     </div>
 
-    <!-- ✅ 카드 섹션 -->
+    <!-- ✅ 카드 섹션 (전체 메뉴 추가) -->
     <div class="cards">
-        <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">일정 보기</button></div>
-        <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">일정 보기</button></div>
-        <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">맛집 보기</button></div>
-        <div class="card"><h3>📦 필요 비품</h3><button onclick="location.href='supplies.html'">비품 보기</button></div>
-        <div class="card"><h3>🗣 건의 사항</h3><button onclick="location.href='suggestions.html'">건의하기</button></div>
+        <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">이동</button></div>
+        <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">이동</button></div>
+        <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">이동</button></div>
+        <div class="card"><h3>📦 필요 비품</h3><button onclick="location.href='supplies.html'">이동</button></div>
+        <div class="card"><h3>🗣 건의 사항</h3><button onclick="location.href='suggestions.html'">이동</button></div>
+        <div class="card"><h3>📢 공지사항</h3><button onclick="location.href='notices.html'">이동</button></div>
     </div>
 
     <script>
