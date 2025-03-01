@@ -50,7 +50,7 @@
         .date-num {
             position: absolute;
             top: 5px;
-            left: 5px; /* 왼쪽 정렬 */
+            left: 5px;
             font-size: 14px;
             font-weight: bold;
         }
@@ -229,16 +229,20 @@
 
         function addName(year, month, day, name) {
             if (!name.trim()) return;
-            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-            newRef.set({ name, color: selectedColor });
+            db.ref(`calendar/${year}/${month}/${day}`).push({ name, color: selectedColor });
         }
 
         function loadNames(year, month, day, nameList) {
-            console.log(`📡 데이터 불러오기: ${year}-${month}-${day}`);
+            db.ref(`calendar/${year}/${month}/${day}`).on("value", (snapshot) => {
+                nameList.innerHTML = "";
+                snapshot.forEach((child) => {
+                    let data = child.val();
+                    nameList.innerHTML += `<li style="color:${data.color};">${data.name}</li>`;
+                });
+            });
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            console.log("✅ 문서 로드 완료, 캘린더 생성 시작");
             createCalendar(currentYear, currentMonth);
         });
     </script>
