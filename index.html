@@ -94,7 +94,6 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
     </style>
 </head>
 <body>
@@ -145,8 +144,7 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        // ✅ Firebase가 중복 초기화되지 않도록 확인
-        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+        if (typeof firebase !== 'undefined' && firebase?.apps?.length === 0) {
             firebase.initializeApp(firebaseConfig);
         } else if (typeof firebase !== 'undefined') {
             firebase.app();
@@ -155,7 +153,11 @@
         }
 
         const db = typeof firebase !== 'undefined' ? firebase.database() : null;
-        if (db) console.log("✅ Firebase 초기화 완료!");
+        if (!db) {
+            console.error("❌ Firebase 데이터베이스가 초기화되지 않음");
+        } else {
+            console.log("✅ Firebase 초기화 완료!");
+        }
 
         function loadNotices() {
             if (!db) {
@@ -180,10 +182,7 @@
                     notices.push(data);
                 });
 
-                // 🔹 최신순 정렬 (날짜가 최신인 공지 먼저)
-                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                notices.slice(0, 3).forEach((notice) => {
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3).forEach((notice) => {
                     let li = document.createElement("li");
                     li.innerHTML = `<strong>${notice.title}</strong> - ${notice.date}<br>
                         ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지" width="100">` : ""}`;
