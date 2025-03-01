@@ -14,22 +14,18 @@
             padding: 20px;
         }
         .calendar-container {
-            max-width: 95%; /* 반응형 */
+            max-width: 95%;
             margin: auto;
             background: white;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            table-layout: fixed; /* 일정한 칸 크기 유지 */
+            table-layout: fixed;
         }
         th, td {
             border: 1px solid #ddd;
@@ -38,18 +34,9 @@
             vertical-align: top;
             height: 100px;
             position: relative;
-            font-size: 12px; /* 모바일 가독성 개선 */
-            word-break: keep-all; /* 글자가 줄바꿈되지 않도록 */
-            white-space: nowrap; /* 한 줄 유지 */
+            font-size: 12px;
+            white-space: nowrap;
         }
-        th {
-            background: #555;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-        }
-        .sunday { color: red; }
-        .saturday { color: blue; }
         .date-num {
             position: absolute;
             top: 5px;
@@ -67,7 +54,7 @@
             flex-wrap: wrap;
         }
         .name-list li {
-            font-size: 10px; /* 모바일 가독성 조정 */
+            font-size: 10px;
             background: lightgray;
             padding: 2px 4px;
             border-radius: 3px;
@@ -83,63 +70,11 @@
             cursor: pointer;
             margin-left: 3px;
         }
-        .name-input {
-            width: 95%;
-            padding: 3px;
-            margin-top: 5px;
-            text-align: center;
-            font-size: 12px;
-        }
-        .color-picker {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-        .color-btn {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            border: none;
-            margin: 0 5px;
-            cursor: pointer;
-        }
-        .month-nav {
-            margin-bottom: 10px;
-        }
-        .month-nav button {
-            padding: 5px 10px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        /* 📱 반응형 개선 */
-        @media screen and (max-width: 768px) {
-            td {
-                height: 80px; /* 모바일에서는 칸 크기 조정 */
-            }
-            .name-list {
-                flex-direction: column;
-                align-items: center;
-            }
-        }
     </style>
 </head>
 <body>
 
     <h1 id="monthTitle"></h1>
-
-    <div class="month-nav">
-        <button onclick="prevMonth()">⬅️ 이전 달</button>
-        <button onclick="nextMonth()">다음 달 ➡️</button>
-    </div>
-
-    <div class="color-picker">
-        <button class="color-btn" style="background: black;" onclick="setColor('black')"></button>
-        <button class="color-btn" style="background: red;" onclick="setColor('red')"></button>
-        <button class="color-btn" style="background: blue;" onclick="setColor('blue')"></button>
-        <button class="color-btn" style="background: green;" onclick="setColor('green')"></button>
-    </div>
-
     <div class="calendar-container">
         <table id="calendarTable"></table>
     </div>
@@ -164,45 +99,13 @@
 
         let selectedColor = "black"; 
 
-        function setColor(color) {
-            selectedColor = color;
-        }
-
-        let currentYear = new Date().getFullYear();
-        let currentMonth = new Date().getMonth() + 1;
-
-        function prevMonth() {
-            currentMonth--;
-            if (currentMonth < 1) {
-                currentMonth = 12;
-                currentYear--;
-            }
-            createCalendar(currentYear, currentMonth);
-        }
-
-        function nextMonth() {
-            currentMonth++;
-            if (currentMonth > 12) {
-                currentMonth = 1;
-                currentYear++;
-            }
-            createCalendar(currentYear, currentMonth);
-        }
-
         function createCalendar(year, month) {
             document.getElementById("monthTitle").innerText = `${year}년 ${month}월`;
-
             const table = document.getElementById("calendarTable");
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th class="sunday">일</th>
-                        <th>월</th>
-                        <th>화</th>
-                        <th>수</th>
-                        <th>목</th>
-                        <th>금</th>
-                        <th class="saturday">토</th>
+                        <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
                     </tr>
                 </thead>
             `;
@@ -245,13 +148,35 @@
 
         function addName(year, month, day, name) {
             if (!name.trim()) return;
-            db.ref(`calendar/${year}/${month}/${day}`).push({ name, color: selectedColor });
+            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+            newRef.set({ name, color: selectedColor });
+        }
+
+        function loadNames(year, month, day, nameList) {
+            const dayRef = db.ref(`calendar/${year}/${month}/${day}`);
+            dayRef.on("value", (snapshot) => {
+                nameList.innerHTML = "";
+                snapshot.forEach((childSnapshot) => {
+                    let data = childSnapshot.val();
+                    let nameItem = document.createElement("li");
+                    nameItem.style.color = data.color;
+                    nameItem.innerHTML = `${data.name} <button class="delete-btn" onclick="deleteName('${year}', '${month}', '${day}', '${childSnapshot.key}')">❌</button>`;
+                    nameList.appendChild(nameItem);
+                });
+            });
+        }
+
+        function deleteName(year, month, day, nameId) {
+            db.ref(`calendar/${year}/${month}/${day}/${nameId}`).remove();
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+            let currentYear = new Date().getFullYear();
+            let currentMonth = new Date().getMonth() + 1;
             createCalendar(currentYear, currentMonth);
         });
     </script>
 
 </body>
 </html>
+
