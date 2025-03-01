@@ -36,24 +36,29 @@
             const noticeId = getNoticeIdFromURL();
             if (!noticeId) {
                 alert("❌ 공지사항 ID가 없습니다.");
+                console.error("❌ URL에서 공지사항 ID를 찾을 수 없음");
                 window.location.href = "notices.html";
                 return;
             }
+
+            console.log(`🔍 불러올 공지사항 ID: ${noticeId}`);
 
             const noticeRef = ref(db, `notices/${noticeId}`);
             get(noticeRef).then(snapshot => {
                 if (!snapshot.exists()) {
                     alert("❌ 공지사항을 찾을 수 없습니다.");
+                    console.error("❌ Firebase에서 공지사항을 찾을 수 없음");
                     window.location.href = "notices.html";
                     return;
                 }
 
                 const notice = snapshot.val();
+                console.log("✅ 불러온 공지사항 데이터:", notice);
+
                 document.getElementById("title").textContent = notice.title;
                 document.getElementById("date").textContent = `📅 작성일: ${notice.date}`;
                 document.getElementById("content").textContent = notice.content;
 
-                // ✅ 이미지 표시 (이미지가 있는 경우)
                 if (notice.imageUrl) {
                     document.getElementById("image").src = notice.imageUrl;
                     document.getElementById("image").style.display = "block";
@@ -87,7 +92,7 @@
             }
         }
 
-        // ✅ 페이지 로드 시 공지사항 불러오기
+        // ✅ 페이지 로드 시 공지사항 불러오기 + 삭제 버튼 이벤트 연결
         document.addEventListener("DOMContentLoaded", () => {
             loadNotice();
             document.getElementById("delete-btn").addEventListener("click", deleteNotice);
@@ -113,9 +118,6 @@
         h1 {
             font-size: 2em;
         }
-        p {
-            color: #555;
-        }
         img {
             max-width: 100%;
             height: auto;
@@ -132,7 +134,6 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin: 5px;
         }
         .delete-btn {
             background: #ff4d4d;
@@ -140,20 +141,16 @@
     </style>
 </head>
 <body>
-
     <h1>📢 공지사항 상세 보기</h1>
-
     <div class="container">
         <h2 id="title"></h2>
         <p id="date"></p>
         <p id="content"></p>
         <img id="image" src="" alt="공지 이미지">
-
         <div class="button-container">
             <button onclick="window.location.href='notices.html'">⬅ 목록으로</button>
             <button id="delete-btn" class="delete-btn">🗑️ 삭제</button>
         </div>
     </div>
-
 </body>
 </html>
