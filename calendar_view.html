@@ -114,36 +114,39 @@
                 selectable: true,
                 contentHeight: "auto",
 
-                // ✅ Firebase에서 일정 불러오기
-                events: function (fetchInfo, successCallback, failureCallback) {
+                // ✅ Firebase에서 일정 불러오기 (비동기 처리 개선)
+                events: async function (fetchInfo, successCallback, failureCallback) {
                     console.log("📡 Firebase에서 일정 불러오기...");
                     const year = fetchInfo.start.getFullYear();
-                    const month = String(fetchInfo.start.getMonth() + 1).padStart(2, '0');
+                    const month = String(fetchInfo.start.getMonth() + 1).padStart(2, '0'); // 월 형식 보정
 
-                    db.ref(`calendar/${year}/${month}`).once("value")
-                    .then((snapshot) => {
+                    try {
+                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
+                        if (!snapshot.exists()) {
+                            successCallback([]);
+                            return;
+                        }
+
                         let events = [];
-                        if (snapshot.exists()) {
-                            snapshot.forEach((daySnapshot) => {
-                                const day = daySnapshot.key;
-                                daySnapshot.forEach((eventSnapshot) => {
-                                    const event = eventSnapshot.val();
-                                    events.push({
-                                        id: eventSnapshot.key,
-                                        title: event.name,
-                                        start: `${year}-${month}-${String(day).padStart(2, '0')}`,
-                                        color: event.color
-                                    });
+                        snapshot.forEach((daySnapshot) => {
+                            const day = daySnapshot.key;
+                            daySnapshot.forEach((eventSnapshot) => {
+                                const event = eventSnapshot.val();
+                                events.push({
+                                    id: eventSnapshot.key,
+                                    title: event.name,
+                                    start: `${year}-${month}-${String(day).padStart(2, '0')}`,
+                                    color: event.color
                                 });
                             });
-                        }
+                        });
+
                         console.log("✅ 불러온 일정:", events);
                         successCallback(events);
-                    })
-                    .catch((error) => {
+                    } catch (error) {
                         console.error("🚨 이벤트 불러오기 오류:", error);
                         failureCallback(error);
-                    });
+                    }
                 },
 
                 dateClick: function(info) {
@@ -180,11 +183,10 @@
                     color: color
                 });
 
-                // ✅ 일정 저장 후 2초 후 불러오기 (동기화 보장)
+                // ✅ 새로 저장된 일정 즉시 불러오기 (강제 렌더링)
                 setTimeout(() => {
-                    console.log("🔄 일정 다시 불러오는 중...");
-                    calendar.refetchEvents();
-                }, 2000);
+                    calendar.render();
+                }, 500);
             }
 
             async function deleteEvent(event) {
@@ -197,11 +199,10 @@
                 event.remove();
                 console.log("🗑️ 삭제 완료:", event.id);
 
-                // ✅ 일정 삭제 후 2초 후 불러오기
+                // ✅ 삭제 후 일정 다시 불러오기 (강제 렌더링)
                 setTimeout(() => {
-                    console.log("🔄 삭제 후 일정 다시 불러오는 중...");
-                    calendar.refetchEvents();
-                }, 2000);
+                    calendar.render();
+                }, 500);
             }
         });
     </script>
