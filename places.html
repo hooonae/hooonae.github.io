@@ -65,7 +65,7 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ 지도 클릭 시 Firebase에 위치 저장
+        // ✅ 지도 클릭 시 주소 요청 및 Firebase 저장
         naver.maps.Event.addListener(map, "click", function(e) {
             marker.setPosition(e.coord);
             const locationRef = db.ref("locations").push();
@@ -74,19 +74,82 @@
                 longitude: e.coord.x,
                 status: "pending"  // 변환 대기
             });
-        });
 
-        // ✅ Firebase에서 변환된 주소 가져오기
-        function watchDatabaseForAddress() {
-            db.ref("locations").on("child_changed", (snapshot) => {
+            // ✅ Firebase에서 변환된 주소 가져오기
+            locationRef.on("value", (snapshot) => {
                 const data = snapshot.val();
-                if (data.address) {
+                if (data && data.address) {
                     document.getElementById("address").value = data.address;
                 }
             });
+        });
+
+        // ✅ 맛집 데이터 저장 함수
+        function submitPlace() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
+            const address = document.getElementById("address").value.trim();
+
+            if (!title || !content || !nickname || !address) {
+                alert("⚠️ 모든 필드를 입력하세요.");
+                return;
+            }
+
+            const newPlaceRef = db.ref("places").push();
+            newPlaceRef.set({
+                title,
+                content,
+                nickname,
+                address,
+                date: new Date().toISOString()
+            })
+            .then(() => {
+                alert("✅ 맛집이 등록되었습니다!");
+                location.reload();
+            })
+            .catch(error => {
+                console.error("❌ 맛집 저장 실패:", error);
+            });
         }
 
-        document.addEventListener("DOMContentLoaded", watchDatabaseForAddress);
+        // ✅ 맛집 목록 불러오기
+        function loadPlaces() {
+            const placesList = document.getElementById("placesList");
+            placesList.innerHTML = "<p>📡 로딩 중...</p>";
+
+            db.ref("places").on("value", (snapshot) => {
+                placesList.innerHTML = "";
+                if (!snapshot.exists()) {
+                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
+                    return;
+                }
+
+                let places = [];
+                snapshot.forEach((childSnapshot) => {
+                    let key = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    places.push({ key, ...data });
+                });
+
+                places.reverse();
+
+                places.forEach((place) => {
+                    let div = document.createElement("div");
+                    div.innerHTML = `
+                        <h3>${place.title}</h3>
+                        <p>${place.content}</p>
+                        <p>📍 <strong>${place.address}</strong></p>
+                        <p>👤 <strong>${place.nickname}</strong> | ${new Date(place.date).toLocaleString()}</p>
+                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
+                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
+                    `;
+                    placesList.appendChild(div);
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", loadPlaces);
     </script>
 
 </body>
