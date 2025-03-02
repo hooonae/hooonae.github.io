@@ -65,7 +65,6 @@
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            height: 900px;
         }
     </style>
 </head>
@@ -114,7 +113,7 @@
                 selectable: true,
                 contentHeight: "auto",
 
-                // ✅ Firebase에서 일정 불러오기
+                // ✅ Firebase에서 일정 불러오기 (수정된 코드)
                 events: function (fetchInfo, successCallback, failureCallback) {
                     console.log("📡 Firebase에서 일정 불러오기...");
                     const year = fetchInfo.start.getFullYear();
@@ -122,7 +121,6 @@
 
                     db.ref(`calendar/${year}/${month}`).once("value", (snapshot) => {
                         if (!snapshot.exists()) {
-                            console.log("📭 일정 없음");
                             successCallback([]);
                             return;
                         }
