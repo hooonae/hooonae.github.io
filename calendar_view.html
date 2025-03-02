@@ -113,22 +113,22 @@
                 selectable: true,
                 contentHeight: "auto",
 
-                // ✅ Firebase에서 일정 불러오기 (수정된 코드)
-                events: function (fetchInfo, successCallback, failureCallback) {
+                events: async function (fetchInfo, successCallback, failureCallback) {
                     console.log("📡 Firebase에서 일정 불러오기...");
                     const year = fetchInfo.start.getFullYear();
                     const month = String(fetchInfo.start.getMonth() + 1).padStart(2, '0');
 
-                    db.ref(`calendar/${year}/${month}`).once("value", (snapshot) => {
+                    try {
+                        const snapshot = await db.ref(`calendar/${year}/${month}`).once("value");
                         if (!snapshot.exists()) {
                             successCallback([]);
                             return;
                         }
 
                         let events = [];
-                        snapshot.forEach((daySnapshot) => {
+                        snapshot.forEach(daySnapshot => {
                             const day = daySnapshot.key;
-                            daySnapshot.forEach((eventSnapshot) => {
+                            daySnapshot.forEach(eventSnapshot => {
                                 const event = eventSnapshot.val();
                                 events.push({
                                     id: eventSnapshot.key,
@@ -141,16 +141,16 @@
 
                         console.log("✅ 불러온 일정:", events);
                         successCallback(events);
-                    }).catch((error) => {
+                    } catch (error) {
                         console.error("🚨 이벤트 불러오기 오류:", error);
                         failureCallback(error);
-                    });
+                    }
                 },
 
-                dateClick: function(info) {
+                dateClick: async function(info) {
                     let name = prompt("일정 이름을 입력하세요:");
                     if (name) {
-                        addEvent(info.date, name, selectedColor);
+                        await addEvent(info.date, name, selectedColor);
                     }
                 },
 
