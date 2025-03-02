@@ -68,26 +68,27 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ 지도 클릭 시 Reverse Geocoding 실행
+        // ✅ 지도 클릭 시 Reverse Geocoding 실행 (수정된 코드)
         function reverseGeocode(lat, lng) {
             console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
 
             naver.maps.Service.reverseGeocode({
-                location: new naver.maps.LatLng(lat, lng),
-                coordType: naver.maps.Service.CoordType.LATLNG
+                location: new naver.maps.LatLng(lat, lng)
             }, function(status, response) {
                 if (status !== naver.maps.Service.Status.OK) {
-                    console.error("❌ Reverse Geocoding 실패:", status);
+                    console.error("❌ Reverse Geocoding 실패: 상태 코드", status);
                     document.getElementById("address").value = "주소 변환 실패";
                     return;
                 }
 
                 console.log("🔹 Reverse Geocoding 응답:", response);
-                let result = response.v2.addresses[0];
 
-                if (result) {
-                    document.getElementById("address").value = result.roadAddress || result.jibunAddress;
+                // ✅ `addresses` 배열이 있는지 확인 후 처리
+                if (response.v2 && response.v2.addresses && response.v2.addresses.length > 0) {
+                    let address = response.v2.addresses[0].roadAddress || response.v2.addresses[0].jibunAddress;
+                    document.getElementById("address").value = address;
                 } else {
+                    console.error("❌ 주소 데이터를 찾을 수 없음.");
                     document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                 }
             });
@@ -129,11 +130,7 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            console.log("📡 Firebase에서 맛집 목록 불러오기...");
-            loadPlaces();
-        });
-
+        // ✅ 맛집 목록 불러오기
         function loadPlaces() {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>📡 로딩 중...</p>";
@@ -145,17 +142,31 @@
                     return;
                 }
 
+                let places = [];
                 snapshot.forEach((childSnapshot) => {
-                    let place = childSnapshot.val();
-                    placesList.innerHTML += `
+                    let key = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    places.push({ key, ...data });
+                });
+
+                places.reverse();
+
+                places.forEach((place) => {
+                    let div = document.createElement("div");
+                    div.innerHTML = `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 ${place.nickname} | ${place.date}</p>
+                        <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
+                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
+                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
                     `;
+                    placesList.appendChild(div);
                 });
             });
         }
+
+        document.addEventListener("DOMContentLoaded", loadPlaces);
     </script>
 
 </body>
