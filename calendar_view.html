@@ -112,68 +112,68 @@
                 locale: "ko",
                 editable: true,
                 selectable: true,
-                contentHeight: "auto",
-
-                // ✅ Firebase에서 일정 불러오기 (수정된 코드)
-                events: async function (fetchInfo, successCallback, failureCallback) {
-                    console.log("📡 Firebase에서 일정 불러오기...");
-                    const year = fetchInfo.start.getFullYear();
-                    const month = String(fetchInfo.start.getMonth() + 1).padStart(2, '0');
-
-                    try {
-                        const snapshot = await db.ref(`calendar/${year}/${month}`).once("value");
-                        if (!snapshot.exists()) {
-                            console.log("📭 일정 없음");
-                            successCallback([]);
-                            return;
-                        }
-
-                        let events = [];
-                        snapshot.forEach(daySnapshot => {
-                            const day = daySnapshot.key;
-                            daySnapshot.forEach(eventSnapshot => {
-                                const event = eventSnapshot.val();
-                                console.log("🔥 가져온 일정 데이터:", JSON.stringify(event));
-
-                                if (!event || !event.name) {
-                                    console.error("🚨 잘못된 이벤트 데이터:", event);
-                                    return;
-                                }
-
-                                events.push({
-                                    id: eventSnapshot.key,
-                                    title: event.name,
-                                    start: `${year}-${month}-${String(day).padStart(2, '0')}`,
-                                    color: event.color || "black"
-                                });
-                            });
-                        });
-
-                        console.log("✅ 최종 불러온 일정 리스트:", JSON.stringify(events));
-                        successCallback(events);
-                    } catch (error) {
-                        console.error("🚨 이벤트 불러오기 오류:", error);
-                        failureCallback(error);
-                    }
-                },
-
-                dateClick: function(info) {
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(info.date, name, selectedColor);
-                    }
-                },
-
-                eventClick: function(info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(info.event);
-                    }
-                }
+                contentHeight: "auto"
             });
 
             calendar.render();
+            loadEvents(calendar); // ✅ 일정 불러오기 실행
 
-            async function addEvent(date, name, color) {
+            async function loadEvents(calendar) {
+                console.log("📡 Firebase에서 일정 불러오기...");
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+
+                try {
+                    const snapshot = await db.ref(`calendar/${year}/${month}`).once("value");
+                    if (!snapshot.exists()) {
+                        console.log("📭 일정 없음");
+                        return;
+                    }
+
+                    let events = [];
+                    snapshot.forEach(daySnapshot => {
+                        const day = daySnapshot.key;
+                        daySnapshot.forEach(eventSnapshot => {
+                            const event = eventSnapshot.val();
+                            console.log("🔥 가져온 일정 데이터:", JSON.stringify(event));
+
+                            if (!event || !event.name) {
+                                console.error("🚨 잘못된 이벤트 데이터:", event);
+                                return;
+                            }
+
+                            events.push({
+                                id: eventSnapshot.key,
+                                title: event.name,
+                                start: `${year}-${month}-${String(day).padStart(2, '0')}`,
+                                color: event.color || "black"
+                            });
+                        });
+                    });
+
+                    console.log("✅ 최종 불러온 일정 리스트:", JSON.stringify(events));
+                    calendar.addEventSource(events); // ✅ 일정 추가 후 사라지는 문제 해결
+                } catch (error) {
+                    console.error("🚨 이벤트 불러오기 오류:", error);
+                }
+            }
+
+            document.addEventListener("visibilitychange", function() {
+                if (!document.hidden) {
+                    console.log("🔄 페이지 다시 로드됨, 일정 새로 불러오기");
+                    loadEvents(calendar);
+                }
+            });
+
+            calendar.on("dateClick", async function(info) {
+                let name = prompt("일정 이름을 입력하세요:");
+                if (name) {
+                    await addEvent(calendar, info.date, name, selectedColor);
+                }
+            });
+
+            async function addEvent(calendar, date, name, color) {
                 let year = date.getFullYear();
                 let month = String(date.getMonth() + 1).padStart(2, '0');
                 let day = String(date.getDate()).padStart(2, '0');
@@ -190,10 +190,7 @@
                     color: color
                 });
 
-                // ✅ 새로 저장된 일정 즉시 불러오기
-                setTimeout(() => {
-                    calendar.refetchEvents();
-                }, 500);
+                loadEvents(calendar); // ✅ 일정 추가 후 즉시 반영
             }
 
             async function deleteEvent(event) {
@@ -206,10 +203,7 @@
                 event.remove();
                 console.log("🗑️ 삭제 완료:", event.id);
 
-                // ✅ 삭제 후 일정 다시 불러오기
-                setTimeout(() => {
-                    calendar.refetchEvents();
-                }, 500);
+                loadEvents(calendar); // ✅ 삭제 후 일정 다시 불러오기
             }
         });
     </script>
