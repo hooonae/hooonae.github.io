@@ -84,16 +84,22 @@
 
                 console.log("🔹 Reverse Geocoding 응답:", response);
 
-                let result = response.v2.results.find(r => r.name === "roadaddr");
-                let jibunResult = response.v2.results.find(r => r.name === "addr");
-                let adminResult = response.v2.results.find(r => r.name === "admcode");
+                let roadAddr = "";
+                let jibunAddr = "";
 
-                if (result && result.land) {
-                    document.getElementById("address").value = `${result.region.area1.name} ${result.region.area2.name} ${result.land.name} ${result.land.number1}`;
-                } else if (jibunResult) {
-                    document.getElementById("address").value = `${jibunResult.region.area1.name} ${jibunResult.region.area2.name} ${jibunResult.region.area3.name} ${jibunResult.land.number1}`;
-                } else if (adminResult) {
-                    document.getElementById("address").value = `${adminResult.region.area1.name} ${adminResult.region.area2.name} ${adminResult.region.area3.name}`;
+                response.v2.results.forEach(result => {
+                    if (result.name === "roadaddr") {
+                        roadAddr = `${result.region.area1.name} ${result.region.area2.name} ${result.land.name} ${result.land.number1}`;
+                    }
+                    if (result.name === "addr") {
+                        jibunAddr = `${result.region.area1.name} ${result.region.area2.name} ${result.region.area3.name} ${result.land.number1}`;
+                    }
+                });
+
+                if (roadAddr) {
+                    document.getElementById("address").value = roadAddr;
+                } else if (jibunAddr) {
+                    document.getElementById("address").value = jibunAddr;
                 } else {
                     document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                 }
