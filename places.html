@@ -65,9 +65,11 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ Reverse Geocoding 실행
+        // ✅ Reverse Geocoding 실행 (로그 추가)
         function reverseGeocode(lat, lng) {
             var apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
+
+            console.log("🔹 Reverse Geocoding 요청:", apiUrl);
 
             fetch(apiUrl, {
                 method: "GET",
@@ -89,7 +91,10 @@
                     document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
                 }
             })
-            .catch(error => console.error("❌ Reverse Geocoding 실패:", error));
+            .catch(error => {
+                console.error("❌ Reverse Geocoding 실패:", error);
+                document.getElementById("address").value = "주소 변환 실패";
+            });
         }
 
         // ✅ 지도 클릭 시 주소 변환 실행
@@ -156,8 +161,6 @@
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
                         <p>👤 <strong>${place.nickname}</strong> | ${new Date(place.date).toLocaleString()}</p>
-                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
-                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
                     `;
                     placesList.appendChild(div);
                 });
