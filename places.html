@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
-    <!-- ✅ 네이버 지도 API -->
+    <!-- ✅ 네이버 지도 API (Geocoder 포함) -->
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph&submodules=geocoder"></script>
 
     <style>
@@ -43,6 +43,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
+        console.log("📡 Firebase 스크립트 로드됨!");
+
         // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
@@ -56,6 +58,7 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        console.log("✅ Firebase 초기화 완료!");
 
         // ✅ 네이버 지도 초기화
         var map = new naver.maps.Map("map", {
@@ -66,42 +69,31 @@
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
         // ✅ 지도 클릭 시 Reverse Geocoding 실행
-        async function reverseGeocode(lat, lng) {
+        function reverseGeocode(lat, lng) {
             console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
 
-            const apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: "GET",
-                    headers: {
-                        "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
-                        "X-NCP-APIGW-API-KEY": "8hP1AdMwk6BkpG5W6LXde6hnwxHldHub6Xv3r8we"
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API 응답 오류 (HTTP 상태 코드: ${response.status})`);
+            naver.maps.Service.reverseGeocode({
+                location: new naver.maps.LatLng(lat, lng),
+                coordType: naver.maps.Service.CoordType.LATLNG
+            }, function(status, response) {
+                if (status !== naver.maps.Service.Status.OK) {
+                    console.error("❌ Reverse Geocoding 실패:", status);
+                    document.getElementById("address").value = "주소 변환 실패";
+                    return;
                 }
 
-                const data = await response.json();
-                console.log("🔹 Reverse Geocoding 응답:", data);
+                console.log("🔹 Reverse Geocoding 응답:", response);
+                let result = response.v2.addresses[0];
 
-                if (data.results && data.results.length > 0) {
-                    let result = data.results.find(item => item.name === "roadaddr") || data.results[0];
-                    let address = result.region.area1.name + " " + 
-                                  result.region.area2.name + " " + 
-                                  result.land.name;
-                    document.getElementById("address").value = address;
+                if (result) {
+                    document.getElementById("address").value = result.roadAddress || result.jibunAddress;
                 } else {
-                    console.warn("❌ 변환된 주소 없음");
-                    document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
+                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                 }
-            } catch (error) {
-                console.error("❌ Reverse Geocoding 실패:", error);
-            }
+            });
         }
 
+        // ✅ 지도 클릭 시 마커 이동 + 주소 변환
         naver.maps.Event.addListener(map, "click", function(e) {
             marker.setPosition(e.coord);
             document.getElementById("address").value = "주소 변환 중...";
@@ -166,6 +158,7 @@
                         <p>📍 <strong>${place.address}</strong></p>
                         <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
                         <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
+                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
                     `;
                     placesList.appendChild(div);
                 });
