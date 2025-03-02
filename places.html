@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
-    <!-- ✅ 네이버 지도 API -->
-    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=5jmbl7w9x7"></script>
+    <!-- ✅ 네이버 지도 API (Web Dynamic Map) -->
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph"></script>
 
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
@@ -75,7 +75,7 @@
             fetch(apiUrl, {
                 method: "GET",
                 headers: {
-                    "X-NCP-APIGW-API-KEY-ID": "5jmbl7w9x7",
+                    "X-NCP-APIGW-API-KEY-ID": "5jmbl7w9x7",  // Reverse Geocoding 전용 키
                     "X-NCP-APIGW-API-KEY": "CqQS9kfUvYDZE8htcmxpoSN4nEcfoLgL0HIS0zQI"
                 }
             })
