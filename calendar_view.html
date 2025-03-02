@@ -121,6 +121,7 @@
                     try {
                         const snapshot = await db.ref(`calendar/${year}/${month}`).once("value");
                         if (!snapshot.exists()) {
+                            console.log("📭 일정 없음");
                             successCallback([]);
                             return;
                         }
