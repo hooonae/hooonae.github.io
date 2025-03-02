@@ -17,12 +17,10 @@
         .delete-btn { background: #ff4d4d; }
         img { max-width: 200px; margin-top: 10px; }
         #map { width: 100%; height: 300px; margin-top: 10px; border-radius: 10px; }
-        .home-btn { background: none; border: none; font-size: 18px; cursor: pointer; text-decoration: none; color: black; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
     <h1>🍽 추천 맛집 목록</h1>
 
     <div class="container">
@@ -32,6 +30,7 @@
         <input type="text" id="nickname" placeholder="작성자">
         <input type="text" id="address" placeholder="맛집 주소 (지도에서 선택)" readonly>
         <div id="map"></div>
+        <input type="file" id="imageInput" accept="image/*">
         <button onclick="submitPlace()">등록하기</button>
     </div>
 
@@ -62,6 +61,10 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
+        // ✅ Cloudinary 설정 (클라우드 업로드 URL)
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+
         // ✅ 날짜 형식 변환 함수
         function formatDateTime(isoString) {
             const date = new Date(isoString);
@@ -78,7 +81,7 @@
 
         // ✅ 네이버 지도 초기화
         var map = new naver.maps.Map("map", {
-            center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 기본 위치
+            center: new naver.maps.LatLng(37.5665, 126.9780),
             zoom: 14
         });
 
@@ -92,7 +95,7 @@
                 location: new naver.maps.LatLng(lat, lng),
                 coordType: naver.maps.Service.CoordType.LATLNG
             }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK || !response.v2 || !response.v2.results) {
+                if (status !== naver.maps.Service.Status.OK) {
                     console.error("❌ Reverse Geocoding 실패:", status);
                     document.getElementById("address").value = "주소 변환 실패";
                     return;
@@ -100,19 +103,8 @@
 
                 console.log("🔹 Reverse Geocoding 응답:", response);
 
-                let roadAddr = "";
-                let jibunAddr = "";
-
-                response.v2.results.forEach(result => {
-                    if (result.name === "roadaddr") {
-                        roadAddr = `${result.region.area1.name} ${result.region.area2.name} ${result.land.name} ${result.land.number1}`;
-                    }
-                    if (result.name === "addr") {
-                        jibunAddr = `${result.region.area1.name} ${result.region.area2.name} ${result.region.area3.name} ${result.land.number1}`;
-                    }
-                });
-
-                document.getElementById("address").value = roadAddr || jibunAddr || "주소를 찾을 수 없습니다.";
+                let roadAddr = response.v2.results.find(r => r.name === "roadaddr")?.region.area1.name || "주소 없음";
+                document.getElementById("address").value = roadAddr;
             });
         }
 
@@ -123,51 +115,47 @@
             reverseGeocode(e.coord.y, e.coord.x);
         });
 
-        // ✅ 맛집 삭제 기능 추가
-        function deletePlace(key) {
-            if (confirm("정말 삭제하시겠습니까?")) {
-                db.ref(`places/${key}`).remove()
-                    .then(() => {
-                        alert("🗑️ 맛집이 삭제되었습니다!");
-                        loadPlaces(); // 목록 다시 불러오기
-                    })
-                    .catch(error => console.error("❌ 삭제 실패:", error));
+        // ✅ Firebase에 맛집 데이터 저장 (Cloudinary 이미지 업로드 포함)
+        async function submitPlace() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const imageFile = document.getElementById("imageInput").files[0];
+
+            if (!title || !content || !nickname || !address || address === "주소 변환 중...") {
+                alert("⚠️ 모든 필드를 입력하세요.");
+                return;
             }
-        }
 
-        // ✅ 맛집 목록 불러오기
-        function loadPlaces() {
-            const placesList = document.getElementById("placesList");
-            placesList.innerHTML = "<p>📡 로딩 중...</p>";
+            let imageUrl = "";
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append("file", imageFile);
+                formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-            db.ref("places").on("value", (snapshot) => {
-                placesList.innerHTML = "";
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
-                    return;
-                }
-
-                let places = [];
-                snapshot.forEach((childSnapshot) => {
-                    let key = childSnapshot.key;
-                    let data = childSnapshot.val();
-                    places.push({ key, ...data });
+                const response = await fetch(CLOUDINARY_URL, {
+                    method: "POST",
+                    body: formData
                 });
 
-                places.reverse();
+                const data = await response.json();
+                imageUrl = data.secure_url || "";
+            }
 
-                places.forEach((place) => {
-                    let formattedDate = place.date ? formatDateTime(place.date) : "날짜 없음";
-                    let div = document.createElement("div");
-                    div.innerHTML = `
-                        <h3>${place.title}</h3>
-                        <p>${place.content}</p>
-                        <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong> | ${formattedDate}</p>
-                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
-                    `;
-                    placesList.appendChild(div);
-                });
+            const newPlaceRef = db.ref("places").push();
+            newPlaceRef.set({
+                title,
+                content,
+                nickname,
+                address,
+                imageUrl,
+                date: new Date().toISOString()
+            }).then(() => {
+                alert("✅ 맛집이 등록되었습니다!");
+                location.reload();
+            }).catch(error => {
+                console.error("❌ 맛집 저장 실패:", error);
             });
         }
 
