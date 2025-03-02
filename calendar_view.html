@@ -112,7 +112,12 @@
                 locale: "ko",
                 editable: true,
                 selectable: true,
-                contentHeight: "auto"
+                contentHeight: "auto",
+                eventClick: function(info) {
+                    if (confirm("일정을 삭제하시겠습니까?")) {
+                        deleteEvent(calendar, info.event);
+                    }
+                }
             });
 
             calendar.render();
@@ -153,7 +158,8 @@
                     });
 
                     console.log("✅ 최종 불러온 일정 리스트:", JSON.stringify(events));
-                    calendar.addEventSource(events); // ✅ 일정 추가 후 사라지는 문제 해결
+                    calendar.getEvents().forEach(event => event.remove()); // ✅ 기존 일정 삭제 후 추가
+                    calendar.addEventSource(events);
                 } catch (error) {
                     console.error("🚨 이벤트 불러오기 오류:", error);
                 }
@@ -193,7 +199,7 @@
                 loadEvents(calendar); // ✅ 일정 추가 후 즉시 반영
             }
 
-            async function deleteEvent(event) {
+            async function deleteEvent(calendar, event) {
                 let dateParts = event.startStr.split("-");
                 let year = dateParts[0];
                 let month = dateParts[1];
