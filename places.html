@@ -60,6 +60,20 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
+        // ✅ 날짜 형식 변환 함수
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+            date.setHours(date.getHours() + 9); // 한국 시간 (UTC+9) 적용
+
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+
+            return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
+        }
+
         // ✅ 네이버 지도 초기화
         var map = new naver.maps.Map("map", {
             center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 기본 위치
@@ -113,35 +127,6 @@
             reverseGeocode(e.coord.y, e.coord.x);
         });
 
-        // ✅ Firebase에 맛집 데이터 저장
-        function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
-
-            if (!title || !content || !nickname || !address || address === "주소 변환 중...") {
-                alert("⚠️ 모든 필드를 입력하세요.");
-                return;
-            }
-
-            const newPlaceRef = db.ref("places").push();
-            newPlaceRef.set({
-                title,
-                content,
-                nickname,
-                address,
-                date: new Date().toISOString()
-            })
-            .then(() => {
-                alert("✅ 맛집이 등록되었습니다!");
-                location.reload();
-            })
-            .catch(error => {
-                console.error("❌ 맛집 저장 실패:", error);
-            });
-        }
-
         // ✅ 맛집 목록 불러오기
         function loadPlaces() {
             const placesList = document.getElementById("placesList");
@@ -164,12 +149,13 @@
                 places.reverse();
 
                 places.forEach((place) => {
+                    let formattedDate = place.date ? formatDateTime(place.date) : "날짜 없음";
                     let div = document.createElement("div");
                     div.innerHTML = `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
+                        <p>👤 <strong>${place.nickname}</strong> | ${formattedDate}</p>
                         <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
                         <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
                     `;
