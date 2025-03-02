@@ -75,6 +75,9 @@
                 status: "pending"  // 변환 대기
             });
 
+            // ✅ 주소 업데이트 확인을 위해 기본 값 표시
+            document.getElementById("address").value = "주소 변환 중...";
+            
             // ✅ Firebase에서 변환된 주소 가져오기
             locationRef.on("value", (snapshot) => {
                 const data = snapshot.val();
@@ -91,7 +94,13 @@
             const nickname = document.getElementById("nickname").value.trim();
             const address = document.getElementById("address").value.trim();
 
-            if (!title || !content || !nickname || !address) {
+            // 🚨 주소 필드가 비어있는 경우 등록을 막지 않도록 기본값 추가
+            if (!address || address === "주소 변환 중...") {
+                alert("📍 주소를 선택한 후 다시 시도하세요.");
+                return;
+            }
+
+            if (!title || !content || !nickname) {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
