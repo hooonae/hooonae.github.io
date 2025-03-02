@@ -114,17 +114,18 @@
                 selectable: true,
                 contentHeight: "auto",
 
-                // ✅ Firebase에서 일정 불러오기 (수정된 코드)
+                // ✅ Firebase에서 일정 불러오기 (수정됨)
                 events: function (fetchInfo, successCallback, failureCallback) {
                     console.log("📡 Firebase에서 일정 불러오기...");
-                    const year = fetchInfo.start.getFullYear();
-                    const month = String(fetchInfo.start.getMonth() + 1).padStart(2, '0'); // 월 형식 보정
 
-                    db.ref(`calendar/${year}/${month}`).on("value", (snapshot) => {
+                    const year = String(fetchInfo.start.getFullYear());
+                    const month = String(fetchInfo.start.getMonth() + 1).padStart(2, '0'); // 월 형식 맞추기
+
+                    db.ref(`calendar/${year}/${month}`).once("value", (snapshot) => {
                         let events = [];
 
                         if (!snapshot.exists()) {
-                            console.log("📭 일정 없음");
+                            console.log(`📭 일정 없음 (경로: calendar/${year}/${month})`);
                             successCallback([]);
                             return;
                         }
@@ -136,7 +137,7 @@
                                 events.push({
                                     id: eventSnapshot.key,
                                     title: event.name,
-                                    start: `${year}-${month}-${String(day).padStart(2, '0')}`,
+                                    start: `${year}-${month}-${String(day).padStart(2, '0')}`, // 날짜 형식 통일
                                     color: event.color
                                 });
                             });
@@ -145,7 +146,7 @@
                         console.log("✅ 불러온 일정:", events);
                         successCallback(events);
                     }, (error) => {
-                        console.error("🚨 이벤트 불러오기 오류:", error);
+                        console.error("🚨 일정 불러오기 오류:", error);
                         failureCallback(error);
                     });
                 },
@@ -184,7 +185,7 @@
                     color: color
                 });
 
-                // ✅ 새로 저장된 일정 즉시 불러오기
+                // ✅ 저장된 일정 즉시 불러오기
                 setTimeout(() => {
                     calendar.refetchEvents();
                 }, 1000);
