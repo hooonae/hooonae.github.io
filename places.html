@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
-    <!-- ✅ 네이버 지도 API (Geocoder 포함) -->
+    <!-- ✅ 네이버 지도 API -->
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph&submodules=geocoder"></script>
 
     <style>
@@ -43,8 +43,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
-        console.log("📡 Firebase 스크립트 로드됨!");
-
         // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
@@ -58,7 +56,6 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        console.log("✅ Firebase 초기화 완료!");
 
         // ✅ 네이버 지도 초기화
         var map = new naver.maps.Map("map", {
@@ -71,29 +68,41 @@
         // ✅ 지도 클릭 시 Reverse Geocoding 실행
         function reverseGeocode(lat, lng) {
             console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
+            const apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
 
-            naver.maps.Service.reverseGeocode({
-                location: new naver.maps.LatLng(lat, lng),
-                coordType: naver.maps.Service.CoordType.LATLNG
-            }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK) {
-                    console.error("❌ Reverse Geocoding 실패:", status);
-                    document.getElementById("address").value = "주소 변환 실패";
-                    return;
+            fetch(apiUrl, {
+                method: "GET",
+                headers: {
+                    "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
+                    "X-NCP-APIGW-API-KEY": "8hP1AdMwk6BkpG5W6LXde6hnwxHldHub6Xv3r8we"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("🔹 Reverse Geocoding 응답:", data);
+
+                // ✅ results 배열에서 도로명 주소 찾기
+                if (data.v2 && data.v2.results && data.v2.results.length > 0) {
+                    let roadAddress = data.v2.results.find(item => item.name === "roadaddr");
+                    if (roadAddress) {
+                        let address = `${roadAddress.region.area1.name} ${roadAddress.region.area2.name} ${roadAddress.land.name} ${roadAddress.land.number1}`;
+                        document.getElementById("address").value = address;
+                        console.log(`✅ 변환된 주소: ${address}`);
+                        return;
+                    }
                 }
 
-                console.log("🔹 Reverse Geocoding 응답:", response);
-                let result = response.v2.addresses[0];
+                // 📌 도로명 주소가 없으면 기본 주소 반환
+                document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
+                console.warn("⚠️ 도로명 주소를 찾을 수 없음. 위/경도로 표시");
 
-                if (result) {
-                    document.getElementById("address").value = result.roadAddress || result.jibunAddress;
-                } else {
-                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
-                }
+            })
+            .catch(error => {
+                console.error("❌ Reverse Geocoding 실패:", error);
+                document.getElementById("address").value = "주소 변환 실패";
             });
         }
 
-        // ✅ 지도 클릭 시 마커 이동 + 주소 변환
         naver.maps.Event.addListener(map, "click", function(e) {
             marker.setPosition(e.coord);
             document.getElementById("address").value = "주소 변환 중...";
@@ -107,7 +116,7 @@
             const nickname = document.getElementById("nickname").value.trim();
             const address = document.getElementById("address").value.trim();
 
-            if (!title || !content || !nickname || !address || address === "주소 변환 중...") {
+            if (!title || !content || !nickname || !address || address === "주소 변환 중..." || address === "주소 변환 실패") {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
@@ -141,24 +150,14 @@
                     return;
                 }
 
-                let places = [];
                 snapshot.forEach((childSnapshot) => {
-                    let key = childSnapshot.key;
-                    let data = childSnapshot.val();
-                    places.push({ key, ...data });
-                });
-
-                places.reverse();
-
-                places.forEach((place) => {
+                    let place = childSnapshot.val();
                     let div = document.createElement("div");
                     div.innerHTML = `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
-                        <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
-                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
-                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
+                        <p>📍 ${place.address}</p>
+                        <p>👤 ${place.nickname}</p>
                     `;
                     placesList.appendChild(div);
                 });
