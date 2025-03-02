@@ -68,27 +68,33 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ 지도 클릭 시 Reverse Geocoding 실행 (수정된 코드)
+        // ✅ 지도 클릭 시 Reverse Geocoding 실행
         function reverseGeocode(lat, lng) {
             console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
 
             naver.maps.Service.reverseGeocode({
-                location: new naver.maps.LatLng(lat, lng)
+                location: new naver.maps.LatLng(lat, lng),
+                coordType: naver.maps.Service.CoordType.LATLNG
             }, function(status, response) {
                 if (status !== naver.maps.Service.Status.OK) {
-                    console.error("❌ Reverse Geocoding 실패: 상태 코드", status);
+                    console.error("❌ Reverse Geocoding 실패:", status);
                     document.getElementById("address").value = "주소 변환 실패";
                     return;
                 }
 
                 console.log("🔹 Reverse Geocoding 응답:", response);
 
-                // ✅ `addresses` 배열이 있는지 확인 후 처리
-                if (response.v2 && response.v2.addresses && response.v2.addresses.length > 0) {
-                    let address = response.v2.addresses[0].roadAddress || response.v2.addresses[0].jibunAddress;
-                    document.getElementById("address").value = address;
+                let result = response.v2.results.find(r => r.name === "roadaddr");
+                let jibunResult = response.v2.results.find(r => r.name === "addr");
+                let adminResult = response.v2.results.find(r => r.name === "admcode");
+
+                if (result && result.land) {
+                    document.getElementById("address").value = `${result.region.area1.name} ${result.region.area2.name} ${result.land.name} ${result.land.number1}`;
+                } else if (jibunResult) {
+                    document.getElementById("address").value = `${jibunResult.region.area1.name} ${jibunResult.region.area2.name} ${jibunResult.region.area3.name} ${jibunResult.land.number1}`;
+                } else if (adminResult) {
+                    document.getElementById("address").value = `${adminResult.region.area1.name} ${adminResult.region.area2.name} ${adminResult.region.area3.name}`;
                 } else {
-                    console.error("❌ 주소 데이터를 찾을 수 없음.");
                     document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                 }
             });
