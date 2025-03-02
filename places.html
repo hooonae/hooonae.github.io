@@ -66,41 +66,40 @@
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
         // ✅ 지도 클릭 시 Reverse Geocoding 실행
-        function reverseGeocode(lat, lng) {
+        async function reverseGeocode(lat, lng) {
             console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
+
             const apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
 
-            fetch(apiUrl, {
-                method: "GET",
-                headers: {
-                    "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
-                    "X-NCP-APIGW-API-KEY": "8hP1AdMwk6BkpG5W6LXde6hnwxHldHub6Xv3r8we"
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "GET",
+                    headers: {
+                        "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
+                        "X-NCP-APIGW-API-KEY": "8hP1AdMwk6BkpG5W6LXde6hnwxHldHub6Xv3r8we"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 응답 오류 (HTTP 상태 코드: ${response.status})`);
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
+
+                const data = await response.json();
                 console.log("🔹 Reverse Geocoding 응답:", data);
 
-                // ✅ results 배열에서 도로명 주소 찾기
-                if (data.v2 && data.v2.results && data.v2.results.length > 0) {
-                    let roadAddress = data.v2.results.find(item => item.name === "roadaddr");
-                    if (roadAddress) {
-                        let address = `${roadAddress.region.area1.name} ${roadAddress.region.area2.name} ${roadAddress.land.name} ${roadAddress.land.number1}`;
-                        document.getElementById("address").value = address;
-                        console.log(`✅ 변환된 주소: ${address}`);
-                        return;
-                    }
+                if (data.results && data.results.length > 0) {
+                    let result = data.results.find(item => item.name === "roadaddr") || data.results[0];
+                    let address = result.region.area1.name + " " + 
+                                  result.region.area2.name + " " + 
+                                  result.land.name;
+                    document.getElementById("address").value = address;
+                } else {
+                    console.warn("❌ 변환된 주소 없음");
+                    document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
                 }
-
-                // 📌 도로명 주소가 없으면 기본 주소 반환
-                document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
-                console.warn("⚠️ 도로명 주소를 찾을 수 없음. 위/경도로 표시");
-
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error("❌ Reverse Geocoding 실패:", error);
-                document.getElementById("address").value = "주소 변환 실패";
-            });
+            }
         }
 
         naver.maps.Event.addListener(map, "click", function(e) {
@@ -116,7 +115,7 @@
             const nickname = document.getElementById("nickname").value.trim();
             const address = document.getElementById("address").value.trim();
 
-            if (!title || !content || !nickname || !address || address === "주소 변환 중..." || address === "주소 변환 실패") {
+            if (!title || !content || !nickname || !address || address === "주소 변환 중...") {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
@@ -150,14 +149,23 @@
                     return;
                 }
 
+                let places = [];
                 snapshot.forEach((childSnapshot) => {
-                    let place = childSnapshot.val();
+                    let key = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    places.push({ key, ...data });
+                });
+
+                places.reverse();
+
+                places.forEach((place) => {
                     let div = document.createElement("div");
                     div.innerHTML = `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
-                        <p>📍 ${place.address}</p>
-                        <p>👤 ${place.nickname}</p>
+                        <p>📍 <strong>${place.address}</strong></p>
+                        <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
+                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
                     `;
                     placesList.appendChild(div);
                 });
