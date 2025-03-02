@@ -118,7 +118,7 @@
                     const year = fetchInfo.start.getFullYear();
                     const month = fetchInfo.start.getMonth() + 1;
                     try {
-                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
+                        const snapshot = await db.ref(`calendar/${year}/${month}`).once("value");
                         if (!snapshot.exists()) {
                             successCallback([]);
                             return;
@@ -147,11 +147,13 @@
                     let name = prompt("일정 이름을 입력하세요:");
                     if (name) {
                         await addEvent(info.date, name, selectedColor);
+                        calendar.refetchEvents(); // 🔥 일정 추가 후 즉시 불러오기
                     }
                 },
                 eventClick: function(info) {
                     if (confirm("일정을 삭제하시겠습니까?")) {
                         deleteEvent(info.event);
+                        calendar.refetchEvents(); // 🔥 일정 삭제 후 즉시 반영
                     }
                 }
             });
@@ -166,19 +168,6 @@
                 await newRef.set({ name, color });
 
                 console.log("✅ 일정 저장 완료:", { name, color });
-
-                // ✅ 새 일정 즉시 반영
-                calendar.addEvent({
-                    id: newRef.key,
-                    title: name,
-                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                    color: color
-                });
-
-                // ✅ 이벤트 다시 불러오기 (Firebase 반영 확인)
-                setTimeout(() => {
-                    calendar.refetchEvents();
-                }, 500);
             }
 
             async function deleteEvent(event) {
@@ -188,7 +177,6 @@
                 let day = dateParts[2];
 
                 await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                event.remove();
                 console.log("🗑️ 삭제 완료:", event.id);
             }
         });
