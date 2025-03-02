@@ -129,7 +129,11 @@
             });
         }
 
-        // ✅ 맛집 목록 불러오기
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log("📡 Firebase에서 맛집 목록 불러오기...");
+            loadPlaces();
+        });
+
         function loadPlaces() {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>📡 로딩 중...</p>";
@@ -141,31 +145,17 @@
                     return;
                 }
 
-                let places = [];
                 snapshot.forEach((childSnapshot) => {
-                    let key = childSnapshot.key;
-                    let data = childSnapshot.val();
-                    places.push({ key, ...data });
-                });
-
-                places.reverse();
-
-                places.forEach((place) => {
-                    let div = document.createElement("div");
-                    div.innerHTML = `
+                    let place = childSnapshot.val();
+                    placesList.innerHTML += `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
-                        <button onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(place.address)}', '_blank')">지도 보기</button>
-                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
+                        <p>👤 ${place.nickname} | ${place.date}</p>
                     `;
-                    placesList.appendChild(div);
                 });
             });
         }
-
-        document.addEventListener("DOMContentLoaded", loadPlaces);
     </script>
 
 </body>
