@@ -114,20 +114,21 @@
                 selectable: true,
                 contentHeight: "auto",
 
-                // ✅ Firebase에서 일정 불러오기 (비동기 처리 개선)
-                events: async function (fetchInfo, successCallback, failureCallback) {
+                // ✅ Firebase에서 일정 불러오기 (수정된 코드)
+                events: function (fetchInfo, successCallback, failureCallback) {
                     console.log("📡 Firebase에서 일정 불러오기...");
                     const year = fetchInfo.start.getFullYear();
                     const month = String(fetchInfo.start.getMonth() + 1).padStart(2, '0'); // 월 형식 보정
 
-                    try {
-                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
+                    db.ref(`calendar/${year}/${month}`).on("value", (snapshot) => {
+                        let events = [];
+
                         if (!snapshot.exists()) {
+                            console.log("📭 일정 없음");
                             successCallback([]);
                             return;
                         }
 
-                        let events = [];
                         snapshot.forEach((daySnapshot) => {
                             const day = daySnapshot.key;
                             daySnapshot.forEach((eventSnapshot) => {
@@ -143,10 +144,10 @@
 
                         console.log("✅ 불러온 일정:", events);
                         successCallback(events);
-                    } catch (error) {
+                    }, (error) => {
                         console.error("🚨 이벤트 불러오기 오류:", error);
                         failureCallback(error);
-                    }
+                    });
                 },
 
                 dateClick: function(info) {
@@ -183,10 +184,10 @@
                     color: color
                 });
 
-                // ✅ 새로 저장된 일정 즉시 불러오기 (강제 렌더링)
+                // ✅ 새로 저장된 일정 즉시 불러오기
                 setTimeout(() => {
-                    calendar.render();
-                }, 500);
+                    calendar.refetchEvents();
+                }, 1000);
             }
 
             async function deleteEvent(event) {
@@ -199,10 +200,10 @@
                 event.remove();
                 console.log("🗑️ 삭제 완료:", event.id);
 
-                // ✅ 삭제 후 일정 다시 불러오기 (강제 렌더링)
+                // ✅ 삭제 후 일정 다시 불러오기
                 setTimeout(() => {
-                    calendar.render();
-                }, 500);
+                    calendar.refetchEvents();
+                }, 1000);
             }
         });
     </script>
