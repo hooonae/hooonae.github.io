@@ -3,199 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 지킴이 일정</title>
+    <title>서울공예박물관 지킴이</title>
 
-    <!-- FullCalendar CSS & JS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <!-- ✅ Firebase SDK 추가 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, query, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #F8F1E9;
-            padding: 20px;
-            margin: 0;
-            text-align: center;
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 700px;
-            margin: auto;
-        }
-        .title {
-            font-size: 20px;
-            font-weight: bold;
-            text-align: left;
-        }
-        .home-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
-        }
-        .color-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        .color-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-        }
-        .black { background-color: black; }
-        .blue { background-color: blue; }
-        .red { background-color: red; }
-        .green { background-color: green; }
-        #calendar {
-            width: 100%;
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            height: 900px;
-        }
-        .fc-daygrid-day-frame {
-            min-height: 120px !important;
-        }
-        .fc-daygrid-day {
-            height: 120px !important;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
-        <div class="title">📅 지킴이 일정</div>
-        <div class="color-buttons">
-            <button class="color-btn black" onclick="setColor('black')"></button>
-            <button class="color-btn blue" onclick="setColor('blue')"></button>
-            <button class="color-btn red" onclick="setColor('red')"></button>
-            <button class="color-btn green" onclick="setColor('green')"></button>
-        </div>
-    </div>
-
-    <div id="calendar"></div>
-
-    <script>
-        // ✅ Firebase 설정
+        // ✅ Firebase 설정 정보
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
             messagingSenderId: "154810876093",
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        let selectedColor = "black"; // 기본 색상
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        function setColor(color) {
-            selectedColor = color;
-            console.log("✅ 선택한 색상:", selectedColor);
-        }
+        function loadLatestNotices() {
+            const noticeList = document.getElementById("noticeList");
+            noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
-        document.addEventListener("DOMContentLoaded", function () {
-            var calendarEl = document.getElementById("calendar");
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: "dayGridMonth",
-                locale: "ko",
-                editable: true,
-                selectable: true,
-                contentHeight: "auto",
-                events: async function (fetchInfo, successCallback, failureCallback) {
-                    console.log("📡 Firebase에서 일정 불러오기...");
-                    const year = fetchInfo.start.getFullYear();
-                    const month = fetchInfo.start.getMonth() + 1;
-                    try {
-                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
-                        if (!snapshot.exists()) {
-                            successCallback([]);
-                            return;
-                        }
-                        let events = [];
-                        snapshot.forEach(daySnapshot => {
-                            const day = daySnapshot.key;
-                            daySnapshot.forEach(eventSnapshot => {
-                                const event = eventSnapshot.val();
-                                events.push({
-                                    id: eventSnapshot.key,
-                                    title: event.name,
-                                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                                    color: event.color
-                                });
-                            });
-                        });
-                        console.log("✅ 불러온 일정:", events);
-                        successCallback(events);
-                    } catch (error) {
-                        console.error("🚨 이벤트 불러오기 오류:", error);
-                        failureCallback(error);
-                    }
-                },
-                dateClick: async function(info) {
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        await addEvent(info.date, name, selectedColor);
-                    }
-                },
-                eventClick: function(info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(info.event);
-                    }
+            const noticesQuery = query(ref(db, "notices"), limitToLast(3));
+
+            onValue(noticesQuery, (snapshot) => {
+                noticeList.innerHTML = "";
+                if (!snapshot.exists()) {
+                    noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
+                    return;
                 }
-            });
-            calendar.render();
 
-            async function addEvent(date, name, color) {
-                let year = date.getFullYear();
-                let month = date.getMonth() + 1;
-                let day = date.getDate();
-
-                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name, color });
-
-                console.log("✅ 일정 저장 완료:", { name, color });
-
-                // ✅ 새 일정 즉시 반영
-                calendar.addEvent({
-                    id: newRef.key,
-                    title: name,
-                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                    color: color
+                let notices = [];
+                snapshot.forEach((childSnapshot) => {
+                    let key = childSnapshot.key;
+                    let data = childSnapshot.val();
+                    notices.push({ key, ...data });
                 });
 
-                // ✅ 이벤트 다시 불러오기 (Firebase 반영 확인)
-                setTimeout(() => {
-                    calendar.refetchEvents();
-                }, 500);
-            }
+                notices.reverse();
 
-            async function deleteEvent(event) {
-                let dateParts = event.startStr.split("-");
-                let year = dateParts[0];
-                let month = dateParts[1];
-                let day = dateParts[2];
+                notices.forEach((notice) => {
+                    let li = document.createElement("li");
+                    li.innerHTML = `
+                        <a href="notice_view.html?id=${notice.key}" class="notice-item">
+                            <strong>${notice.title}</strong><br>
+                            ${notice.imageUrl ? `<img src="${notice.imageUrl}" class="notice-image">` : ""}
+                        </a>
+                    `;
+                    noticeList.appendChild(li);
+                });
+            });
+        }
 
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                event.remove();
-                console.log("🗑️ 삭제 완료:", event.id);
-            }
-        });
+        document.addEventListener("DOMContentLoaded", loadLatestNotices);
+    </script>
+
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #F8F1E9, #e0c3fc); color: #333; margin: 0; padding: 0; }
+        .banner { width: 100%; height: 250px; background: url('banner.png') no-repeat center center/cover; position: relative; }
+        .menu-toggle { font-size: 2.2em; color: white; background: none; border: none; cursor: pointer; position: absolute; right: 15px; top: 15px; z-index: 2000; }
+        .menu { display: none; flex-direction: column; position: absolute; background: rgba(139, 94, 60, 0.95); width: 100%; top: 60px; left: 0; text-align: center; z-index: 1000; }
+        .menu a { display: block; padding: 15px; color: white; font-size: 1.2em; text-decoration: none; }
+        .menu a:hover { background: rgba(255, 255, 255, 0.2); }
+        .menu.open { display: flex; }
+        .notice { background: #ffeb99; padding: 15px; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); text-align: center; }
+        .notice h2 { color: #8B5E3C; }
+        .notice ul { list-style-type: none; padding: 0; }
+        .notice li { padding: 10px 0; font-size: 1em; border-bottom: 1px solid #ddd; text-align: center; }
+        .notice-image { width: 120px; border-radius: 5px; margin-top: 5px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 900px; margin: auto; margin-top: 30px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); text-align: center; transition: transform 0.3s ease-in-out; }
+        .card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body>
+
+    <div class="banner">
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    </div>
+
+    <div class="menu">
+        <a href="index.html">🏠 홈</a>
+        <a href="places.html">🍽 맛집 추천</a>
+        <a href="events.html">📅 전시 일정</a>
+        <a href="calendar.html">📌 지킴이 일정</a>
+        <a href="supplies.html">📦 필요 비품</a>
+        <a href="suggestions.html">🗣 건의 사항</a>
+        <a href="notices.html">📢 공지사항</a>
+    </div>
+
+    <div class="notice">
+        <h2>📢 공지사항</h2>
+        <ul id="noticeList"></ul>
+        <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
+    </div>
+
+    <div class="cards">
+        <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">이동</button></div>
+        <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">이동</button></div>
+        <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">이동</button></div>
+        <div class="card"><h3>📦 필요 비품</h3><button onclick="location.href='supplies.html'">이동</button></div>
+        <div class="card"><h3>🗣 건의 사항</h3><button onclick="location.href='suggestions.html'">이동</button></div>
+        <div class="card"><h3>📢 공지사항</h3><button onclick="location.href='notices.html'">이동</button></div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.querySelector('.menu').classList.toggle('open');
+        }
     </script>
 
 </body>
