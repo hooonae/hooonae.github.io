@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 지킴이 일정 관리 - FullCalendar</title>
+    <title>📅 지킴이 일정</title>
 
     <!-- FullCalendar CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
@@ -19,6 +19,7 @@
             background-color: #F8F1E9;
             padding: 20px;
             margin: 0;
+            text-align: center;
         }
         .header {
             display: flex;
@@ -26,13 +27,11 @@
             justify-content: space-between;
             max-width: 700px;
             margin: auto;
-            position: relative;
         }
         .title {
             font-size: 20px;
             font-weight: bold;
             text-align: left;
-            flex: 1;
         }
         .color-buttons {
             display: flex;
@@ -49,26 +48,6 @@
         .blue { background-color: blue; }
         .red { background-color: red; }
         .green { background-color: green; }
-
-        /* 🏠 홈 버튼 스타일 */
-        .home-button {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 16px;
-            font-weight: bold;
-            background-color: white;
-            border: 2px solid #ccc;
-            padding: 5px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
-        }
-        .home-button:hover {
-            background-color: #f0f0f0;
-        }
-
         #calendar {
             width: 100%;
             max-width: 700px;
@@ -90,8 +69,7 @@
 <body>
 
     <div class="header">
-        <div class="title">📅 지킴이 일정 관리</div>
-        <a href="https://hooonae.github.io/" class="home-button">🏠 홈</a> <!-- 홈 버튼 추가 -->
+        <div class="title">📅 지킴이 일정</div>
         <div class="color-buttons">
             <button class="color-btn black" onclick="setColor('black')"></button>
             <button class="color-btn blue" onclick="setColor('blue')"></button>
@@ -119,7 +97,7 @@
 
         function setColor(color) {
             selectedColor = color;
-            console.log("선택한 색상:", selectedColor);
+            console.log("✅ 선택한 색상:", selectedColor);
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -153,6 +131,7 @@
                                 });
                             });
                         });
+                        console.log("✅ 불러온 일정:", events);
                         successCallback(events);
                     } catch (error) {
                         console.error("🚨 이벤트 불러오기 오류:", error);
@@ -177,9 +156,11 @@
                 let year = date.getFullYear();
                 let month = date.getMonth() + 1;
                 let day = date.getDate();
-                
+
                 const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
                 await newRef.set({ name, color });
+
+                console.log("✅ 일정 저장 완료:", { name, color });
 
                 // ✅ 새 일정 즉시 반영
                 calendar.addEvent({
@@ -188,6 +169,11 @@
                     start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                     color: color
                 });
+
+                // ✅ 이벤트 다시 불러오기 (Firebase 반영 확인)
+                setTimeout(() => {
+                    calendar.refetchEvents();
+                }, 500);
             }
 
             async function deleteEvent(event) {
@@ -195,9 +181,10 @@
                 let year = dateParts[0];
                 let month = dateParts[1];
                 let day = dateParts[2];
-                
+
                 await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
                 event.remove();
+                console.log("🗑️ 삭제 완료:", event.id);
             }
         });
     </script>
