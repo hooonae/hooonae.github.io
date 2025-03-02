@@ -3,44 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍽 추천 맛집 목록</title>
+    <title>📅 지킴이 일정</title>
 
-    <!-- ✅ 네이버 지도 API -->
-    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph&submodules=geocoder"></script>
-
-    <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
-        h1 { color: #333; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { background: #8B5E3C; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
-        .delete-btn { background: #ff4d4d; }
-        img { max-width: 200px; margin-top: 10px; }
-        #map { width: 100%; height: 300px; margin-top: 10px; border-radius: 10px; }
-    </style>
-</head>
-<body>
-
-    <h1>🍽 추천 맛집 목록</h1>
-
-    <div class="container">
-        <h2>➕ 맛집 추가하기</h2>
-        <input type="text" id="title" placeholder="맛집 이름">
-        <input type="text" id="content" placeholder="맛집 설명">
-        <input type="text" id="nickname" placeholder="작성자">
-        <input type="text" id="address" placeholder="맛집 주소 (지도에서 선택)" readonly>
-        <div id="map"></div>
-        <button onclick="submitPlace()">등록하기</button>
-    </div>
-
-    <div class="container">
-        <h2>📜 맛집 목록</h2>
-        <div id="placesList"></div>
-    </div>
+    <!-- ✅ FullCalendar CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 700px;
+            margin: auto;
+        }
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: left;
+        }
+        .home-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+        .color-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+        .black { background-color: black; }
+        .blue { background-color: blue; }
+        .red { background-color: red; }
+        .green { background-color: green; }
+        #calendar {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            height: 900px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
+        <div class="title">📅 지킴이 일정</div>
+        <div class="color-buttons">
+            <button class="color-btn black" onclick="setColor('black')"></button>
+            <button class="color-btn blue" onclick="setColor('blue')"></button>
+            <button class="color-btn red" onclick="setColor('red')"></button>
+            <button class="color-btn green" onclick="setColor('green')"></button>
+        </div>
+    </div>
+
+    <div id="calendar"></div>
 
     <script>
         // ✅ Firebase 설정
@@ -53,118 +95,103 @@
             messagingSenderId: "154810876093",
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ✅ 네이버 지도 초기화
-        var map = new naver.maps.Map("map", {
-            center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 기본 위치
-            zoom: 14
-        });
+        let selectedColor = "black"; // 기본 색상
 
-        var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
+        function setColor(color) {
+            selectedColor = color;
+            console.log("✅ 선택한 색상:", selectedColor);
+        }
 
-        // ✅ 지도 클릭 시 Reverse Geocoding 실행
-        function reverseGeocode(lat, lng) {
-            console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
-            const apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
-
-            fetch(apiUrl, {
-                method: "GET",
-                headers: {
-                    "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
-                    "X-NCP-APIGW-API-KEY": "8hP1AdMwk6BkpG5W6LXde6hnwxHldHub6Xv3r8we"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("🔹 Reverse Geocoding 응답:", data);
-
-                // ✅ results 배열에서 도로명 주소 찾기
-                if (data.v2 && data.v2.results && data.v2.results.length > 0) {
-                    let roadAddress = data.v2.results.find(item => item.name === "roadaddr");
-                    if (roadAddress) {
-                        let address = `${roadAddress.region.area1.name} ${roadAddress.region.area2.name} ${roadAddress.land.name} ${roadAddress.land.number1}`;
-                        document.getElementById("address").value = address;
-                        console.log(`✅ 변환된 주소: ${address}`);
-                        return;
+        document.addEventListener("DOMContentLoaded", function () {
+            var calendarEl = document.getElementById("calendar");
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                locale: "ko",
+                editable: true,
+                selectable: true,
+                contentHeight: "auto",
+                events: async function (fetchInfo, successCallback, failureCallback) {
+                    console.log("📡 Firebase에서 일정 불러오기...");
+                    const year = fetchInfo.start.getFullYear();
+                    const month = fetchInfo.start.getMonth() + 1;
+                    try {
+                        const snapshot = await db.ref(`calendar/${year}/${month}`).get();
+                        if (!snapshot.exists()) {
+                            successCallback([]);
+                            return;
+                        }
+                        let events = [];
+                        snapshot.forEach(daySnapshot => {
+                            const day = daySnapshot.key;
+                            daySnapshot.forEach(eventSnapshot => {
+                                const event = eventSnapshot.val();
+                                events.push({
+                                    id: eventSnapshot.key,
+                                    title: event.name,
+                                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                    color: event.color
+                                });
+                            });
+                        });
+                        console.log("✅ 불러온 일정:", events);
+                        successCallback(events);
+                    } catch (error) {
+                        console.error("🚨 이벤트 불러오기 오류:", error);
+                        failureCallback(error);
+                    }
+                },
+                dateClick: async function(info) {
+                    let name = prompt("일정 이름을 입력하세요:");
+                    if (name) {
+                        await addEvent(info.date, name, selectedColor);
+                    }
+                },
+                eventClick: function(info) {
+                    if (confirm("일정을 삭제하시겠습니까?")) {
+                        deleteEvent(info.event);
                     }
                 }
-
-                // 📌 도로명 주소가 없으면 기본 주소 반환
-                document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
-                console.warn("⚠️ 도로명 주소를 찾을 수 없음. 위/경도로 표시");
-
-            })
-            .catch(error => {
-                console.error("❌ Reverse Geocoding 실패:", error);
-                document.getElementById("address").value = "주소 변환 실패";
             });
-        }
+            calendar.render();
 
-        naver.maps.Event.addListener(map, "click", function(e) {
-            marker.setPosition(e.coord);
-            document.getElementById("address").value = "주소 변환 중...";
-            reverseGeocode(e.coord.y, e.coord.x);
-        });
+            async function addEvent(date, name, color) {
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
 
-        // ✅ Firebase에 맛집 데이터 저장
-        function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
+                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                await newRef.set({ name, color });
 
-            if (!title || !content || !nickname || !address || address === "주소 변환 중..." || address === "주소 변환 실패") {
-                alert("⚠️ 모든 필드를 입력하세요.");
-                return;
+                console.log("✅ 일정 저장 완료:", { name, color });
+
+                // ✅ 새 일정 즉시 반영
+                calendar.addEvent({
+                    id: newRef.key,
+                    title: name,
+                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                    color: color
+                });
+
+                // ✅ 이벤트 다시 불러오기 (Firebase 반영 확인)
+                setTimeout(() => {
+                    calendar.refetchEvents();
+                }, 500);
             }
 
-            const newPlaceRef = db.ref("places").push();
-            newPlaceRef.set({
-                title,
-                content,
-                nickname,
-                address,
-                date: new Date().toISOString()
-            })
-            .then(() => {
-                alert("✅ 맛집이 등록되었습니다!");
-                location.reload();
-            })
-            .catch(error => {
-                console.error("❌ 맛집 저장 실패:", error);
-            });
-        }
+            async function deleteEvent(event) {
+                let dateParts = event.startStr.split("-");
+                let year = dateParts[0];
+                let month = dateParts[1];
+                let day = dateParts[2];
 
-        // ✅ 맛집 목록 불러오기
-        function loadPlaces() {
-            const placesList = document.getElementById("placesList");
-            placesList.innerHTML = "<p>📡 로딩 중...</p>";
-
-            db.ref("places").on("value", (snapshot) => {
-                placesList.innerHTML = "";
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
-                    return;
-                }
-
-                snapshot.forEach((childSnapshot) => {
-                    let place = childSnapshot.val();
-                    let div = document.createElement("div");
-                    div.innerHTML = `
-                        <h3>${place.title}</h3>
-                        <p>${place.content}</p>
-                        <p>📍 ${place.address}</p>
-                        <p>👤 ${place.nickname}</p>
-                    `;
-                    placesList.appendChild(div);
-                });
-            });
-        }
-
-        document.addEventListener("DOMContentLoaded", loadPlaces);
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                event.remove();
+                console.log("🗑️ 삭제 완료:", event.id);
+            }
+        });
     </script>
 
 </body>
