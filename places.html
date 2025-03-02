@@ -6,7 +6,7 @@
     <title>🍽 추천 맛집 목록</title>
 
     <!-- ✅ 네이버 지도 API -->
-    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId="tjkbm85mph"></script>
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph"></script>
 
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
@@ -43,6 +43,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <script>
+        console.log("📡 Firebase 스크립트 로드됨!");
+
         // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
@@ -56,6 +58,7 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        console.log("✅ Firebase 초기화 완료!");
 
         // ✅ 네이버 지도 초기화
         var map = new naver.maps.Map("map", {
@@ -65,30 +68,29 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ Reverse Geocoding 실행 (로그 추가)
+        // ✅ Reverse Geocoding (위도, 경도를 주소로 변환)
         function reverseGeocode(lat, lng) {
-            var apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
+            console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
 
-            console.log("🔹 Reverse Geocoding 요청:", apiUrl);
+            var apiUrl = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&sourcecrs=epsg:4326&output=json&orders=roadaddr`;
 
             fetch(apiUrl, {
                 method: "GET",
                 headers: {
                     "X-NCP-APIGW-API-KEY-ID": "tjkbm85mph",
-                    "X-NCP-APIGW-API-KEY": "2EQgPUVMhg7k4Hees8Pir3hTg7EN0aQ3XSweQjqq"
+                    "X-NCP-APIGW-API-KEY": "8hP1AdMwk6BkpG5W6LXde6hnwxHldHub6Xv3r8we"
                 }
             })
             .then(response => response.json())
             .then(data => {
-                console.log("🔹 Reverse Geocoding 결과:", data);
-
-                if (data.results && data.results.length > 0) {
+                console.log("🔹 Reverse Geocoding 응답:", data);
+                if (data.results.length > 0) {
                     let address = data.results[0].region.area1.name + " " + 
                                   data.results[0].region.area2.name + " " + 
                                   data.results[0].land.name;
                     document.getElementById("address").value = address;
                 } else {
-                    document.getElementById("address").value = `위도: ${lat}, 경도: ${lng}`;
+                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                 }
             })
             .catch(error => {
@@ -97,14 +99,14 @@
             });
         }
 
-        // ✅ 지도 클릭 시 주소 변환 실행
+        // ✅ 지도 클릭 시 마커 이동 + 주소 변환
         naver.maps.Event.addListener(map, "click", function(e) {
             marker.setPosition(e.coord);
             document.getElementById("address").value = "주소 변환 중...";
             reverseGeocode(e.coord.y, e.coord.x);
         });
 
-        // ✅ 맛집 등록 함수
+        // ✅ Firebase에 맛집 데이터 저장
         function submitPlace() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
@@ -160,7 +162,7 @@
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong> | ${new Date(place.date).toLocaleString()}</p>
+                        <p>👤 <strong>${place.nickname}</strong> | ${place.date}</p>
                     `;
                     placesList.appendChild(div);
                 });
