@@ -73,6 +73,9 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
+        const cloudinaryUrl = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload";
+        const cloudinaryPreset = "YOUR_UPLOAD_PRESET";
+
         let map, marker;
 
         window.onload = function() {
@@ -95,10 +98,12 @@
 
         function reverseGeocode(lat, lng) {
             naver.maps.Service.reverseGeocode({
-                coords: new naver.maps.LatLng(lat, lng)  // ✅ 최신 방식 적용
+                coords: new naver.maps.LatLng(lat, lng)
             }, function(status, response) {
+                console.log("🔹 Reverse Geocoding 응답:", response);
+
                 if (status !== naver.maps.Service.Status.OK || !response.v2?.addresses?.length) {
-                    document.getElementById("address").value = "주소 변환 실패 (해당 지역에서 주소 없음)";
+                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                     return;
                 }
                 let roadAddr = response.v2.addresses[0]?.roadAddress || "주소 없음";
@@ -113,14 +118,30 @@
             const address = document.getElementById("address").value.trim();
             const latitude = document.getElementById("latitude").value;
             const longitude = document.getElementById("longitude").value;
+            const imageFile = document.getElementById("imageUpload").files[0];
 
             if (!title || !content || !nickname || !address) {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
 
+            let imageUrl = "";
+            if (imageFile) {
+                let formData = new FormData();
+                formData.append("file", imageFile);
+                formData.append("upload_preset", cloudinaryPreset);
+                
+                const response = await fetch(cloudinaryUrl, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+                imageUrl = data.secure_url || "";
+            }
+
             const newPlaceRef = db.ref("places").push();
-            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude });
+            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude, imageUrl });
 
             alert("✅ 맛집이 등록되었습니다!");
             loadPlaces();
@@ -135,17 +156,11 @@
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
                         <p>👤 <strong>${place.nickname}</strong></p>
+                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
                         <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
-                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
                     `).join("")
                     : "<p>📭 등록된 맛집이 없습니다.</p>";
             });
-        }
-
-        function showOnMap(lat, lng) {
-            const newCenter = new naver.maps.LatLng(lat, lng);
-            map.setCenter(newCenter);
-            marker.setPosition(newCenter);
         }
 
         function deletePlace(key) {
