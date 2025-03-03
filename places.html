@@ -125,12 +125,25 @@
                         <p>👤 <strong>${place.nickname}</strong></p>
                         ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
                         <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
+                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
                     `;
                     placesList.appendChild(div);
                 });
 
                 console.log("✅ Firebase에서 데이터 로딩 완료!");
             });
+        }
+
+        async function deletePlace(key) {
+            await db.ref("places/" + key).remove();
+            alert("🗑️ 맛집이 삭제되었습니다!");
+            loadPlaces();
+        }
+
+        function showOnMap(lat, lng) {
+            const newCenter = new naver.maps.LatLng(lat, lng);
+            map.setCenter(newCenter);
+            marker.setPosition(newCenter);
         }
 
         document.getElementById("submitBtn").addEventListener("click", submitPlace);
