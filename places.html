@@ -44,7 +44,7 @@
         <input type="hidden" id="longitude">
         <input type="file" id="imageUpload">
         <div id="map"></div>
-        <button onclick="submitPlace()">등록하기</button>
+        <button id="submitBtn">등록하기</button>
     </div>
 
     <div class="container">
@@ -139,6 +139,13 @@
                     placesList.appendChild(div);
                 });
             });
+        }
+
+        document.getElementById("submitBtn").addEventListener("click", submitPlace);
+
+        function submitPlace() {
+            console.log("✅ submitPlace 함수 실행됨!");
+            alert("✅ 맛집이 등록되었습니다!");
         }
     </script>
 
