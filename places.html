@@ -59,7 +59,6 @@
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
-        // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -94,62 +93,35 @@
             loadPlaces();
         };
 
-        function loadPlaces() {
-            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
+        function reverseGeocode(lat, lng) {
+            naver.maps.Service.reverseGeocode({
+                coords: new naver.maps.LatLng(lat, lng)
+            }, function(status, response) {
+                console.log("🔹 Reverse Geocoding 응답:", response);
 
-            const placesList = document.getElementById("placesList");
-            placesList.innerHTML = "<p>📡 로딩 중...</p>";
-
-            db.ref("places").once("value", (snapshot) => {
-                placesList.innerHTML = "";
-
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
+                if (status !== naver.maps.Service.Status.OK) {
+                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                     return;
                 }
 
-                snapshot.forEach((childSnapshot) => {
-                    let place = childSnapshot.val();
-                    let key = childSnapshot.key;
+                let roadAddr = response.v2?.address?.roadAddress || "";
+                let jibunAddr = response.v2?.address?.jibunAddress || "";
 
-                    let div = document.createElement("div");
-                    div.innerHTML = `
-                        <h3>${place.title}</h3>
-                        <p>${place.content}</p>
-                        <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong></p>
-                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
-                        <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
-                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
-                    `;
-                    placesList.appendChild(div);
-                });
-
-                console.log("✅ 불러온 맛집 목록:", snapshot.val());
+                document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
             });
         }
 
+        function loadPlaces() {
+            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
+        }
+
         async function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
-            const latitude = document.getElementById("latitude").value;
-            const longitude = document.getElementById("longitude").value;
-
-            if (!title || !content || !nickname || !address) {
-                alert("⚠️ 모든 필드를 입력하세요.");
-                return;
-            }
-
-            const newPlaceRef = db.ref("places").push();
-            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude });
-
-            alert("✅ 맛집이 등록되었습니다!");
+            console.log("✅ 맛집 등록 시작...");
             loadPlaces();
         }
 
         function deletePlace(key) {
+            console.log(`🗑️ ${key} 삭제 요청`);
             db.ref(`places/${key}`).remove().then(() => {
                 alert("🗑️ 삭제 완료!");
                 loadPlaces();
