@@ -93,6 +93,22 @@
             loadPlaces();
         };
 
+        function reverseGeocode(lat, lng) {
+            naver.maps.Service.reverseGeocode({
+                coords: new naver.maps.LatLng(lat, lng)
+            }, function(status, response) {
+                if (status !== naver.maps.Service.Status.OK) {
+                    document.getElementById("address").value = "주소 변환 실패";
+                    return;
+                }
+
+                let roadAddr = response.v2?.address?.roadAddress || "";
+                let jibunAddr = response.v2?.address?.jibunAddress || "";
+
+                document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
+            });
+        }
+
         function loadPlaces() {
             console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
 
