@@ -48,6 +48,11 @@
         .post-item:hover { background: #f0f0f0; }
         .post-title { font-weight: bold; font-size: 18px; }
         .post-date { color: gray; font-size: 14px; }
+        .post-desc {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
         .post-img {
             width: 50px;
             height: 50px;
@@ -119,6 +124,7 @@
                         <div>
                             <div class="post-title">${event.title}</div>
                             <div class="post-date">${event.startDate} ~ ${event.endDate}</div>
+                            <div class="post-desc">${event.description || ''}</div>
                         </div>
                     </li>
                 `;
@@ -132,21 +138,6 @@
                     let event = childSnapshot.val();
                     event.id = childSnapshot.key;
                     events.push(event);
-                });
-                displayPosts(events);
-            });
-        }
-
-        function searchEvents() {
-            let query = document.querySelector(".search-box").value.toLowerCase();
-            db.ref("events").once("value", (snapshot) => {
-                let events = [];
-                snapshot.forEach((childSnapshot) => {
-                    let event = childSnapshot.val();
-                    if (event.title.toLowerCase().includes(query)) {
-                        event.id = childSnapshot.key;
-                        events.push(event);
-                    }
                 });
                 displayPosts(events);
             });
