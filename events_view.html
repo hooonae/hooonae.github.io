@@ -67,15 +67,12 @@
     <div class="container">
         <div class="title" id="title"></div>
         <div class="meta">
-            <span id="author"></span>
-        </div>
-        <div class="meta">
             시작 날짜: <span id="startDate"></span> <br>
             종료 날짜: <span id="endDate"></span>
         </div>
 
         <div class="image-container">
-            <img id="eventImage" src="" alt="행사 이미지가 없습니다.">
+            <img id="eventImage" src="" alt="이미지가 없습니다.">
         </div>
 
         <button class="delete-btn" onclick="deleteEvent()">삭제</button>
@@ -89,31 +86,19 @@
             document.getElementById("startDate").textContent = event.startDate;
             document.getElementById("endDate").textContent = event.endDate;
 
-            if (event.author) {
-                document.getElementById("author").textContent = "작성자: " + event.author;
-            } else {
-                document.getElementById("author").style.display = "none"; // 작성자가 없으면 숨김
-            }
-
             if (event.image) {
                 document.getElementById("eventImage").src = event.image;
             } else {
-                document.getElementById("eventImage").style.display = "none"; // 이미지 없으면 숨김
+                document.getElementById("eventImage").style.display = "none";
             }
-        } else {
-            alert("잘못된 접근입니다.");
-            window.location.href = "events.html";
         }
 
         function deleteEvent() {
-            if (confirm("정말 삭제하시겠습니까?")) {
-                let events = JSON.parse(localStorage.getItem("events")) || [];
-                events = events.filter(e => e.title !== event.title);
-                localStorage.setItem("events", JSON.stringify(events));
-                localStorage.removeItem("currentPost");
-                alert("삭제되었습니다.");
-                window.location.href = "events.html";
-            }
+            let events = JSON.parse(localStorage.getItem("events")) || [];
+            events = events.filter(e => e.title !== event.title);
+            localStorage.setItem("events", JSON.stringify(events));
+            alert("삭제되었습니다.");
+            window.location.href = "events.html";
         }
     </script>
 
