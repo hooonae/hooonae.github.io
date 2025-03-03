@@ -93,30 +93,37 @@
             loadPlaces();
         };
 
-        async function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
-            const latitude = document.getElementById("latitude").value;
-            const longitude = document.getElementById("longitude").value;
-            const imageFile = document.getElementById("imageUpload").files[0];
+        function loadPlaces() {
+            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
 
-            if (!title || !content || !nickname || !address) {
-                alert("⚠️ 모든 필드를 입력하세요.");
-                return;
-            }
+            const placesList = document.getElementById("placesList");
+            placesList.innerHTML = "<p>📡 로딩 중...</p>";
 
-            let imageUrl = "";
-            if (imageFile) {
-                imageUrl = await uploadToCloudinary(imageFile);
-            }
+            db.ref("places").once("value", (snapshot) => {
+                placesList.innerHTML = "";
 
-            const newPlaceRef = db.ref("places").push();
-            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude, imageUrl });
+                if (!snapshot.exists()) {
+                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
+                    return;
+                }
 
-            alert("✅ 맛집이 등록되었습니다!");
-            loadPlaces();
+                snapshot.forEach((childSnapshot) => {
+                    let place = childSnapshot.val();
+                    let key = childSnapshot.key;
+
+                    let div = document.createElement("div");
+                    div.innerHTML = `
+                        <h3>${place.title}</h3>
+                        <p>${place.content}</p>
+                        <p>📍 <strong>${place.address}</strong></p>
+                        <p>👤 <strong>${place.nickname}</strong></p>
+                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
+                        <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
+                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
+                    `;
+                    placesList.appendChild(div);
+                });
+            });
         }
     </script>
 
