@@ -28,10 +28,19 @@
             text-align: left;
         }
         h1 { font-size: 22px; text-align: center; }
-        input, button {
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
             width: 100%;
             padding: 10px;
-            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             font-size: 16px;
         }
         .image-preview {
@@ -43,6 +52,8 @@
             border-radius: 5px;
         }
         .btn {
+            width: 100%;
+            padding: 10px;
             border: none;
             border-radius: 5px;
             font-size: 16px;
@@ -64,33 +75,38 @@
     <h1>전시 일정 추가</h1>
 
     <div class="container">
-        <label>전시 제목</label>
-        <input type="text" id="title">
-
-        <label>시작 날짜</label>
-        <input type="date" id="startDate">
-
-        <label>종료 날짜</label>
-        <input type="date" id="endDate">
-
-        <button class="btn upload-btn" id="uploadWidget">이미지 업로드</button>
-        <img id="imagePreview" class="image-preview">
-        
+        <div class="input-group">
+            <label>전시 제목</label>
+            <input type="text" id="title">
+        </div>
+        <div class="input-group">
+            <label>시작 날짜</label>
+            <input type="date" id="startDate">
+        </div>
+        <div class="input-group">
+            <label>종료 날짜</label>
+            <input type="date" id="endDate">
+        </div>
+        <div class="input-group">
+            <button class="btn upload-btn" id="uploadWidget">이미지 업로드</button>
+            <img id="imagePreview" class="image-preview">
+        </div>
         <button class="btn submit-btn" onclick="addEvent()">등록</button>
     </div>
 
     <script>
         const cloudName = "dddmgnzlu";
         const uploadPreset = "firebase_uploads";
-        let imageUrl = ""; 
+        let imageUrl = "";
 
-        // ✅ Cloudinary 업로드 버튼 클릭 시 작동하도록 개선
+        // ✅ Cloudinary 업로드 버튼 클릭 시 "파일 선택 창" 바로 열리게 수정
         document.getElementById("uploadWidget").addEventListener("click", function() {
             cloudinary.openUploadWidget({
                 cloud_name: cloudName,
                 upload_preset: uploadPreset,
                 sources: ["local"], // "My Files" 등 불필요한 옵션 제거
-                multiple: false
+                multiple: false,
+                cropping: false
             }, function(error, result) {
                 if (!error && result.event === "success") {
                     imageUrl = result.info.secure_url;
