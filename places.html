@@ -95,10 +95,10 @@
 
         function reverseGeocode(lat, lng) {
             naver.maps.Service.reverseGeocode({
-                coords: new naver.maps.LatLng(lat, lng)  // ✅ 최신 방식 적용 (CoordType 제거)
+                coords: new naver.maps.LatLng(lat, lng)  // ✅ 최신 방식 적용
             }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK || !response.v2.addresses.length) {
-                    document.getElementById("address").value = "주소 변환 실패";
+                if (status !== naver.maps.Service.Status.OK || !response.v2?.addresses?.length) {
+                    document.getElementById("address").value = "주소 변환 실패 (해당 지역에서 주소 없음)";
                     return;
                 }
                 let roadAddr = response.v2.addresses[0]?.roadAddress || "주소 없음";
