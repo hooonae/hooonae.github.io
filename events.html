@@ -53,6 +53,7 @@
             height: 50px;
             object-fit: cover;
             border-radius: 5px;
+            display: none;
         }
         .add-btn {
             display: block;
@@ -67,6 +68,11 @@
             font-size: 16px;
         }
         .add-btn:hover { background: darkgreen; }
+        .no-results {
+            margin-top: 20px;
+            font-size: 18px;
+            color: gray;
+        }
     </style>
 </head>
 <body>
@@ -76,6 +82,7 @@
     <input type="text" class="search-box" placeholder="행사 검색..." onkeyup="searchEvents()">
     
     <ul id="postList" class="post-list"></ul>
+    <p id="noResults" class="no-results" style="display: none;">일치하는 일정이 없습니다.</p>
 
     <a href="events_form.html" class="add-btn">+ 일정 추가</a>
 
@@ -95,11 +102,20 @@
 
         function displayPosts(events) {
             const postList = document.getElementById("postList");
+            const noResults = document.getElementById("noResults");
             postList.innerHTML = "";
+
+            if (events.length === 0) {
+                noResults.style.display = "block";
+                return;
+            } else {
+                noResults.style.display = "none";
+            }
+
             events.forEach((event) => {
                 postList.innerHTML += `
                     <li class="post-item" onclick="viewPost('${event.id}')">
-                        <img src="${event.image || 'https://via.placeholder.com/50'}" class="post-img">
+                        <img src="${event.image}" class="post-img" style="display: ${event.image ? 'block' : 'none'};">
                         <div>
                             <div class="post-title">${event.title}</div>
                             <div class="post-date">${event.startDate} ~ ${event.endDate}</div>
