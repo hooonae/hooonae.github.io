@@ -99,14 +99,17 @@
         const uploadPreset = "firebase_uploads";
         let imageUrl = "";
 
-        // ✅ Cloudinary 업로드 버튼 클릭 시 "파일 선택 창" 바로 열리게 수정
+        // ✅ Cloudinary 업로드 버튼 클릭 시 바로 갤러리(파일 선택 창)로 이동
         document.getElementById("uploadWidget").addEventListener("click", function() {
             cloudinary.openUploadWidget({
                 cloud_name: cloudName,
                 upload_preset: uploadPreset,
-                sources: ["local"], // "My Files" 등 불필요한 옵션 제거
+                sources: ["camera", "local"], // 바로 갤러리 또는 파일 선택 창으로 이동
                 multiple: false,
-                cropping: false
+                cropping: false,
+                showAdvancedOptions: false,
+                showCompletedButton: false,
+                singleUploadAutoClose: true
             }, function(error, result) {
                 if (!error && result.event === "success") {
                     imageUrl = result.info.secure_url;
@@ -116,7 +119,7 @@
             });
         });
 
-        // ✅ Firebase에 데이터 저장
+        // ✅ Firebase에 데이터 저장 (imageUrl 없을 경우도 고려)
         function addEvent() {
             let title = document.getElementById("title").value;
             let startDate = document.getElementById("startDate").value;
@@ -127,7 +130,7 @@
                 return;
             }
 
-            let newEvent = { title, startDate, endDate, image: imageUrl };
+            let newEvent = { title, startDate, endDate, image: imageUrl || "" };
 
             firebase.database().ref("events").push(newEvent)
                 .then(() => {
