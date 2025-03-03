@@ -6,7 +6,7 @@
     <title>🍽 추천 맛집 목록</title>
 
     <!-- ✅ 네이버 지도 API (Geocoder 포함) -->
-    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph&submodules=geocoder"></script>
+    <script defer src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph"></script>
 
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
@@ -48,11 +48,11 @@
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
-        // ✅ Firebase 설정 (다시 추가!)
+        // ✅ Firebase 설정 (databaseURL 올바르게 수정!)
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",  // ✅ 이 부분 수정!
             projectId: "museum-web-370cd",
             storageBucket: "museum-web-370cd.appspot.com",
             messagingSenderId: "154810876093",
@@ -63,23 +63,25 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
-        // ✅ 네이버 지도 초기화
-        var map = new naver.maps.Map("map", {
-            center: new naver.maps.LatLng(37.5665, 126.9780),
-            zoom: 14
-        });
+        let map;
+        let marker;
 
-        var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
+        function initMap() {
+            map = new naver.maps.Map("map", {
+                center: new naver.maps.LatLng(37.5665, 126.9780),
+                zoom: 14
+            });
 
-        // ✅ 지도 클릭 시 핀 이동 & 위도/경도 저장
-        naver.maps.Event.addListener(map, "click", function(e) {
-            marker.setPosition(e.coord);
-            document.getElementById("latitude").value = e.coord.y;
-            document.getElementById("longitude").value = e.coord.x;
-            reverseGeocode(e.coord.y, e.coord.x);
-        });
+            marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        // ✅ Reverse Geocoding (주소 변환)
+            naver.maps.Event.addListener(map, "click", function(e) {
+                marker.setPosition(e.coord);
+                document.getElementById("latitude").value = e.coord.y;
+                document.getElementById("longitude").value = e.coord.x;
+                reverseGeocode(e.coord.y, e.coord.x);
+            });
+        }
+
         function reverseGeocode(lat, lng) {
             naver.maps.Service.reverseGeocode({
                 location: new naver.maps.LatLng(lat, lng),
@@ -94,7 +96,6 @@
             });
         }
 
-        // ✅ 맛집 등록
         async function submitPlace() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
@@ -115,7 +116,6 @@
             loadPlaces();
         }
 
-        // ✅ 맛집 목록 불러오기 + 지도에 핀 표시
         function loadPlaces() {
             db.ref("places").on("value", (snapshot) => {
                 const placesList = document.getElementById("placesList");
@@ -132,7 +132,6 @@
             });
         }
 
-        // ✅ 지도에서 해당 핀 위치로 이동
         function showOnMap(lat, lng) {
             const newCenter = new naver.maps.LatLng(lat, lng);
             map.setCenter(newCenter);
@@ -146,7 +145,10 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", loadPlaces);
+        document.addEventListener("DOMContentLoaded", () => {
+            loadPlaces();
+            initMap();
+        });
     </script>
 
 </body>
