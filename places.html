@@ -99,29 +99,22 @@
         };
 
         function reverseGeocode(lat, lng) {
-    naver.maps.Service.reverseGeocode({
-        coords: new naver.maps.LatLng(lat, lng)
-    }, function(status, response) {
-        console.log("🔹 Reverse Geocoding 응답:", response);
+            naver.maps.Service.reverseGeocode({
+                coords: new naver.maps.LatLng(lat, lng)
+            }, function(status, response) {
+                console.log("🔹 Reverse Geocoding 응답:", response);
 
-        if (status !== naver.maps.Service.Status.OK) {
-            document.getElementById("address").value = "주소를 찾을 수 없습니다.";
-            return;
+                if (status !== naver.maps.Service.Status.OK) {
+                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
+                    return;
+                }
+
+                let roadAddr = response.v2?.address?.roadAddress || "";
+                let jibunAddr = response.v2?.address?.jibunAddress || "";
+
+                document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
+            });
         }
-
-        // ✅ 도로명 주소(roadAddress) 또는 지번 주소(jibunAddress) 사용
-        let roadAddr = response.v2?.address?.roadAddress || ""; 
-        let jibunAddr = response.v2?.address?.jibunAddress || ""; 
-
-        if (roadAddr) {
-            document.getElementById("address").value = roadAddr;
-        } else if (jibunAddr) {
-            document.getElementById("address").value = jibunAddr;
-        } else {
-            document.getElementById("address").value = "주소 없음";
-        }
-    });
-}
 
         async function submitPlace() {
             const title = document.getElementById("title").value.trim();
@@ -155,30 +148,44 @@
             loadPlaces();
         }
 
-        function uploadToCloudinary(file) {
-            return new Promise((resolve, reject) => {
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", uploadPreset);
-
-                fetch(cloudinaryUrl, {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.secure_url) {
-                        resolve(data.secure_url);
-                    } else {
-                        reject("Cloudinary 업로드 실패");
-                    }
-                })
-                .catch(error => reject(error));
-            });
-        }
-
         function loadPlaces() {
-            console.log("📡 Firebase에서 맛집 불러오는 중...");
+            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
+
+            const placesList = document.getElementById("placesList");
+            placesList.innerHTML = "<p>📡 로딩 중...</p>";
+
+            db.ref("places").once("value", (snapshot) => {
+                placesList.innerHTML = "";
+
+                if (!snapshot.exists()) {
+                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
+                    return;
+                }
+
+                let placesArray = [];
+                snapshot.forEach((childSnapshot) => {
+                    let key = childSnapshot.key;
+                    let place = childSnapshot.val();
+                    placesArray.push({ key, ...place });
+                });
+
+                placesArray.reverse();
+
+                placesArray.forEach((place) => {
+                    let div = document.createElement("div");
+                    div.innerHTML = `
+                        <h3>${place.title}</h3>
+                        <p>${place.content}</p>
+                        <p>📍 <strong>${place.address}</strong></p>
+                        <p>👤 <strong>${place.nickname}</strong></p>
+                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
+                        <button class="delete-btn" onclick="deletePlace('${place.key}')">🗑️ 삭제</button>
+                    `;
+                    placesList.appendChild(div);
+                });
+
+                console.log("✅ 불러온 맛집 목록:", placesArray);
+            });
         }
     </script>
 
