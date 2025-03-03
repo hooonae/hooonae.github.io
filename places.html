@@ -6,7 +6,7 @@
     <title>🍽 추천 맛집 목록</title>
 
     <!-- ✅ 네이버 지도 API (Geocoder 포함) -->
-    <script defer src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph"></script>
+    <script defer src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph&submodules=geocoder"></script>
 
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
@@ -17,11 +17,22 @@
         .delete-btn { background: #ff4d4d; }
         img { max-width: 200px; margin-top: 10px; border-radius: 10px; }
         #map { width: 100%; height: 300px; margin-top: 10px; border-radius: 10px; }
+        .home-btn {
+            display: inline-block;
+            background: #8B5E3C;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
 
     <h1>🍽 추천 맛집 목록</h1>
+    <a href="index.html" class="home-btn">🏠 홈</a>
 
     <div class="container">
         <h2>➕ 맛집 추가하기</h2>
@@ -48,11 +59,10 @@
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
-        // ✅ Firebase 설정 (databaseURL 올바르게 수정!)
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",  // ✅ 이 부분 수정!
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
             storageBucket: "museum-web-370cd.appspot.com",
             messagingSenderId: "154810876093",
@@ -63,10 +73,9 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
-        let map;
-        let marker;
+        let map, marker;
 
-        function initMap() {
+        window.onload = function() {
             map = new naver.maps.Map("map", {
                 center: new naver.maps.LatLng(37.5665, 126.9780),
                 zoom: 14
@@ -80,7 +89,9 @@
                 document.getElementById("longitude").value = e.coord.x;
                 reverseGeocode(e.coord.y, e.coord.x);
             });
-        }
+
+            loadPlaces();
+        };
 
         function reverseGeocode(lat, lng) {
             naver.maps.Service.reverseGeocode({
@@ -144,11 +155,6 @@
                 loadPlaces();
             });
         }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            loadPlaces();
-            initMap();
-        });
     </script>
 
 </body>
