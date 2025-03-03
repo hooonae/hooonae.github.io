@@ -60,22 +60,6 @@
         const db = firebase.database();
         let eventId = localStorage.getItem("currentPostId");
 
-        if (eventId) {
-            db.ref("events/" + eventId).once("value").then((snapshot) => {
-                let event = snapshot.val();
-                if (event) {
-                    document.getElementById("title").textContent = event.title;
-                    document.getElementById("startDate").textContent = event.startDate;
-                    document.getElementById("endDate").textContent = event.endDate;
-
-                    if (event.image) {
-                        document.getElementById("imagePreview").src = event.image;
-                        document.getElementById("imagePreview").style.display = "block";
-                    }
-                }
-            });
-        }
-
         function deleteEvent() {
             if (confirm("정말 삭제하시겠습니까?")) {
                 db.ref("events/" + eventId).remove()
