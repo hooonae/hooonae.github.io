@@ -42,6 +42,21 @@
             text-decoration: none;
             color: black;
         }
+        .color-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+        .black { background-color: black; }
+        .blue { background-color: blue; }
+        .red { background-color: red; }
+        .green { background-color: green; }
         #calendar {
             width: 100%;
             max-width: 700px;
@@ -59,6 +74,12 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='calendar.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
+        <div class="color-buttons">
+            <button class="color-btn black" onclick="setColor('black')"></button>
+            <button class="color-btn blue" onclick="setColor('blue')"></button>
+            <button class="color-btn red" onclick="setColor('red')"></button>
+            <button class="color-btn green" onclick="setColor('green')"></button>
+        </div>
     </div>
 
     <div id="calendar"></div>
@@ -76,6 +97,13 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        let selectedColor = "black"; // 기본 색상 설정
+
+        function setColor(color) {
+            selectedColor = color;
+            console.log("✅ 선택한 색상:", selectedColor);
+        }
 
         document.addEventListener("DOMContentLoaded", function () {
             let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
@@ -113,7 +141,7 @@
                     // ✅ 더블클릭 시 일정 추가
                     let name = prompt("일정 이름을 입력하세요:");
                     if (name) {
-                        addEvent(calendar, info.date, name);
+                        addEvent(calendar, info.date, name, selectedColor);
                     }
                 } else {
                     clickTimeout = setTimeout(() => {
@@ -122,20 +150,21 @@
                 }
             });
 
-            async function addEvent(calendar, date, name) {
+            async function addEvent(calendar, date, name, color) {
                 let year = date.getFullYear();
                 let month = String(date.getMonth() + 1).padStart(2, '0');
                 let day = String(date.getDate()).padStart(2, '0');
 
                 const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name });
+                await newRef.set({ name, color });
 
-                console.log("✅ 일정 저장 완료:", { name });
+                console.log("✅ 일정 저장 완료:", { name, color });
 
                 calendar.addEvent({
                     id: newRef.key,
                     title: name,
-                    start: `${year}-${month}-${day}`
+                    start: `${year}-${month}-${day}`,
+                    color: color
                 });
 
                 loadEvents(calendar, selectedMonth); // ✅ 일정 추가 후 즉시 반영
@@ -161,7 +190,8 @@
                             events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                color: event.color || "black"
                             });
                         });
                     });
@@ -188,4 +218,3 @@
 
 </body>
 </html>
-
