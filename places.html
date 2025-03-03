@@ -99,20 +99,60 @@
             });
         }
 
-        function loadPlaces() {
-            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
+        async function uploadToCloudinary(file) {
+            const cloudName = "dddmgnzlu";
+            const uploadPreset = "firebase_uploads";
 
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", uploadPreset);
+
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error("❌ Cloudinary 이미지 업로드 실패:", error);
+                return "";
+            }
+        }
+
+        async function submitPlace() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const latitude = document.getElementById("latitude").value;
+            const longitude = document.getElementById("longitude").value;
+            const imageFile = document.getElementById("imageUpload").files[0];
+
+            if (!title || !content || !nickname || !address) {
+                alert("⚠️ 모든 필드를 입력하세요.");
+                return;
+            }
+
+            let imageUrl = "";
+            if (imageFile) {
+                imageUrl = await uploadToCloudinary(imageFile);
+            }
+
+            const newPlaceRef = db.ref("places").push();
+            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude, imageUrl });
+
+            alert("✅ 맛집이 등록되었습니다!");
+            loadPlaces();
+        }
+
+        function loadPlaces() {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>📡 로딩 중...</p>";
 
             db.ref("places").once("value", (snapshot) => {
                 placesList.innerHTML = "";
-
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
-                    return;
-                }
-
                 snapshot.forEach((childSnapshot) => {
                     let place = childSnapshot.val();
                     let key = childSnapshot.key;
@@ -125,48 +165,13 @@
                         <p>👤 <strong>${place.nickname}</strong></p>
                         ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
                         <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
-                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
                     `;
                     placesList.appendChild(div);
                 });
-
-                console.log("✅ Firebase에서 데이터 로딩 완료!");
             });
         }
 
-        async function deletePlace(key) {
-            await db.ref("places/" + key).remove();
-            alert("🗑️ 맛집이 삭제되었습니다!");
-            loadPlaces();
-        }
-
-        function showOnMap(lat, lng) {
-            const newCenter = new naver.maps.LatLng(lat, lng);
-            map.setCenter(newCenter);
-            marker.setPosition(newCenter);
-        }
-
         document.getElementById("submitBtn").addEventListener("click", submitPlace);
-
-        async function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
-            const latitude = document.getElementById("latitude").value;
-            const longitude = document.getElementById("longitude").value;
-
-            if (!title || !content || !nickname || !address) {
-                alert("⚠️ 모든 필드를 입력하세요.");
-                return;
-            }
-
-            const newPlaceRef = db.ref("places").push();
-            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude });
-
-            alert("✅ 맛집이 등록되었습니다!");
-            loadPlaces();
-        }
     </script>
 
 </body>
