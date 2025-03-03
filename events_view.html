@@ -32,6 +32,7 @@
             height: auto;
             max-height: 200px;
             border-radius: 5px;
+            display: none;
         }
         .delete-btn {
             width: 100%;
@@ -43,30 +44,86 @@
             cursor: pointer;
             border-radius: 5px;
         }
+        .error-message {
+            text-align: center;
+            font-size: 18px;
+            color: red;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
     <h1>전시 일정 상세</h1>
 
-    <div class="container">
+    <div id="errorMessage" class="error-message" style="display: none;">데이터를 불러올 수 없습니다.</div>
+
+    <div class="container" id="eventContainer" style="display: none;">
         <h2 id="title"></h2>
         <p>📅 <br> <span id="startDate"></span> <br> ~ <br> <span id="endDate"></span></p>
-        <img id="imagePreview" class="image-preview" style="display:none;">
+        <img id="imagePreview" class="image-preview">
         <button class="delete-btn" onclick="deleteEvent()">삭제</button>
     </div>
 
     <script>
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
         let eventId = localStorage.getItem("currentPostId");
 
+        if (!eventId) {
+            document.getElementById("errorMessage").style.display = "block";
+        } else {
+            db.ref("events/" + eventId).once("value").then((snapshot) => {
+                let event = snapshot.val();
+                if (event) {
+                    document.getElementById("title").textContent = event.title;
+                    document.getElementById("startDate").textContent = event.startDate;
+                    document.getElementById("endDate").textContent = event.endDate;
+
+                    if (event.image) {
+                        document.getElementById("imagePreview").src = event.image;
+                        document.getElementById("imagePreview").style.display = "block";
+                    }
+
+                    // ✅ 정상 데이터가 있으면 컨테이너 표시
+                    document.getElementById("eventContainer").style.display = "block";
+                } else {
+                    document.getElementById("errorMessage").style.display = "block";
+                }
+            }).catch((error) => {
+                console.error("데이터 로드 실패:", error);
+                document.getElementById("errorMessage").style.display = "block";
+            });
+        }
+
+        // ✅ 삭제 기능 수정 (오류 해결)
         function deleteEvent() {
+            if (!eventId) {
+                alert("삭제할 수 없습니다. 잘못된 요청입니다.");
+                return;
+            }
+
             if (confirm("정말 삭제하시겠습니까?")) {
                 db.ref("events/" + eventId).remove()
                     .then(() => {
                         alert("삭제되었습니다.");
                         localStorage.removeItem("currentPostId");
                         window.location.href = "events.html";
+                    })
+                    .catch(error => {
+                        console.error("삭제 실패:", error);
+                        alert("삭제하는 동안 오류가 발생했습니다.");
                     });
             }
         }
