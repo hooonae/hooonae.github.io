@@ -95,9 +95,26 @@
     </div>
 
     <script>
+        // ✅ Cloudinary 설정
         const cloudName = "dddmgnzlu";
         const uploadPreset = "firebase_uploads";
         let imageUrl = "";
+
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
 
         // ✅ Cloudinary 업로드 버튼 클릭 시 바로 갤러리(파일 선택 창)로 이동
         document.getElementById("uploadWidget").addEventListener("click", function() {
@@ -119,9 +136,9 @@
             });
         });
 
-        // ✅ Firebase에 데이터 저장 (imageUrl 없을 경우도 고려)
+        // ✅ Firebase에 데이터 저장 (오류 수정)
         function addEvent() {
-            let title = document.getElementById("title").value;
+            let title = document.getElementById("title").value.trim();
             let startDate = document.getElementById("startDate").value;
             let endDate = document.getElementById("endDate").value;
 
@@ -130,14 +147,27 @@
                 return;
             }
 
-            let newEvent = { title, startDate, endDate, image: imageUrl || "" };
+            let newEvent = { 
+                title, 
+                startDate, 
+                endDate, 
+                image: imageUrl || "" // ✅ 이미지 없을 경우 빈 문자열로 저장
+            };
 
-            firebase.database().ref("events").push(newEvent)
-                .then(() => {
-                    alert("일정이 추가되었습니다!");
-                    window.location.href = "events.html";
-                })
-                .catch(error => console.error("추가 실패:", error));
+            try {
+                db.ref("events").push(newEvent)
+                    .then(() => {
+                        alert("일정이 추가되었습니다!");
+                        window.location.href = "events.html";
+                    })
+                    .catch(error => {
+                        console.error("Firebase 저장 실패:", error);
+                        alert("등록 중 오류가 발생했습니다.");
+                    });
+            } catch (error) {
+                console.error("addEvent() 실행 중 오류:", error);
+                alert("예기치 않은 오류가 발생했습니다.");
+            }
         }
     </script>
 
