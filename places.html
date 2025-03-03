@@ -135,7 +135,6 @@
                         <p>👤 <strong>${place.nickname}</strong></p>
                         ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
                         <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
-                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
                     `;
                     placesList.appendChild(div);
                 });
