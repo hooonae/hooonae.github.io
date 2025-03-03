@@ -5,37 +5,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전시 일정</title>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
-        h1 { color: #333; }
-        .post-list { list-style: none; padding: 0; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            font-size: 22px;
+        }
+        .search-box {
+            width: 80%;
+            max-width: 400px;
+            padding: 10px;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: block;
+            font-size: 16px;
+        }
+        .post-list {
+            list-style: none;
+            padding: 0;
+            max-width: 600px;
+            margin: auto;
+        }
         .post-item {
             background: white;
-            padding: 10px;
+            padding: 15px;
             margin: 10px 0;
             border-radius: 5px;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-align: left;
             cursor: pointer;
         }
-        .post-item:hover { background: #f0f0f0; }
-        .post-title { font-weight: bold; }
-        .post-date { color: gray; font-size: 0.8em; }
+        .post-item:hover {
+            background: #f0f0f0;
+        }
+        .post-title {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .post-date {
+            color: gray;
+            font-size: 14px;
+        }
+        @media (max-width: 500px) {
+            .post-item {
+                padding: 10px;
+            }
+            .post-title {
+                font-size: 16px;
+            }
+            .post-date {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <h1>전시 일정</h1>
+    
+    <input type="text" class="search-box" placeholder="행사 검색..." onkeyup="searchEvents()">
 
     <ul id="postList" class="post-list"></ul>
-    <button onclick="location.href='events_form.html'">전시 일정 추가</button>
 
     <script>
-        let posts = JSON.parse(localStorage.getItem("events")) || [];
+        let events = [
+            { title: "공예로 짓는 집", startDate: "2024-09-05", endDate: "2025-03-09" },
+            { title: "지구의 언어 (유리지공예상 특별전)", startDate: "2024-12-20", endDate: "2025-03-16" },
+            { title: "박물관가게 설명절 할인행사", startDate: "2025-01-25", endDate: "2025-01-30" },
+            { title: "공예문화유산 보존복원 학술 콜로키움", startDate: "2025-02-11", endDate: "2025-02-11" },
+            { title: "비밀요원 밤이와 함께", startDate: "2025-02-22", endDate: "2025-12-13" },
+            { title: "서울형 늘봄플러스 교육 프로그램", startDate: "2025-02-22", endDate: "2025-12-13" },
+            { title: "오픈스튜디오 촘촘 직조공예", startDate: "2025-03-07", endDate: "2025-12-19" },
+            { title: "오픈스튜디오 플러스 작가반", startDate: "2025-03-04", endDate: "2025-05-27" },
+            { title: "이루미 프로젝트", startDate: "2025-03-19", endDate: "2025-07-09" },
+            { title: "염원을 담아 (불교공예 협력전시)", startDate: "2025-04-02", endDate: "2025-05-06" },
+            { title: "다문화 공예 페스티벌", startDate: "2025-05-18", endDate: "2025-05-20" },
+            { title: "한-폴란드 국제교류전: 옷을 입은 집", startDate: "2025-08-26", endDate: "2025-10-19" },
+            { title: "현대공예 기획전: 공예와 기술", startDate: "2025-09-03", endDate: "2025-11-16" }
+        ];
 
-        function displayPosts() {
+        function displayPosts(eventList) {
             const postList = document.getElementById("postList");
             postList.innerHTML = "";
-            posts.forEach((post, index) => {
+            eventList.forEach((post, index) => {
                 postList.innerHTML += `
                     <li class="post-item" onclick="viewPost(${index})">
                         <div class="post-title">${post.title}</div>
@@ -45,12 +103,20 @@
             });
         }
 
+        function searchEvents() {
+            let query = document.querySelector(".search-box").value.toLowerCase();
+            let filteredEvents = events.filter(event => 
+                event.title.toLowerCase().includes(query)
+            );
+            displayPosts(filteredEvents);
+        }
+
         function viewPost(index) {
-            localStorage.setItem("currentPost", JSON.stringify(posts[index]));
+            localStorage.setItem("currentPost", JSON.stringify(events[index]));
             window.location.href = "events_view.html";
         }
 
-        displayPosts();
+        displayPosts(events);
     </script>
 
 </body>
