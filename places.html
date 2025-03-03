@@ -99,22 +99,29 @@
         };
 
         function reverseGeocode(lat, lng) {
-            naver.maps.Service.reverseGeocode({
-                coords: new naver.maps.LatLng(lat, lng)
-            }, function(status, response) {
-                console.log("🔹 Reverse Geocoding 응답:", response);
+    naver.maps.Service.reverseGeocode({
+        coords: new naver.maps.LatLng(lat, lng)
+    }, function(status, response) {
+        console.log("🔹 Reverse Geocoding 응답:", response);
 
-                if (status !== naver.maps.Service.Status.OK) {
-                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
-                    return;
-                }
-
-                let roadAddr = response.address?.roadAddress || "";
-                let jibunAddr = response.address?.jibunAddress || "";
-
-                document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
-            });
+        if (status !== naver.maps.Service.Status.OK) {
+            document.getElementById("address").value = "주소를 찾을 수 없습니다.";
+            return;
         }
+
+        // ✅ 도로명 주소(roadAddress) 또는 지번 주소(jibunAddress) 사용
+        let roadAddr = response.v2?.address?.roadAddress || ""; 
+        let jibunAddr = response.v2?.address?.jibunAddress || ""; 
+
+        if (roadAddr) {
+            document.getElementById("address").value = roadAddr;
+        } else if (jibunAddr) {
+            document.getElementById("address").value = jibunAddr;
+        } else {
+            document.getElementById("address").value = "주소 없음";
+        }
+    });
+}
 
         async function submitPlace() {
             const title = document.getElementById("title").value.trim();
