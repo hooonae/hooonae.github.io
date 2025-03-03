@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전시 일정 상세</title>
+
+    <!-- ✅ Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -13,7 +18,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 600px;
+            max-width: 400px;
             margin: auto;
             background: white;
             padding: 20px;
@@ -21,42 +26,22 @@
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-align: left;
         }
-        .title {
-            font-size: 22px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .meta {
-            color: gray;
-            font-size: 14px;
-            text-align: center;
-        }
-        .image-container {
+        h1 { font-size: 22px; text-align: center; }
+        .image-preview {
             width: 100%;
-            text-align: center;
-            margin: 15px 0;
-        }
-        .image-container img {
-            max-width: 100%;
             height: auto;
-            border-radius: 10px;
-            display: block;
-            margin: auto;
+            max-height: 200px;
+            border-radius: 5px;
         }
         .delete-btn {
+            width: 100%;
+            padding: 10px;
             background: red;
             color: white;
             border: none;
-            padding: 10px;
-            width: 100%;
             font-size: 16px;
             cursor: pointer;
             border-radius: 5px;
-            margin-top: 10px;
-        }
-        .delete-btn:hover {
-            background: darkred;
         }
     </style>
 </head>
@@ -65,40 +50,44 @@
     <h1>전시 일정 상세</h1>
 
     <div class="container">
-        <div class="title" id="title"></div>
-        <div class="meta">
-            시작 날짜: <span id="startDate"></span> <br>
-            종료 날짜: <span id="endDate"></span>
-        </div>
-
-        <div class="image-container">
-            <img id="eventImage" src="" alt="이미지가 없습니다.">
-        </div>
-
+        <h2 id="title"></h2>
+        <p>📅 <span id="startDate"></span> ~ <span id="endDate"></span></p>
+        <img id="imagePreview" class="image-preview" style="display:none;">
         <button class="delete-btn" onclick="deleteEvent()">삭제</button>
     </div>
 
     <script>
-        let event = JSON.parse(localStorage.getItem("currentPost"));
+        const db = firebase.database();
+        let eventId = localStorage.getItem("currentPostId");
 
-        if (event) {
-            document.getElementById("title").textContent = event.title;
-            document.getElementById("startDate").textContent = event.startDate;
-            document.getElementById("endDate").textContent = event.endDate;
+        if (eventId) {
+            db.ref("events/" + eventId).once("value").then((snapshot) => {
+                let event = snapshot.val();
+                if (event) {
+                    document.getElementById("title").textContent = event.title;
+                    document.getElementById("startDate").textContent = event.startDate;
+                    document.getElementById("endDate").textContent = event.endDate;
 
-            if (event.image) {
-                document.getElementById("eventImage").src = event.image;
-            } else {
-                document.getElementById("eventImage").style.display = "none";
-            }
+                    if (event.image) {
+                        document.getElementById("imagePreview").src = event.image;
+                        document.getElementById("imagePreview").style.display = "block";
+                    }
+                }
+            });
+        } else {
+            alert("잘못된 접근입니다.");
+            window.location.href = "events.html";
         }
 
         function deleteEvent() {
-            let events = JSON.parse(localStorage.getItem("events")) || [];
-            events = events.filter(e => e.title !== event.title);
-            localStorage.setItem("events", JSON.stringify(events));
-            alert("삭제되었습니다.");
-            window.location.href = "events.html";
+            if (confirm("정말 삭제하시겠습니까?")) {
+                db.ref("events/" + eventId).remove()
+                    .then(() => {
+                        alert("삭제되었습니다.");
+                        window.location.href = "events.html";
+                    })
+                    .catch(error => console.error("삭제 실패:", error));
+            }
         }
     </script>
 
