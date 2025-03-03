@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전시 일정</title>
+
+    <!-- ✅ Firebase & Cloudinary 설정 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -12,10 +17,7 @@
             margin: 0;
             padding: 20px;
         }
-        h1 {
-            color: #333;
-            font-size: 22px;
-        }
+        h1 { color: #333; font-size: 22px; }
         .search-box {
             width: 80%;
             max-width: 400px;
@@ -23,7 +25,6 @@
             margin: 10px auto;
             border: 1px solid #ccc;
             border-radius: 5px;
-            display: block;
             font-size: 16px;
         }
         .post-list {
@@ -40,18 +41,32 @@
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-align: left;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .post-item:hover {
-            background: #f0f0f0;
+        .post-item:hover { background: #f0f0f0; }
+        .post-title { font-weight: bold; font-size: 18px; }
+        .post-date { color: gray; font-size: 14px; }
+        .post-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
         }
-        .post-title {
-            font-weight: bold;
-            font-size: 18px;
+        .add-btn {
+            display: block;
+            width: 200px;
+            padding: 10px;
+            margin: 20px auto;
+            background: green;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 16px;
         }
-        .post-date {
-            color: gray;
-            font-size: 14px;
-        }
+        .add-btn:hover { background: darkgreen; }
     </style>
 </head>
 <body>
@@ -62,46 +77,71 @@
     
     <ul id="postList" class="post-list"></ul>
 
-    <script>
-        let events = [
-            { title: "공예로 짓는 집", startDate: "2024-09-05", endDate: "2025-03-09" },
-            { title: "지구의 언어 (유리지공예상 특별전)", startDate: "2024-12-20", endDate: "2025-03-16" },
-            { title: "박물관가게 설명절 할인행사", startDate: "2025-01-25", endDate: "2025-01-30" },
-            { title: "공예문화유산 보존복원 학술 콜로키움", startDate: "2025-02-11", endDate: "2025-02-11" },
-            { title: "비밀요원 밤이와 함께", startDate: "2025-02-22", endDate: "2025-12-13" },
-            { title: "서울형 늘봄플러스 교육 프로그램", startDate: "2025-02-22", endDate: "2025-12-13" },
-            { title: "오픈스튜디오 촘촘 직조공예", startDate: "2025-03-07", endDate: "2025-12-19" },
-            { title: "한-폴란드 국제교류전", startDate: "2025-08-26", endDate: "2025-10-19" },
-            { title: "현대공예 기획전: 공예와 기술", startDate: "2025-09-03", endDate: "2025-11-16" }
-        ];
+    <a href="events_form.html" class="add-btn">+ 일정 추가</a>
 
-        function displayPosts(eventList) {
+    <script>
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function displayPosts(events) {
             const postList = document.getElementById("postList");
             postList.innerHTML = "";
-            eventList.forEach((post, index) => {
+            events.forEach((event) => {
                 postList.innerHTML += `
-                    <li class="post-item" onclick="viewPost(${index})">
-                        <div class="post-title">${post.title}</div>
-                        <div class="post-date">${post.startDate} ~ ${post.endDate}</div>
+                    <li class="post-item" onclick="viewPost('${event.id}')">
+                        <img src="${event.image || 'https://via.placeholder.com/50'}" class="post-img">
+                        <div>
+                            <div class="post-title">${event.title}</div>
+                            <div class="post-date">${event.startDate} ~ ${event.endDate}</div>
+                        </div>
                     </li>
                 `;
             });
         }
 
-        function searchEvents() {
-            let query = document.querySelector(".search-box").value.toLowerCase();
-            let filteredEvents = events.filter(event => 
-                event.title.toLowerCase().includes(query)
-            );
-            displayPosts(filteredEvents);
+        function loadEvents() {
+            db.ref("events").on("value", (snapshot) => {
+                let events = [];
+                snapshot.forEach((childSnapshot) => {
+                    let event = childSnapshot.val();
+                    event.id = childSnapshot.key;
+                    events.push(event);
+                });
+                displayPosts(events);
+            });
         }
 
-        function viewPost(index) {
-            localStorage.setItem("currentPost", JSON.stringify(events[index]));
+        function searchEvents() {
+            let query = document.querySelector(".search-box").value.toLowerCase();
+            db.ref("events").once("value", (snapshot) => {
+                let events = [];
+                snapshot.forEach((childSnapshot) => {
+                    let event = childSnapshot.val();
+                    if (event.title.toLowerCase().includes(query)) {
+                        event.id = childSnapshot.key;
+                        events.push(event);
+                    }
+                });
+                displayPosts(events);
+            });
+        }
+
+        function viewPost(id) {
+            localStorage.setItem("currentPostId", id);
             window.location.href = "events_view.html";
         }
 
-        displayPosts(events);
+        loadEvents();
     </script>
 
 </body>
