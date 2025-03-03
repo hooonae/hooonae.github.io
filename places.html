@@ -73,11 +73,6 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
-        // ✅ Cloudinary 설정
-        const cloudName = "dddmgnzlu"; // 🔥 Cloudinary 계정의 Cloud Name 입력
-        const uploadPreset = "firebase_uploads"; // 🔥 Cloudinary 업로드 프리셋 입력
-        const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
         let map, marker;
 
         window.onload = function() {
@@ -109,44 +104,15 @@
             });
         }
 
-        async function uploadToCloudinary(file) {
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", uploadPreset);
-
-            const response = await fetch(cloudinaryUrl, {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-            return data.secure_url || "";
-        }
-
-        async function submitPlace() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const nickname = document.getElementById("nickname").value.trim();
-            const address = document.getElementById("address").value.trim();
-            const latitude = document.getElementById("latitude").value;
-            const longitude = document.getElementById("longitude").value;
-            const imageFile = document.getElementById("imageUpload").files[0];
-
-            if (!title || !content || !nickname || !address) {
-                alert("⚠️ 모든 필드를 입력하세요.");
+        function showOnMap(lat, lng) {
+            if (!lat || !lng) {
+                alert("❌ 위치 정보가 없습니다.");
                 return;
             }
 
-            let imageUrl = "";
-            if (imageFile) {
-                imageUrl = await uploadToCloudinary(imageFile);
-            }
-
-            const newPlaceRef = db.ref("places").push();
-            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude, imageUrl });
-
-            alert("✅ 맛집이 등록되었습니다!");
-            loadPlaces();
+            const newCenter = new naver.maps.LatLng(lat, lng);
+            map.setCenter(newCenter);
+            marker.setPosition(newCenter);
         }
 
         function loadPlaces() {
@@ -174,7 +140,15 @@
                 });
             });
         }
+
+        function deletePlace(key) {
+            db.ref(`places/${key}`).remove().then(() => {
+                alert("🗑️ 삭제 완료!");
+                loadPlaces();
+            });
+        }
     </script>
 
 </body>
 </html>
+
