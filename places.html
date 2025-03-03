@@ -29,6 +29,8 @@
         <input type="text" id="content" placeholder="맛집 설명">
         <input type="text" id="nickname" placeholder="작성자">
         <input type="text" id="address" placeholder="맛집 주소 (지도에서 선택)" readonly>
+        <input type="hidden" id="latitude">
+        <input type="hidden" id="longitude">
         <input type="file" id="imageUpload">
         <div id="map"></div>
         <button onclick="submitPlace()">등록하기</button>
@@ -46,15 +48,15 @@
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
-        // ✅ Firebase 설정
+        // ✅ Firebase 설정 (다시 추가!)
         const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
-            authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-            databaseURL: "YOUR_FIREBASE_DATABASE_URL",
-            projectId: "YOUR_FIREBASE_PROJECT_ID",
-            storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
-            appId: "YOUR_FIREBASE_APP_ID"
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -69,92 +71,72 @@
 
         var marker = new naver.maps.Marker({ position: map.getCenter(), map: map });
 
-        function reverseGeocode(lat, lng) {
-            console.log(`🔹 Reverse Geocoding 요청: ${lat}, ${lng}`);
+        // ✅ 지도 클릭 시 핀 이동 & 위도/경도 저장
+        naver.maps.Event.addListener(map, "click", function(e) {
+            marker.setPosition(e.coord);
+            document.getElementById("latitude").value = e.coord.y;
+            document.getElementById("longitude").value = e.coord.x;
+            reverseGeocode(e.coord.y, e.coord.x);
+        });
 
+        // ✅ Reverse Geocoding (주소 변환)
+        function reverseGeocode(lat, lng) {
             naver.maps.Service.reverseGeocode({
                 location: new naver.maps.LatLng(lat, lng),
                 coordType: naver.maps.Service.CoordType.LATLNG
             }, function(status, response) {
                 if (status !== naver.maps.Service.Status.OK) {
-                    console.error("❌ Reverse Geocoding 실패:", status);
                     document.getElementById("address").value = "주소 변환 실패";
                     return;
                 }
-
-                console.log("🔹 Reverse Geocoding 응답:", response);
-
                 let roadAddr = response.v2.addresses[0]?.roadAddress || "";
-                let jibunAddr = response.v2.addresses[0]?.jibunAddress || "";
-                let detailAddr = response.v2.addresses[0]?.buildingName || "";
-
-                if (roadAddr) {
-                    document.getElementById("address").value = `${roadAddr} ${detailAddr}`.trim();
-                } else if (jibunAddr) {
-                    document.getElementById("address").value = jibunAddr;
-                } else {
-                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
-                }
+                document.getElementById("address").value = roadAddr;
             });
         }
 
-        naver.maps.Event.addListener(map, "click", function(e) {
-            marker.setPosition(e.coord);
-            document.getElementById("address").value = "주소 변환 중...";
-            reverseGeocode(e.coord.y, e.coord.x);
-        });
-
+        // ✅ 맛집 등록
         async function submitPlace() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
             const nickname = document.getElementById("nickname").value.trim();
             const address = document.getElementById("address").value.trim();
-            const imageFile = document.getElementById("imageUpload").files[0];
+            const latitude = document.getElementById("latitude").value;
+            const longitude = document.getElementById("longitude").value;
 
-            if (!title || !content || !nickname || !address || address === "주소 변환 중...") {
+            if (!title || !content || !nickname || !address) {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
 
-            let imageUrl = "";
-            if (imageFile) {
-                try {
-                    let formData = new FormData();
-                    formData.append("file", imageFile);
-                    formData.append("upload_preset", "YOUR_UPLOAD_PRESET");
-
-                    const response = await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload", {
-                        method: "POST",
-                        body: formData
-                    });
-
-                    const data = await response.json();
-                    imageUrl = data.secure_url || "";
-                } catch (error) {
-                    console.error("❌ 이미지 업로드 실패:", error);
-                }
-            }
-
             const newPlaceRef = db.ref("places").push();
-            await newPlaceRef.set({ title, content, nickname, address, imageUrl, date: new Date().toISOString() });
+            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude });
 
             alert("✅ 맛집이 등록되었습니다!");
             loadPlaces();
         }
 
+        // ✅ 맛집 목록 불러오기 + 지도에 핀 표시
         function loadPlaces() {
             db.ref("places").on("value", (snapshot) => {
-                document.getElementById("placesList").innerHTML = snapshot.exists()
+                const placesList = document.getElementById("placesList");
+                placesList.innerHTML = snapshot.exists()
                     ? Object.entries(snapshot.val()).map(([key, place]) => `
                         <h3>${place.title}</h3>
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
                         <p>👤 <strong>${place.nickname}</strong></p>
-                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
                         <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
+                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
                     `).join("")
                     : "<p>📭 등록된 맛집이 없습니다.</p>";
             });
+        }
+
+        // ✅ 지도에서 해당 핀 위치로 이동
+        function showOnMap(lat, lng) {
+            const newCenter = new naver.maps.LatLng(lat, lng);
+            map.setCenter(newCenter);
+            marker.setPosition(newCenter);
         }
 
         function deletePlace(key) {
