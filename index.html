@@ -123,6 +123,7 @@
             display: flex;
         }
 
+        /* ✅ 공지사항 */
         .notice {
             background: #ffeb99;
             padding: 15px;
@@ -146,6 +147,14 @@
             text-align: center;
         }
         .notice li:last-child { border-bottom: none; }
+
+        /* ✅ 공지사항 이미지 크기 조정 */
+        .notice-image {
+            width: 120px;  /* 📏 이미지 크기 조절 */
+            height: auto;  /* 비율 유지 */
+            border-radius: 5px;
+            margin-top: 5px;
+        }
 
         .cards {
             display: grid;
@@ -206,4 +215,3 @@
 
 </body>
 </html>
-
