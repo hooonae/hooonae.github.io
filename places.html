@@ -59,7 +59,6 @@
     <script>
         console.log("📡 Firebase 스크립트 로드됨!");
 
-        // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -73,6 +72,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
+
+        // ✅ Cloudinary 설정
+        const cloudName = "dddmgnzlu"; // 🔥 Cloudinary 계정의 Cloud Name 입력
+        const uploadPreset = "firebase_uploads"; // 🔥 Cloudinary 업로드 프리셋 입력
+        const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
         let map, marker;
 
@@ -98,16 +102,25 @@
             naver.maps.Service.reverseGeocode({
                 coords: new naver.maps.LatLng(lat, lng)
             }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK) {
-                    document.getElementById("address").value = "주소를 찾을 수 없습니다.";
-                    return;
-                }
-
                 let roadAddr = response.v2?.address?.roadAddress || "";
                 let jibunAddr = response.v2?.address?.jibunAddress || "";
 
                 document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
             });
+        }
+
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", uploadPreset);
+
+            const response = await fetch(cloudinaryUrl, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            return data.secure_url || "";
         }
 
         async function submitPlace() {
@@ -117,33 +130,31 @@
             const address = document.getElementById("address").value.trim();
             const latitude = document.getElementById("latitude").value;
             const longitude = document.getElementById("longitude").value;
+            const imageFile = document.getElementById("imageUpload").files[0];
 
             if (!title || !content || !nickname || !address) {
                 alert("⚠️ 모든 필드를 입력하세요.");
                 return;
             }
 
-            console.log("📡 Firebase에 데이터 저장 중...");
+            let imageUrl = "";
+            if (imageFile) {
+                imageUrl = await uploadToCloudinary(imageFile);
+            }
+
             const newPlaceRef = db.ref("places").push();
-            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude });
+            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude, imageUrl });
 
             alert("✅ 맛집이 등록되었습니다!");
             loadPlaces();
         }
 
         function loadPlaces() {
-            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
-
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>📡 로딩 중...</p>";
 
             db.ref("places").once("value", (snapshot) => {
                 placesList.innerHTML = "";
-
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
-                    return;
-                }
 
                 snapshot.forEach((childSnapshot) => {
                     let place = childSnapshot.val();
@@ -155,26 +166,13 @@
                         <p>${place.content}</p>
                         <p>📍 <strong>${place.address}</strong></p>
                         <p>👤 <strong>${place.nickname}</strong></p>
+                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
                         <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
                         <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
                     `;
                     placesList.appendChild(div);
                 });
-
-                console.log("✅ 불러온 맛집 목록:", snapshot.val());
             });
-        }
-
-        function deletePlace(key) {
-            db.ref(`places/${key}`).remove().then(() => {
-                alert("🗑️ 삭제 완료!");
-                loadPlaces();
-            });
-        }
-
-        function showOnMap(lat, lng) {
-            map.setCenter(new naver.maps.LatLng(lat, lng));
-            marker.setPosition(new naver.maps.LatLng(lat, lng));
         }
     </script>
 
