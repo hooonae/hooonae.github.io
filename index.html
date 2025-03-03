@@ -10,7 +10,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, query, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-        // ✅ Firebase 설정 정보
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -21,11 +20,9 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        // ✅ Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ✅ 최신 공지사항 3개 불러오기
         function loadLatestNotices() {
             const noticeList = document.getElementById("noticeList");
             if (!noticeList) {
@@ -35,10 +32,10 @@
 
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
-            const noticesQuery = query(ref(db, "notices"), limitToLast(3)); // 최신 3개 가져오기
+            const noticesQuery = query(ref(db, "notices"), limitToLast(3));
 
             onValue(noticesQuery, (snapshot) => {
-                noticeList.innerHTML = ""; // 기존 내용 초기화
+                noticeList.innerHTML = ""; 
 
                 if (!snapshot.exists()) {
                     noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
@@ -52,7 +49,7 @@
                     notices.push({ key, ...data });
                 });
 
-                notices.reverse(); // 최신 글이 위로 가게 변경
+                notices.reverse();
 
                 notices.forEach((notice) => {
                     let li = document.createElement("li");
@@ -67,7 +64,6 @@
             });
         }
 
-        // ✅ 페이지가 로드된 후 공지사항 불러오기
         document.addEventListener("DOMContentLoaded", loadLatestNotices);
     </script>
 
@@ -80,7 +76,6 @@
             color: #333;
         }
 
-        /* ✅ 배너 스타일 */
         .banner {
             width: 100%;
             height: 250px;
@@ -88,7 +83,6 @@
             position: relative;
         }
 
-        /* ✅ 햄버거 메뉴 스타일 */
         .menu-toggle {
             font-size: 2.2em;
             color: white;
@@ -129,7 +123,6 @@
             display: flex;
         }
 
-        /* ✅ 공지사항 */
         .notice {
             background: #ffeb99;
             padding: 15px;
@@ -140,6 +133,7 @@
             margin-bottom: 20px;
             text-align: center;
         }
+
         .notice h2 { color: #8B5E3C; }
         .notice ul { list-style-type: none; padding: 0; }
         .notice li { 
@@ -152,27 +146,7 @@
             text-align: center;
         }
         .notice li:last-child { border-bottom: none; }
-        .notice .more-btn {
-            display: block;
-            margin: 10px auto; /* ✅ 중앙 정렬 */
-            background: #8B5E3C;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 150px;
-            text-align: center;
-        }
 
-        /* ✅ 공지사항 이미지 크기 원래대로 */
-        .notice-image {
-            width: 100px;
-            border-radius: 5px;
-            margin-top: 5px;
-        }
-
-        /* ✅ 카드 스타일 유지 */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -188,6 +162,7 @@
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
             text-align: center;
             transition: transform 0.3s ease-in-out;
+            cursor: pointer;
         }
         .card:hover { transform: translateY(-5px); }
 
@@ -195,37 +170,32 @@
 </head>
 <body>
 
-    <!-- ✅ 배너 추가 -->
     <div class="banner">
         <button class="menu-toggle" onclick="toggleMenu()">☰</button>
     </div>
 
-    <!-- ✅ 햄버거 메뉴 -->
     <div class="menu">
         <a href="index.html">🏠 홈</a>
         <a href="places.html">🍽 맛집 추천</a>
         <a href="events.html">📅 전시 일정</a>
-        <a href="calendar.html">📌 지킴이 일정</a>
+        <a href="calendar_view.html">📌 지킴이 일정</a>
         <a href="supplies.html">📦 필요 비품</a>
         <a href="suggestions.html">🗣 건의 사항</a>
         <a href="notices.html">📢 공지사항</a>
     </div>
 
-    <!-- ✅ 공지사항 -->
     <div class="notice">
         <h2>📢 공지사항</h2>
         <ul id="noticeList"></ul>
-        <button class="more-btn" onclick="location.href='notices.html'">더보기</button>
     </div>
 
-    <!-- ✅ 카드 섹션 완전 복구 -->
     <div class="cards">
-        <div class="card"><h3>📅 전시 일정</h3><button onclick="location.href='events.html'">이동</button></div>
-        <div class="card"><h3>📌 지킴이 일정</h3><button onclick="location.href='calendar.html'">이동</button></div>
-        <div class="card"><h3>🍽 맛집 추천</h3><button onclick="location.href='places.html'">이동</button></div>
-        <div class="card"><h3>📦 필요 비품</h3><button onclick="location.href='supplies.html'">이동</button></div>
-        <div class="card"><h3>🗣 건의 사항</h3><button onclick="location.href='suggestions.html'">이동</button></div>
-        <div class="card"><h3>📢 공지사항</h3><button onclick="location.href='notices.html'">이동</button></div>
+        <div class="card" onclick="location.href='events.html'"><h3>📅 전시 일정</h3></div>
+        <div class="card" onclick="location.href='calendar_view.html'"><h3>📌 지킴이 일정</h3></div>
+        <div class="card" onclick="location.href='places.html'"><h3>🍽 맛집 추천</h3></div>
+        <div class="card" onclick="location.href='supplies.html'"><h3>📦 필요 비품</h3></div>
+        <div class="card" onclick="location.href='suggestions.html'"><h3>🗣 건의 사항</h3></div>
+        <div class="card" onclick="location.href='notices.html'"><h3>📢 공지사항</h3></div>
     </div>
 
     <script>
@@ -236,4 +206,3 @@
 
 </body>
 </html>
-
