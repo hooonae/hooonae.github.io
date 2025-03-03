@@ -10,11 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <script>
-        const cloudName = "dddmgnzlu";
-        const uploadPreset = "firebase_uploads";
-    </script>
-
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -33,6 +28,35 @@
             text-align: left;
         }
         h1 { font-size: 22px; text-align: center; }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .image-preview {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            display: none;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .btn {
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .upload-btn {
+            background: #3498db;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .submit-btn {
+            background: green;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -49,17 +73,25 @@
         <label>종료 날짜</label>
         <input type="date" id="endDate">
 
-        <button id="uploadWidget">이미지 업로드</button>
-        <img id="imagePreview" style="width:100%; display:none;">
-
-        <button onclick="addEvent()">추가</button>
+        <button class="btn upload-btn" id="uploadWidget">이미지 업로드</button>
+        <img id="imagePreview" class="image-preview">
+        
+        <button class="btn submit-btn" onclick="addEvent()">추가</button>
     </div>
 
     <script>
-        let imageUrl = "";
+        const cloudName = "dddmgnzlu";
+        const uploadPreset = "firebase_uploads";
+        let imageUrl = ""; 
+
+        // ✅ Cloudinary 업로드 창에서 "My Files"만 남기기
         document.getElementById("uploadWidget").addEventListener("click", function() {
-            cloudinary.openUploadWidget({ cloud_name: cloudName, upload_preset: uploadPreset }, 
-            function(error, result) {
+            cloudinary.openUploadWidget({
+                cloud_name: cloudName,
+                upload_preset: uploadPreset,
+                sources: ["local"], // "My Files"만 남김
+                multiple: false
+            }, function(error, result) {
                 if (!error && result.event === "success") {
                     imageUrl = result.info.secure_url;
                     document.getElementById("imagePreview").src = imageUrl;
@@ -67,6 +99,27 @@
                 }
             });
         });
+
+        // ✅ Firebase에 데이터 저장
+        function addEvent() {
+            let title = document.getElementById("title").value;
+            let startDate = document.getElementById("startDate").value;
+            let endDate = document.getElementById("endDate").value;
+
+            if (!title || !startDate || !endDate) {
+                alert("모든 항목을 입력하세요.");
+                return;
+            }
+
+            let newEvent = { title, startDate, endDate, image: imageUrl };
+
+            firebase.database().ref("events").push(newEvent)
+                .then(() => {
+                    alert("일정이 추가되었습니다!");
+                    window.location.href = "events.html";
+                })
+                .catch(error => console.error("추가 실패:", error));
+        }
     </script>
 
 </body>
