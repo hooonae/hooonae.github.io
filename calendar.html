@@ -31,15 +31,13 @@
             for (let month = 1; month <= 12; month++) {
                 document.write(`<div class="month-item" onclick="viewMonth(${month})">${month}월</div>`);
             }
+
+            function viewMonth(month) {
+                localStorage.setItem("selectedMonth", month);
+                window.location.href = "calendar_view.html";
+            }
         </script>
     </div>
-
-    <script>
-        function viewMonth(month) {
-            localStorage.setItem("selectedMonth", month);
-            window.location.href = "calendar_view.html";
-        }
-    </script>
 
 </body>
 </html>
