@@ -10,6 +10,11 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
+    <script>
+        const cloudName = "dddmgnzlu";
+        const uploadPreset = "firebase_uploads";
+    </script>
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -27,56 +32,7 @@
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-align: left;
         }
-        h1 {
-            font-size: 22px;
-            text-align: center;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .image-preview {
-            width: 100%;
-            height: auto;
-            max-height: 200px;
-            display: none;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-        .btn {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .upload-btn {
-            background: #3498db;
-            color: white;
-            margin-bottom: 10px;
-        }
-        .upload-btn:hover {
-            background: #2980b9;
-        }
-        .submit-btn {
-            background: green;
-            color: white;
-        }
-        .submit-btn:hover {
-            background: darkgreen;
-        }
+        h1 { font-size: 22px; text-align: center; }
     </style>
 </head>
 <body>
@@ -84,75 +40,33 @@
     <h1>전시 일정 추가</h1>
 
     <div class="container">
-        <div class="input-group">
-            <label for="title">전시 제목</label>
-            <input type="text" id="title" placeholder="전시 제목을 입력하세요">
-        </div>
-        <div class="input-group">
-            <label for="startDate">시작 날짜</label>
-            <input type="date" id="startDate">
-        </div>
-        <div class="input-group">
-            <label for="endDate">종료 날짜</label>
-            <input type="date" id="endDate">
-        </div>
-        <div class="input-group">
-            <button class="btn upload-btn" id="uploadWidget">이미지 업로드</button>
-            <img id="imagePreview" class="image-preview">
-        </div>
-        <button class="btn submit-btn" onclick="addEvent()">추가</button>
+        <label>전시 제목</label>
+        <input type="text" id="title">
+
+        <label>시작 날짜</label>
+        <input type="date" id="startDate">
+
+        <label>종료 날짜</label>
+        <input type="date" id="endDate">
+
+        <button id="uploadWidget">이미지 업로드</button>
+        <img id="imagePreview" style="width:100%; display:none;">
+
+        <button onclick="addEvent()">추가</button>
     </div>
 
     <script>
-        // ✅ Firebase 설정
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let imageUrl = ""; // 업로드된 이미지 URL 저장
-
-        // ✅ Cloudinary 이미지 업로드
+        let imageUrl = "";
         document.getElementById("uploadWidget").addEventListener("click", function() {
-            cloudinary.openUploadWidget({ 
-                cloud_name: "YOUR_CLOUD_NAME", 
-                upload_preset: "YOUR_UPLOAD_PRESET" 
-            }, function(error, result) {
-                if (!error && result && result.event === "success") {
+            cloudinary.openUploadWidget({ cloud_name: cloudName, upload_preset: uploadPreset }, 
+            function(error, result) {
+                if (!error && result.event === "success") {
                     imageUrl = result.info.secure_url;
                     document.getElementById("imagePreview").src = imageUrl;
                     document.getElementById("imagePreview").style.display = "block";
                 }
             });
         });
-
-        // ✅ 일정 추가
-        function addEvent() {
-            let title = document.getElementById("title").value;
-            let startDate = document.getElementById("startDate").value;
-            let endDate = document.getElementById("endDate").value;
-
-            if (!title || !startDate || !endDate) {
-                alert("모든 항목을 입력하세요.");
-                return;
-            }
-
-            let newEvent = { title, startDate, endDate, image: imageUrl };
-
-            db.ref("events").push(newEvent)
-                .then(() => {
-                    alert("일정이 추가되었습니다!");
-                    window.location.href = "events.html";
-                })
-                .catch(error => console.error("추가 실패:", error));
-        }
     </script>
 
 </body>
