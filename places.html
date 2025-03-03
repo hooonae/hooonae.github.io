@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽 추천 맛집 목록</title>
 
-    <!-- ✅ 네이버 지도 API (Geocoder 포함) -->
+    <!-- ✅ 네이버 지도 API -->
     <script defer src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=tjkbm85mph&submodules=geocoder"></script>
 
     <style>
@@ -95,14 +95,13 @@
 
         function reverseGeocode(lat, lng) {
             naver.maps.Service.reverseGeocode({
-                location: new naver.maps.LatLng(lat, lng),
-                coordType: naver.maps.Service.CoordType.LATLNG
+                coords: new naver.maps.LatLng(lat, lng)  // ✅ 최신 방식 적용 (CoordType 제거)
             }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK) {
+                if (status !== naver.maps.Service.Status.OK || !response.v2.addresses.length) {
                     document.getElementById("address").value = "주소 변환 실패";
                     return;
                 }
-                let roadAddr = response.v2.addresses[0]?.roadAddress || "";
+                let roadAddr = response.v2.addresses[0]?.roadAddress || "주소 없음";
                 document.getElementById("address").value = roadAddr;
             });
         }
