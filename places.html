@@ -93,53 +93,30 @@
             loadPlaces();
         };
 
-        function reverseGeocode(lat, lng) {
-            naver.maps.Service.reverseGeocode({
-                coords: new naver.maps.LatLng(lat, lng)
-            }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK) {
-                    document.getElementById("address").value = "주소 변환 실패";
-                    return;
-                }
+        async function submitPlace() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const latitude = document.getElementById("latitude").value;
+            const longitude = document.getElementById("longitude").value;
+            const imageFile = document.getElementById("imageUpload").files[0];
 
-                let roadAddr = response.v2?.address?.roadAddress || "";
-                let jibunAddr = response.v2?.address?.jibunAddress || "";
+            if (!title || !content || !nickname || !address) {
+                alert("⚠️ 모든 필드를 입력하세요.");
+                return;
+            }
 
-                document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
-            });
-        }
+            let imageUrl = "";
+            if (imageFile) {
+                imageUrl = await uploadToCloudinary(imageFile);
+            }
 
-        function loadPlaces() {
-            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
+            const newPlaceRef = db.ref("places").push();
+            await newPlaceRef.set({ title, content, nickname, address, latitude, longitude, imageUrl });
 
-            const placesList = document.getElementById("placesList");
-            placesList.innerHTML = "<p>📡 로딩 중...</p>";
-
-            db.ref("places").once("value", (snapshot) => {
-                placesList.innerHTML = "";
-
-                if (!snapshot.exists()) {
-                    placesList.innerHTML = "<p>📭 등록된 맛집이 없습니다.</p>";
-                    return;
-                }
-
-                snapshot.forEach((childSnapshot) => {
-                    let place = childSnapshot.val();
-                    let key = childSnapshot.key;
-
-                    let div = document.createElement("div");
-                    div.innerHTML = `
-                        <h3>${place.title}</h3>
-                        <p>${place.content}</p>
-                        <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong></p>
-                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
-                        <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
-                        <button onclick="showOnMap(${place.latitude}, ${place.longitude})">🗺 지도 보기</button>
-                    `;
-                    placesList.appendChild(div);
-                });
-            });
+            alert("✅ 맛집이 등록되었습니다!");
+            loadPlaces();
         }
     </script>
 
