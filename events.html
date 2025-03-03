@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전시 일정</title>
+    <title>전시 일정 상세</title>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -17,131 +17,78 @@
             margin: 0;
             padding: 20px;
         }
-        h1 { font-size: 22px; }
-        .search-box {
-            width: 80%;
+        .container {
             max-width: 400px;
-            padding: 10px;
-            margin: 10px auto;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .post-list {
-            list-style: none;
-            padding: 0;
-            max-width: 600px;
             margin: auto;
-        }
-        .post-item {
             background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
+            padding: 20px;
+            border-radius: 10px;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-align: left;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
-        .post-item:hover { background: #f0f0f0; }
-        .post-title { font-weight: bold; font-size: 18px; }
-        .post-date { color: gray; font-size: 14px; }
-        .post-img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
+        h1 { font-size: 22px; text-align: center; }
+        .image-preview {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
             border-radius: 5px;
         }
-        .add-btn {
-            display: block;
-            width: 200px;
+        .delete-btn {
+            width: 100%;
             padding: 10px;
-            margin: 20px auto;
-            background: green;
+            background: red;
             color: white;
-            text-decoration: none;
-            text-align: center;
-            border-radius: 5px;
+            border: none;
             font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
         }
-        .add-btn:hover { background: darkgreen; }
     </style>
 </head>
 <body>
 
-    <h1>전시 일정</h1>
-    
-    <input type="text" class="search-box" placeholder="행사 검색..." onkeyup="searchEvents()">
-    
-    <ul id="postList" class="post-list"></ul>
+    <h1>전시 일정 상세</h1>
 
-    <a href="events_form.html" class="add-btn">+ 일정 추가</a>
+    <div class="container">
+        <h2 id="title"></h2>
+        <p>📅 <span id="startDate"></span> ~ <span id="endDate"></span></p>
+        <img id="imagePreview" class="image-preview" style="display:none;">
+        <button class="delete-btn" onclick="deleteEvent()">삭제</button>
+    </div>
 
     <script>
-        // ✅ Firebase 설정
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let eventId = localStorage.getItem("currentPostId");
 
-        function displayPosts(events) {
-            const postList = document.getElementById("postList");
-            postList.innerHTML = "";
-            events.forEach((event) => {
-                postList.innerHTML += `
-                    <li class="post-item" onclick="viewPost('${event.id}')">
-                        <img src="${event.image || 'https://via.placeholder.com/50'}" class="post-img">
-                        <div>
-                            <div class="post-title">${event.title}</div>
-                            <div class="post-date">${event.startDate} ~ ${event.endDate}</div>
-                        </div>
-                    </li>
-                `;
-            });
-        }
+        if (eventId) {
+            db.ref("events/" + eventId).once("value").then((snapshot) => {
+                let event = snapshot.val();
+                if (event) {
+                    document.getElementById("title").textContent = event.title;
+                    document.getElementById("startDate").textContent = event.startDate;
+                    document.getElementById("endDate").textContent = event.endDate;
 
-        function loadEvents() {
-            db.ref("events").on("value", (snapshot) => {
-                let events = [];
-                snapshot.forEach((childSnapshot) => {
-                    let event = childSnapshot.val();
-                    event.id = childSnapshot.key;
-                    events.push(event);
-                });
-                displayPosts(events);
-            });
-        }
-
-        function searchEvents() {
-            let query = document.querySelector(".search-box").value.toLowerCase();
-            db.ref("events").once("value", (snapshot) => {
-                let events = [];
-                snapshot.forEach((childSnapshot) => {
-                    let event = childSnapshot.val();
-                    if (event.title.toLowerCase().includes(query)) {
-                        event.id = childSnapshot.key;
-                        events.push(event);
+                    if (event.image) {
+                        document.getElementById("imagePreview").src = event.image;
+                        document.getElementById("imagePreview").style.display = "block";
                     }
-                });
-                displayPosts(events);
+                }
             });
+        } else {
+            alert("잘못된 접근입니다.");
+            window.location.href = "events.html";
         }
 
-        function viewPost(id) {
-            localStorage.setItem("currentPostId", id);
-            window.location.href = "events_view.html";
+        function deleteEvent() {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                db.ref("events/" + eventId).remove()
+                    .then(() => {
+                        alert("삭제되었습니다.");
+                        window.location.href = "events.html";
+                    })
+                    .catch(error => console.error("삭제 실패:", error));
+            }
         }
-
-        loadEvents();
     </script>
 
 </body>
