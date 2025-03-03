@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 지킴이 일정</title>
-
-    <!-- ✅ FullCalendar CSS & JS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <title>전시 일정 상세</title>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -16,204 +12,85 @@
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
-            color: #333;
             text-align: center;
-            padding: 20px;
+            background: #F8F1E9;
             margin: 0;
+            padding: 20px;
         }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 700px;
-            margin: auto;
-        }
-        .title {
-            font-size: 22px;
-            font-weight: bold;
-            text-align: left;
-        }
-        .home-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
-        }
-        .color-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        .color-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-        }
-        .black { background-color: black; }
-        .blue { background-color: blue; }
-        .red { background-color: red; }
-        .green { background-color: green; }
-        #calendar {
-            width: 100%;
-            max-width: 700px;
+        .container {
+            max-width: 400px;
             margin: auto;
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            height: 900px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+        h1 { font-size: 22px; text-align: center; }
+        .image-preview {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            border-radius: 5px;
+        }
+        .delete-btn {
+            width: 100%;
+            padding: 10px;
+            background: red;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <button class="home-btn" onclick="location.href='calendar.html'">🏠 홈</button>
-        <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div class="color-buttons">
-            <button class="color-btn black" onclick="setColor('black')"></button>
-            <button class="color-btn blue" onclick="setColor('blue')"></button>
-            <button class="color-btn red" onclick="setColor('red')"></button>
-            <button class="color-btn green" onclick="setColor('green')"></button>
-        </div>
+    <h1>전시 일정 상세</h1>
+
+    <div class="container">
+        <h2 id="title"></h2>
+        <p>📅 <span id="startDate"></span> ~ <span id="endDate"></span></p>
+        <img id="imagePreview" class="image-preview" style="display:none;">
+        <button class="delete-btn" onclick="deleteEvent()">삭제</button>
     </div>
 
-    <div id="calendar"></div>
-
     <script>
-        // ✅ Firebase 설정
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
-        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let eventId = localStorage.getItem("currentPostId");
 
-        let selectedColor = "black"; // 기본 색상 설정
+        if (eventId) {
+            db.ref("events/" + eventId).once("value").then((snapshot) => {
+                let event = snapshot.val();
+                if (event) {
+                    document.getElementById("title").textContent = event.title;
+                    document.getElementById("startDate").textContent = event.startDate;
+                    document.getElementById("endDate").textContent = event.endDate;
 
-        function setColor(color) {
-            selectedColor = color;
-            console.log("✅ 선택한 색상:", selectedColor);
+                    if (event.image) {
+                        document.getElementById("imagePreview").src = event.image;
+                        document.getElementById("imagePreview").style.display = "block";
+                    }
+                }
+            });
+        } else {
+            alert("잘못된 접근입니다.");
+            window.location.href = "events.html";
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-            selectedMonth = parseInt(selectedMonth); // 정수 변환
-            document.getElementById("month-title").textContent = `${selectedMonth}월 일정`;
-
-            console.log("✅ 선택한 월:", selectedMonth);
-
-            var calendarEl = document.getElementById("calendar");
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: "dayGridMonth",
-                locale: "ko",
-                editable: true,
-                selectable: true,
-                contentHeight: "auto",
-                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1), // 선택한 월로 캘린더 이동
-
-                // ✅ 일정 삭제 이벤트
-                eventClick: function(info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(calendar, info.event);
-                    }
-                }
-            });
-
-            calendar.render();
-            loadEvents(calendar, selectedMonth); // ✅ 선택한 월의 일정 불러오기 실행
-
-            let clickTimeout = null; // 🔥 더블클릭 감지용
-
-            calendar.on("dateClick", function(info) {
-                if (clickTimeout !== null) {
-                    clearTimeout(clickTimeout);
-                    clickTimeout = null;
-                    // ✅ 더블클릭 시 일정 추가
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(calendar, info.date, name, selectedColor);
-                    }
-                } else {
-                    clickTimeout = setTimeout(() => {
-                        clickTimeout = null; // 단일 클릭 무시
-                    }, 300);
-                }
-            });
-
-            async function addEvent(calendar, date, name, color) {
-                let year = date.getFullYear();
-                let month = String(date.getMonth() + 1).padStart(2, '0');
-                let day = String(date.getDate()).padStart(2, '0');
-
-                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name, color });
-
-                console.log("✅ 일정 저장 완료:", { name, color });
-
-                calendar.addEvent({
-                    id: newRef.key,
-                    title: name,
-                    start: `${year}-${month}-${day}`,
-                    color: color
-                });
-
-                loadEvents(calendar, selectedMonth); // ✅ 일정 추가 후 즉시 반영
+        // ✅ Firebase에서 삭제 기능 수정
+        function deleteEvent() {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                db.ref("events/" + eventId).remove()
+                    .then(() => {
+                        alert("삭제되었습니다.");
+                        localStorage.removeItem("currentPostId");
+                        window.location.href = "events.html";
+                    })
+                    .catch(error => console.error("삭제 실패:", error));
             }
-
-            function loadEvents(calendar, month) {
-                console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
-                let today = new Date();
-                let year = today.getFullYear();
-
-                db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    if (!snapshot.exists()) {
-                        console.log("📭 일정 없음");
-                        calendar.removeAllEvents();
-                        return;
-                    }
-
-                    let events = [];
-                    snapshot.forEach((daySnapshot) => {
-                        const day = daySnapshot.key;
-                        daySnapshot.forEach((eventSnapshot) => {
-                            const event = eventSnapshot.val();
-                            events.push({
-                                id: eventSnapshot.key,
-                                title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                                color: event.color || "black"
-                            });
-                        });
-                    });
-
-                    console.log("✅ 불러온 일정:", events);
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(events);
-                });
-            }
-
-            async function deleteEvent(calendar, event) {
-                let dateParts = event.startStr.split("-");
-                let year = dateParts[0];
-                let month = dateParts[1];
-                let day = dateParts[2];
-
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                console.log("🗑️ 삭제 완료:", event.id);
-
-                loadEvents(calendar, selectedMonth); // ✅ 삭제 후 일정 다시 불러오기
-            }
-        });
+        }
     </script>
 
 </body>
