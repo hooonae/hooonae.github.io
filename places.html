@@ -73,8 +73,10 @@
         const db = firebase.database();
         console.log("✅ Firebase 초기화 완료!");
 
-        const cloudinaryUrl = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload";
-        const cloudinaryPreset = "YOUR_UPLOAD_PRESET";
+        // ✅ Cloudinary 설정
+        const cloudName = "dddmgnzlu"; // 🔥 Cloudinary 계정의 Cloud Name 입력
+        const uploadPreset = "firebase_uploads"; // 🔥 Cloudinary 업로드 프리셋 입력
+        const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
         let map, marker;
 
@@ -102,12 +104,15 @@
             }, function(status, response) {
                 console.log("🔹 Reverse Geocoding 응답:", response);
 
-                if (status !== naver.maps.Service.Status.OK || !response.v2?.addresses?.length) {
+                if (status !== naver.maps.Service.Status.OK) {
                     document.getElementById("address").value = "주소를 찾을 수 없습니다.";
                     return;
                 }
-                let roadAddr = response.v2.addresses[0]?.roadAddress || "주소 없음";
-                document.getElementById("address").value = roadAddr;
+
+                let roadAddr = response.address?.roadAddress || "";
+                let jibunAddr = response.address?.jibunAddress || "";
+
+                document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
             });
         }
 
@@ -127,17 +132,13 @@
 
             let imageUrl = "";
             if (imageFile) {
-                let formData = new FormData();
-                formData.append("file", imageFile);
-                formData.append("upload_preset", cloudinaryPreset);
-                
-                const response = await fetch(cloudinaryUrl, {
-                    method: "POST",
-                    body: formData
-                });
-
-                const data = await response.json();
-                imageUrl = data.secure_url || "";
+                try {
+                    imageUrl = await uploadToCloudinary(imageFile);
+                } catch (error) {
+                    console.error("❌ 이미지 업로드 실패:", error);
+                    alert("이미지 업로드 중 오류가 발생했습니다.");
+                    return;
+                }
             }
 
             const newPlaceRef = db.ref("places").push();
@@ -147,26 +148,25 @@
             loadPlaces();
         }
 
-        function loadPlaces() {
-            db.ref("places").on("value", (snapshot) => {
-                const placesList = document.getElementById("placesList");
-                placesList.innerHTML = snapshot.exists()
-                    ? Object.entries(snapshot.val()).map(([key, place]) => `
-                        <h3>${place.title}</h3>
-                        <p>${place.content}</p>
-                        <p>📍 <strong>${place.address}</strong></p>
-                        <p>👤 <strong>${place.nickname}</strong></p>
-                        ${place.imageUrl ? `<img src="${place.imageUrl}" alt="맛집 이미지">` : ""}
-                        <button class="delete-btn" onclick="deletePlace('${key}')">🗑️ 삭제</button>
-                    `).join("")
-                    : "<p>📭 등록된 맛집이 없습니다.</p>";
-            });
-        }
+        function uploadToCloudinary(file) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", uploadPreset);
 
-        function deletePlace(key) {
-            db.ref(`places/${key}`).remove().then(() => {
-                alert("🗑️ 삭제 완료!");
-                loadPlaces();
+                fetch(cloudinaryUrl, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.secure_url) {
+                        resolve(data.secure_url);
+                    } else {
+                        reject("Cloudinary 업로드 실패");
+                    }
+                })
+                .catch(error => reject(error));
             });
         }
     </script>
