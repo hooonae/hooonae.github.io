@@ -76,7 +76,7 @@
         <button class="btn upload-btn" id="uploadWidget">이미지 업로드</button>
         <img id="imagePreview" class="image-preview">
         
-        <button class="btn submit-btn" onclick="addEvent()">추가</button>
+        <button class="btn submit-btn" onclick="addEvent()">등록</button>
     </div>
 
     <script>
@@ -84,12 +84,12 @@
         const uploadPreset = "firebase_uploads";
         let imageUrl = ""; 
 
-        // ✅ Cloudinary 업로드 창에서 "My Files"만 남기기
+        // ✅ Cloudinary 업로드 버튼 클릭 시 작동하도록 개선
         document.getElementById("uploadWidget").addEventListener("click", function() {
             cloudinary.openUploadWidget({
                 cloud_name: cloudName,
                 upload_preset: uploadPreset,
-                sources: ["local"], // "My Files"만 남김
+                sources: ["local"], // "My Files" 등 불필요한 옵션 제거
                 multiple: false
             }, function(error, result) {
                 if (!error && result.event === "success") {
