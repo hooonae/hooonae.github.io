@@ -51,7 +51,7 @@
 
     <div class="container">
         <h2 id="title"></h2>
-        <p>📅 <span id="startDate"></span> ~ <span id="endDate"></span></p>
+        <p>📅 <br> <span id="startDate"></span> <br> ~ <br> <span id="endDate"></span></p>
         <img id="imagePreview" class="image-preview" style="display:none;">
         <button class="delete-btn" onclick="deleteEvent()">삭제</button>
     </div>
@@ -74,9 +74,6 @@
                     }
                 }
             });
-        } else {
-            alert("잘못된 접근입니다.");
-            window.location.href = "events.html";
         }
 
         function deleteEvent() {
@@ -84,9 +81,9 @@
                 db.ref("events/" + eventId).remove()
                     .then(() => {
                         alert("삭제되었습니다.");
+                        localStorage.removeItem("currentPostId");
                         window.location.href = "events.html";
-                    })
-                    .catch(error => console.error("삭제 실패:", error));
+                    });
             }
         }
     </script>
