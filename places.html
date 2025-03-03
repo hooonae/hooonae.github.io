@@ -93,9 +93,34 @@
             loadPlaces();
         };
 
-        function loadPlaces() {
-            console.log("📡 Firebase에서 맛집 목록 불러오는 중...");
+        function reverseGeocode(lat, lng) {
+            naver.maps.Service.reverseGeocode({
+                coords: new naver.maps.LatLng(lat, lng)
+            }, function(status, response) {
+                if (status !== naver.maps.Service.Status.OK) {
+                    document.getElementById("address").value = "주소 변환 실패";
+                    return;
+                }
 
+                let roadAddr = response.v2?.address?.roadAddress || "";
+                let jibunAddr = response.v2?.address?.jibunAddress || "";
+
+                document.getElementById("address").value = roadAddr || jibunAddr || "주소 없음";
+            });
+        }
+
+        function showOnMap(lat, lng) {
+            if (!lat || !lng) {
+                alert("❌ 위치 정보가 없습니다.");
+                return;
+            }
+
+            const newCenter = new naver.maps.LatLng(lat, lng);
+            map.setCenter(newCenter);
+            marker.setPosition(newCenter);
+        }
+
+        function loadPlaces() {
             const placesList = document.getElementById("placesList");
             placesList.innerHTML = "<p>📡 로딩 중...</p>";
 
@@ -124,4 +149,3 @@
 
 </body>
 </html>
-
