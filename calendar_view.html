@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전시 일정 상세</title>
+    <title>📅 지킴이 일정</title>
+
+    <!-- ✅ FullCalendar CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -12,86 +16,29 @@
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+            color: #333;
             text-align: center;
-            background: #F8F1E9;
+            padding: 20px;
             margin: 0;
-            padding: 20px;
         }
-        .container {
-            max-width: 400px;
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 700px;
             margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .title {
+            font-size: 22px;
+            font-weight: bold;
             text-align: left;
         }
-        h1 { font-size: 22px; text-align: center; }
-        .image-preview {
-            width: 100%;
-            height: auto;
-            max-height: 200px;
-            border-radius: 5px;
-        }
-        .delete-btn {
-            width: 100%;
-            padding: 10px;
-            background: red;
-            color: white;
+        .home-btn {
+            background: none;
             border: none;
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
-            border-radius: 5px;
+            text-decoration: none;
+            color: black;
         }
-    </style>
-</head>
-<body>
-
-    <h1>전시 일정 상세</h1>
-
-    <div class="container">
-        <h2 id="title"></h2>
-        <p>📅 <span id="startDate"></span> ~ <span id="endDate"></span></p>
-        <img id="imagePreview" class="image-preview" style="display:none;">
-        <button class="delete-btn" onclick="deleteEvent()">삭제</button>
-    </div>
-
-    <script>
-        const db = firebase.database();
-        let eventId = localStorage.getItem("currentPostId");
-
-        if (eventId) {
-            db.ref("events/" + eventId).once("value").then((snapshot) => {
-                let event = snapshot.val();
-                if (event) {
-                    document.getElementById("title").textContent = event.title;
-                    document.getElementById("startDate").textContent = event.startDate;
-                    document.getElementById("endDate").textContent = event.endDate;
-
-                    if (event.image) {
-                        document.getElementById("imagePreview").src = event.image;
-                        document.getElementById("imagePreview").style.display = "block";
-                    }
-                }
-            });
-        } else {
-            alert("잘못된 접근입니다.");
-            window.location.href = "events.html";
-        }
-
-        // ✅ Firebase에서 삭제 기능 수정
-        function deleteEvent() {
-            if (confirm("정말 삭제하시겠습니까?")) {
-                db.ref("events/" + eventId).remove()
-                    .then(() => {
-                        alert("삭제되었습니다.");
-                        localStorage.removeItem("currentPostId");
-                        window.location.href = "events.html";
-                    })
-                    .catch(error => console.error("삭제 실패:", error));
-            }
-        }
-    </script>
-
-</body>
-</html>
