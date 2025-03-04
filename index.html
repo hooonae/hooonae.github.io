@@ -74,11 +74,16 @@
             padding: 0;
             background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
             color: #333;
+            min-height: 100vh; /* 🔥 전체 페이지 높이를 화면에 맞게 조정 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
+        /* ✅ 배너 크기 조정 */
         .banner {
             width: 100%;
-            height: 200px;
+            height: 250px; /* 🔥 기존보다 배너 크기 증가 */
             background: url('banner4.PNG') no-repeat center center/cover;
             position: relative;
         }
@@ -129,9 +134,8 @@
             padding: 15px;
             border-radius: 10px;
             max-width: 800px;
-            margin: auto;
+            margin: 20px auto;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
             text-align: center;
         }
 
@@ -176,6 +180,7 @@
             max-width: 500px;
             margin: auto;
             margin-top: 15px;
+            padding-bottom: 50px; /* 🔥 푸터 여백 추가 */
         }
 
         .card {
@@ -197,6 +202,11 @@
         .card:hover {
             transform: translateY(-2px);
         }
+
+        /* ✅ 페이지 하단 여백 추가 */
+        .footer {
+            height: 50px;
+        }
     </style>
 </head>
 <body>
@@ -212,7 +222,7 @@
         <a href="calendar_view.html">📌 지킴이 일정</a>
         <a href="supplies.html">📦 필요 비품</a>
         <a href="suggestions.html">🗣 건의 사항</a>
-        <a href="notices.html">🗣 공지 사항</a>
+        <a href="notices.html">📢 공지사항</a>
     </div>
 
     <div class="notice">
@@ -227,6 +237,8 @@
         <div class="card" onclick="location.href='supplies.html'"><h3>📦 필요 비품</h3></div>
         <div class="card" onclick="location.href='suggestions.html'"><h3>🗣 건의 사항</h3></div>
     </div>
+
+    <div class="footer"></div> <!-- 🔥 하단 여백 추가 -->
 
     <script>
         function toggleMenu() {
