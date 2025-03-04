@@ -74,6 +74,7 @@
             padding: 0;
             background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
             color: #333;
+            padding-bottom: 60px; /* 🔥 하단 여백 추가 */
         }
 
         .banner {
@@ -167,7 +168,7 @@
             margin-top: 5px;
         }
 
-        /* ✅ 카드 섹션 크기 조정 (세로 정렬 + 크기 줄이기) */
+        /* ✅ 카드 섹션 크기 조정 */
         .cards {
             display: flex;
             flex-direction: column;
@@ -196,6 +197,12 @@
 
         .card:hover {
             transform: translateY(-2px);
+        }
+
+        /* ✅ 하단 여백을 위한 푸터 추가 */
+        .footer {
+            height: 60px; /* 🔥 여백 확보 */
+            width: 100%;
         }
     </style>
 </head>
@@ -227,6 +234,8 @@
         <div class="card" onclick="location.href='supplies.html'"><h3>📦 필요 비품</h3></div>
         <div class="card" onclick="location.href='suggestions.html'"><h3>🗣 건의 사항</h3></div>
     </div>
+
+    <div class="footer"></div>
 
     <script>
         function toggleMenu() {
