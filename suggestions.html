@@ -3,57 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>건의 사항</title>
+    <title>📝 건의사항</title>
+
+    <!-- ✅ Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
-        h1 { color: #333; }
-        .container { max-width: 500px; margin: auto; }
-        .post-list { list-style: none; padding: 0; }
-        .post-item {
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
             background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea, button {
+            width: 90%;
             padding: 10px;
             margin: 10px 0;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-            text-align: left;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
             cursor: pointer;
         }
-        .post-item:hover { background: #f0f0f0; }
-        .post-title { font-weight: bold; }
-        .post-date { color: gray; font-size: 0.8em; }
+        .delete-btn {
+            background: #ff4d4d;
+        }
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .checkbox-label {
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox {
+            width: 25px;
+            height: 25px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>건의 사항</h1>
+    <h1>📝 건의사항</h1>
 
     <div class="container">
-        <ul id="postList" class="post-list"></ul>
-        <button onclick="location.href='suggestions_form.html'">건의 사항 작성</button>
+        <h2>➕ 건의사항 추가</h2>
+        <input type="text" id="title" placeholder="건의 제목">
+        <textarea id="content" placeholder="건의 내용을 입력하세요"></textarea>
+        <input type="text" id="nickname" placeholder="작성자">
+        <button onclick="submitSuggestion()">등록하기</button>
+    </div>
+
+    <div class="container">
+        <h2>📜 건의사항 목록</h2>
+        <div id="suggestionsList"></div>
     </div>
 
     <script>
-        let posts = JSON.parse(localStorage.getItem("suggestions")) || [];
+        console.log("📡 Firebase 스크립트 로드됨!");
 
-        function displayPosts() {
-            const postList = document.getElementById("postList");
-            postList.innerHTML = "";
-            posts.forEach((post, index) => {
-                postList.innerHTML += `
-                    <li class="post-item" onclick="viewPost(${index})">
-                        <div class="post-title">${post.title}</div>
-                        <div class="post-date">${post.date}</div>
-                    </li>
-                `;
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        console.log("✅ Firebase 초기화 완료!");
+
+        // ✅ 건의사항 등록
+        function submitSuggestion() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
+
+            if (!title || !content || !nickname) {
+                alert("⚠️ 모든 필드를 입력하세요.");
+                return;
+            }
+
+            const newSuggestionRef = db.ref("suggestions").push();
+            newSuggestionRef.set({
+                title,
+                content,
+                nickname,
+                checked: false  // 확인 여부 기본값: false
+            });
+
+            alert("✅ 건의사항이 등록되었습니다!");
+            loadSuggestions();
+        }
+
+        // ✅ 건의사항 목록 불러오기
+        function loadSuggestions() {
+            console.log("📡 Firebase에서 건의사항 목록 불러오는 중...");
+
+            const suggestionsList = document.getElementById("suggestionsList");
+            suggestionsList.innerHTML = "<p>📡 로딩 중...</p>";
+
+            db.ref("suggestions").once("value", (snapshot) => {
+                suggestionsList.innerHTML = "";
+
+                if (!snapshot.exists()) {
+                    suggestionsList.innerHTML = "<p>📭 등록된 건의사항이 없습니다.</p>";
+                    return;
+                }
+
+                snapshot.forEach((childSnapshot) => {
+                    let suggestion = childSnapshot.val();
+                    let key = childSnapshot.key;
+
+                    let div = document.createElement("div");
+                    div.className = "suggestion-item";
+                    div.innerHTML = `
+                        <div>
+                            <h3>${suggestion.title}</h3>
+                            <p>${suggestion.content}</p>
+                            <p>👤 <strong>${suggestion.nickname}</strong></p>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox" ${suggestion.checked ? "checked" : ""} 
+                                onchange="toggleChecked('${key}', this.checked)">
+                            ✅
+                        </label>
+                        <button class="delete-btn" onclick="deleteSuggestion('${key}')">🗑️ 삭제</button>
+                    `;
+                    suggestionsList.appendChild(div);
+                });
+
+                console.log("✅ Firebase에서 데이터 로딩 완료!");
             });
         }
 
-        function viewPost(index) {
-            localStorage.setItem("currentPost", JSON.stringify(posts[index]));
-            window.location.href = "suggestions_view.html";
+        // ✅ 확인 체크 기능
+        function toggleChecked(key, checked) {
+            db.ref("suggestions/" + key).update({ checked });
+            console.log(`✅ 건의사항 (${key}) 확인 상태 변경: ${checked}`);
         }
 
-        displayPosts();
+        // ✅ 건의사항 삭제
+        async function deleteSuggestion(key) {
+            await db.ref("suggestions/" + key).remove();
+            alert("🗑️ 건의사항이 삭제되었습니다!");
+            loadSuggestions();
+        }
+
+        document.addEventListener("DOMContentLoaded", loadSuggestions);
     </script>
 
 </body>
