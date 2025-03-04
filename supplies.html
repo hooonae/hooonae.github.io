@@ -3,54 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>필요 비품</title>
+    <title>📦 필요 비품</title>
+
+    <!-- ✅ Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
-        h1 { color: #333; }
-        .post-list { list-style: none; padding: 0; }
-        .post-item {
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
             background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea, button {
+            width: 90%;
             padding: 10px;
             margin: 10px 0;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-            text-align: left;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
             cursor: pointer;
         }
-        .post-item:hover { background: #f0f0f0; }
-        .post-title { font-weight: bold; }
-        .post-date { color: gray; font-size: 0.8em; }
+        .delete-btn {
+            background: #ff4d4d;
+        }
+        .supply-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .checkbox-label {
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox {
+            width: 25px;
+            height: 25px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>필요 비품</h1>
+    <h1>📦 필요 비품</h1>
 
-    <ul id="postList" class="post-list"></ul>
-    <button onclick="location.href='supplies_form.html'">비품 추가</button>
+    <div class="container">
+        <h2>➕ 비품 요청 추가</h2>
+        <input type="text" id="title" placeholder="비품 이름">
+        <textarea id="content" placeholder="비품 설명을 입력하세요"></textarea>
+        <input type="text" id="nickname" placeholder="요청자">
+        <button onclick="submitSupply()">등록하기</button>
+    </div>
+
+    <div class="container">
+        <h2>📜 필요 비품 목록</h2>
+        <div id="suppliesList"></div>
+    </div>
 
     <script>
-        let posts = JSON.parse(localStorage.getItem("supplies")) || [];
+        console.log("📡 Firebase 스크립트 로드됨!");
 
-        function displayPosts() {
-            const postList = document.getElementById("postList");
-            postList.innerHTML = "";
-            posts.forEach((post, index) => {
-                postList.innerHTML += `
-                    <li class="post-item" onclick="viewPost(${index})">
-                        <div class="post-title">${post.title}</div>
-                        <div class="post-date">${post.date}</div>
-                    </li>
-                `;
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        console.log("✅ Firebase 초기화 완료!");
+
+        // ✅ 비품 요청 등록
+        function submitSupply() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
+
+            if (!title || !content || !nickname) {
+                alert("⚠️ 모든 필드를 입력하세요.");
+                return;
+            }
+
+            const newSupplyRef = db.ref("supplies").push();
+            newSupplyRef.set({
+                title,
+                content,
+                nickname,
+                checked: false  // 확인 여부 기본값: false
+            });
+
+            alert("✅ 비품 요청이 등록되었습니다!");
+            loadSupplies();
+        }
+
+        // ✅ 비품 목록 불러오기
+        function loadSupplies() {
+            console.log("📡 Firebase에서 필요 비품 목록 불러오는 중...");
+
+            const suppliesList = document.getElementById("suppliesList");
+            suppliesList.innerHTML = "<p>📡 로딩 중...</p>";
+
+            db.ref("supplies").once("value", (snapshot) => {
+                suppliesList.innerHTML = "";
+
+                if (!snapshot.exists()) {
+                    suppliesList.innerHTML = "<p>📭 등록된 비품 요청이 없습니다.</p>";
+                    return;
+                }
+
+                snapshot.forEach((childSnapshot) => {
+                    let supply = childSnapshot.val();
+                    let key = childSnapshot.key;
+
+                    let div = document.createElement("div");
+                    div.className = "supply-item";
+                    div.innerHTML = `
+                        <div>
+                            <h3>${supply.title}</h3>
+                            <p>${supply.content}</p>
+                            <p>👤 <strong>${supply.nickname}</strong></p>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox" ${supply.checked ? "checked" : ""} 
+                                onchange="toggleChecked('${key}', this.checked)">
+                            ✅
+                        </label>
+                        <button class="delete-btn" onclick="deleteSupply('${key}')">🗑️ 삭제</button>
+                    `;
+                    suppliesList.appendChild(div);
+                });
+
+                console.log("✅ Firebase에서 데이터 로딩 완료!");
             });
         }
 
-        function viewPost(index) {
-            localStorage.setItem("currentPost", JSON.stringify(posts[index]));
-            window.location.href = "supplies_view.html";
+        // ✅ 확인 체크 기능
+        function toggleChecked(key, checked) {
+            db.ref("supplies/" + key).update({ checked });
+            console.log(`✅ 비품 요청 (${key}) 확인 상태 변경: ${checked}`);
         }
 
-        displayPosts();
+        // ✅ 비품 요청 삭제
+        async function deleteSupply(key) {
+            await db.ref("supplies/" + key).remove();
+            alert("🗑️ 비품 요청이 삭제되었습니다!");
+            loadSupplies();
+        }
+
+        document.addEventListener("DOMContentLoaded", loadSupplies);
     </script>
 
 </body>
