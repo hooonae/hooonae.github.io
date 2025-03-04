@@ -78,13 +78,13 @@
 
         .banner {
             width: 100%;
-            height: 250px;
+            height: 200px;
             background: url('banner.png') no-repeat center center/cover;
             position: relative;
         }
 
         .menu-toggle {
-            font-size: 2.2em;
+            font-size: 2em;
             color: white;
             background: none;
             border: none;
@@ -109,7 +109,7 @@
 
         .menu a {
             display: block;
-            padding: 15px;
+            padding: 12px;
             color: white;
             font-size: 1.2em;
             text-decoration: none;
@@ -135,8 +135,19 @@
             text-align: center;
         }
 
-        .notice h2 { color: #8B5E3C; }
-        .notice ul { list-style-type: none; padding: 0; }
+        .notice h2 {
+            color: #8B5E3C;
+            cursor: pointer;
+        }
+
+        .notice h2:hover {
+            text-decoration: underline;
+        }
+
+        .notice ul { 
+            list-style-type: none; 
+            padding: 0; 
+        }
         .notice li { 
             padding: 10px 0; 
             font-size: 1em; 
@@ -150,41 +161,41 @@
 
         /* ✅ 공지사항 이미지 크기 조정 */
         .notice-image {
-            width: 120px;  
+            width: 100px;  
             height: auto;  
             border-radius: 5px;
             margin-top: 5px;
         }
 
-        /* ✅ 카드 섹션을 세로로 정렬 */
+        /* ✅ 카드 섹션 크기 조정 (세로 정렬 + 크기 줄이기) */
         .cards {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
-            max-width: 600px; /* 너비 제한 */
+            gap: 12px;
+            max-width: 500px;
             margin: auto;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .card {
             background: white;
-            padding: 15px;
+            padding: 12px;
             width: 100%;
             border-radius: 8px;
-            box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-align: center;
             transition: transform 0.2s ease-in-out;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .card h3 {
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -205,7 +216,7 @@
     </div>
 
     <div class="notice">
-        <h2>📢 공지사항</h2>
+        <h2 onclick="location.href='notices.html'">📢 공지사항</h2>
         <ul id="noticeList"></ul>
     </div>
 
