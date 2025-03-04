@@ -40,24 +40,42 @@
         }
         .delete-btn {
             background: #ff4d4d;
+            width: 100%; /* 삭제 버튼을 전체 너비로 */
+            margin-top: 10px;
         }
         .suggestion-item {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
+            flex-direction: column; /* 세로 정렬 */
+            align-items: flex-start;
+            padding: 15px;
             border-bottom: 1px solid #ddd;
+            position: relative;
+        }
+        .suggestion-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
+        .suggestion-content {
+            margin: 10px 0;
+        }
+        .suggestion-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
         .checkbox-label {
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .checkbox {
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
         }
     </style>
 </head>
@@ -141,16 +159,18 @@
                     let div = document.createElement("div");
                     div.className = "suggestion-item";
                     div.innerHTML = `
-                        <div>
+                        <div class="suggestion-header">
                             <h3>${suggestion.title}</h3>
-                            <p>${suggestion.content}</p>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="checkbox" ${suggestion.checked ? "checked" : ""} 
+                                    onchange="toggleChecked('${key}', this.checked)">
+                                ✅ 확인
+                            </label>
+                        </div>
+                        <p class="suggestion-content">${suggestion.content}</p>
+                        <div class="suggestion-footer">
                             <p>👤 <strong>${suggestion.nickname}</strong></p>
                         </div>
-                        <label class="checkbox-label">
-                            <input type="checkbox" class="checkbox" ${suggestion.checked ? "checked" : ""} 
-                                onchange="toggleChecked('${key}', this.checked)">
-                            ✅
-                        </label>
                         <button class="delete-btn" onclick="deleteSuggestion('${key}')">🗑️ 삭제</button>
                     `;
                     suggestionsList.appendChild(div);
