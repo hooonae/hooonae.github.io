@@ -4,64 +4,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전시관 업데이트</title>
+
+    <!-- ✅ 구글 폰트 및 아이콘 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            text-align: center;
-            background-color: #f8f9fa;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f4;
+            text-align: center;
             padding: 20px;
         }
+
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: auto;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .card {
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-        .section-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            padding: 0;
-            list-style: none;
-        }
-        .section-item {
-            background: #007bff;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
-            transition: 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 18px;
         }
-        .section-item:hover {
-            background: #0056b3;
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card i {
+            font-size: 40px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .card h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: #777;
+        }
+
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>전시관 업데이트</h1>
-        <ul class="section-list">
-            <li><a class="section-item" href="section.html?name=조선">조선</a></li>
-            <li><a class="section-item" href="section.html?name=일제">일제</a></li>
-            <li><a class="section-item" href="section.html?name=고려">고려</a></li>
-            <li><a class="section-item" href="section.html?name=기획">기획</a></li>
-            <li><a class="section-item" href="section.html?name=자수">자수</a></li>
-            <li><a class="section-item" href="section.html?name=보자기">보자기</a></li>
-            <li><a class="section-item" href="section.html?name=수장고">수장고</a></li>
-        </ul>
+        <h1>📌 전시관 업데이트</h1>
+        <div class="grid-container">
+            <div class="card" onclick="goToSection('조선')">
+                <i class="fas fa-landmark"></i>
+                <h3>조선</h3>
+                <p>조선,대한제국 전시 업데이트!</p>
+            </div>
+
+            <div class="card" onclick="goToSection('일제')">
+                <i class="fas fa-gavel"></i>
+                <h3>일제</h3>
+                <p>일제 전시 업데이트!</p>
+            </div>
+
+            <div class="card" onclick="goToSection('고려')">
+                <i class="fas fa-book-open"></i>
+                <h3>고려</h3>
+                <p>고대,고려 전시 업데이트!</p>
+            </div>
+
+            <div class="card" onclick="goToSection('기획')">
+                <i class="fas fa-lightbulb"></i>
+                <h3>기획</h3>
+                <p>기획 전시관 업데이트!</p>
+            </div>
+
+            <div class="card" onclick="goToSection('자수')">
+                <i class="fas fa-paint-brush"></i>
+                <h3>자수</h3>
+                <p>자수 전시 업데이트!</p>
+            </div>
+
+            <div class="card" onclick="goToSection('보자기')">
+                <i class="fas fa-gift"></i>
+                <h3>보자기</h3>
+                <p>보자기 전시 업데이트!</p>
+            </div>
+
+            <div class="card" onclick="goToSection('수장고')">
+                <i class="fas fa-archive"></i>
+                <h3>수장고</h3>
+                <p>수장고 업데이트!</p>
+            </div>
+        </div>
     </div>
+
+    <script>
+        function goToSection(section) {
+            window.location.href = `section.html?name=${encodeURIComponent(section)}`;
+        }
+    </script>
 
 </body>
 </html>
