@@ -8,14 +8,13 @@
         body {
             font-family: 'Noto Sans KR', sans-serif;
             text-align: center;
-            background-color: #f4f4f4;
+            background-color: #f8f9fa;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
         .container {
-            width: 90%;
-            max-width: 800px;
-            margin: 50px auto;
+            max-width: 900px;
+            margin: auto;
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -29,19 +28,22 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             padding: 0;
             list-style: none;
         }
-        .section-list li {
+        .section-item {
             background: #007bff;
             color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
+            padding: 15px 30px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 18px;
         }
-        .section-list li:hover {
+        .section-item:hover {
             background: #0056b3;
         }
     </style>
@@ -51,21 +53,15 @@
     <div class="container">
         <h1>전시관 업데이트</h1>
         <ul class="section-list">
-            <li onclick="goToSection('조선')">조선</li>
-            <li onclick="goToSection('일제')">일제</li>
-            <li onclick="goToSection('고려')">고려</li>
-            <li onclick="goToSection('기획')">기획</li>
-            <li onclick="goToSection('자수')">자수</li>
-            <li onclick="goToSection('보자기')">보자기</li>
-            <li onclick="goToSection('수장고')">수장고</li>
+            <li><a class="section-item" href="section.html?name=조선">조선</a></li>
+            <li><a class="section-item" href="section.html?name=일제">일제</a></li>
+            <li><a class="section-item" href="section.html?name=고려">고려</a></li>
+            <li><a class="section-item" href="section.html?name=기획">기획</a></li>
+            <li><a class="section-item" href="section.html?name=자수">자수</a></li>
+            <li><a class="section-item" href="section.html?name=보자기">보자기</a></li>
+            <li><a class="section-item" href="section.html?name=수장고">수장고</a></li>
         </ul>
     </div>
-
-    <script>
-        function goToSection(section) {
-            window.location.href = `section.html?name=${encodeURIComponent(section)}`;
-        }
-    </script>
 
 </body>
 </html>
