@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 상세보기</title>
+
+    <!-- ✅ Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <!-- ✅ 구글 폰트 및 아이콘 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .post-meta {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .post-content {
+            text-align: left;
+            font-size: 16px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .post-image {
+            max-width: 100%;
+            margin: 15px 0;
+            border-radius: 10px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .btn-edit {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #0056b3;
+        }
+
+        .comments {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .comment {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .btn-comment {
+            margin-top: 5px;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-comment:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 id="post-title">📌 게시글 제목</h1>
+        <p class="post-meta">👤 <span id="post-author"></span> | 📅 <span id="post-date"></span></p>
+        <img id="post-image" class="post-image" src="" alt="게시글 이미지" style="display: none;">
+        <p class="post-content" id="post-content"></p>
+
+        <div class="btn-container">
+            <button class="btn btn-edit" onclick="editPost()">✏ 수정</button>
+            <button class="btn btn-delete" onclick="deletePost()">🗑 삭제</button>
+        </div>
+
+        <!-- ✅ 댓글 섹션 -->
+        <div class="comments">
+            <h3>💬 댓글</h3>
+            <input type="text" id="commentInput" class="comment-input" placeholder="댓글을 입력하세요">
+            <button class="btn-comment" onclick="addComment()">등록</button>
+            <div id="commentList"></div>
+        </div>
+    </div>
+
+    <script>
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ✅ URL 파라미터에서 게시글 ID 가져오기
+        const params = new URLSearchParams(window.location.search);
+        const sectionName = params.get("name");
+        const postId = params.get("id");
+
+        // ✅ 게시글 불러오기
+        function loadPost() {
+            db.ref(`posts/${sectionName}/${postId}`).once("value", snapshot => {
+                if (!snapshot.exists()) {
+                    alert("⚠️ 게시글을 찾을 수 없습니다.");
+                    window.location.href = `section.html?name=${sectionName}`;
+                    return;
+                }
+
+                const post = snapshot.val();
+                document.getElementById("post-title").innerText = post.title;
+                document.getElementById("post-author").innerText = post.author;
+                document.getElementById("post-date").innerText = post.date;
+                document.getElementById("post-content").innerText = post.content;
+
+                if (post.imageUrl) {
+                    const imgElement = document.getElementById("post-image");
+                    imgElement.src = post.imageUrl;
+                    imgElement.style.display = "block";
+                }
+
+                loadComments();
+            });
+        }
+
+        // ✅ 게시글 삭제
+        function deletePost() {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                db.ref(`posts/${sectionName}/${postId}`).remove().then(() => {
+                    alert("🗑 게시글이 삭제되었습니다.");
+                    window.location.href = `section.html?name=${sectionName}`;
+                });
+            }
+        }
+
+        // ✅ 게시글 수정
+        function editPost() {
+            const newTitle = prompt("새로운 제목을 입력하세요:", document.getElementById("post-title").innerText);
+            if (newTitle) {
+                db.ref(`posts/${sectionName}/${postId}`).update({ title: newTitle }).then(() => {
+                    document.getElementById("post-title").innerText = newTitle;
+                    alert("✅ 게시글이 수정되었습니다.");
+                });
+            }
+        }
+
+        // ✅ 댓글 추가
+        function addComment() {
+            const commentText = document.getElementById("commentInput").value.trim();
+            if (!commentText) return alert("⚠️ 댓글을 입력하세요.");
+
+            const newCommentRef = db.ref(`comments/${postId}`).push();
+            newCommentRef.set({ text: commentText });
+
+            document.getElementById("commentInput").value = "";
+            loadComments();
+        }
+
+        // ✅ 댓글 불러오기
+        function loadComments() {
+            const commentList = document.getElementById("commentList");
+            commentList.innerHTML = "";
+
+            db.ref(`comments/${postId}`).once("value", snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const comment = childSnapshot.val();
+                    const div = document.createElement("div");
+                    div.className = "comment";
+                    div.innerText = comment.text;
+                    commentList.appendChild(div);
+                });
+            });
+        }
+
+        loadPost();
+    </script>
+
+</body>
+</html>
