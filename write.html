@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글 작성</title>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <h1>글 작성</h1>
+    <input type="text" id="title" placeholder="제목"><br>
+    <input type="text" id="author" placeholder="작성자"><br>
+    <textarea id="content" placeholder="내용"></textarea><br>
+    <input type="file" id="imageUpload">
+    <button onclick="submitPost()">작성</button>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const sectionName = params.get("name");
+
+        function submitPost() {
+            const title = document.getElementById("title").value;
+            const author = document.getElementById("author").value;
+            const content = document.getElementById("content").value;
+            const file = document.getElementById("imageUpload").files[0];
+            const date = new Date().toISOString().split("T")[0];
+
+            if (!title || !author || !content) {
+                alert("모든 항목을 입력해주세요.");
+                return;
+            }
+
+            if (file) {
+                uploadImageToCloudinary(file, (imageUrl) => {
+                    savePost(title, author, content, date, imageUrl);
+                });
+            } else {
+                savePost(title, author, content, date, "");
+            }
+        }
+
+        function uploadImageToCloudinary(file, callback) {
+            const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_NAME/image/upload";
+            const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+            fetch(CLOUDINARY_URL, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                callback(data.secure_url);
+            })
+            .catch(error => {
+                console.error("이미지 업로드 실패:", error);
+            });
+        }
+
+        function savePost(title, author, content, date, imageUrl) {
+            const newPostRef = firebase.database().ref(`posts/${sectionName}`).push();
+            newPostRef.set({ title, author, content, date, imageUrl });
+
+            alert("글이 성공적으로 저장되었습니다.");
+            window.location.href = `section.html?name=${sectionName}`;
+        }
+    </script>
+
+</body>
+</html>
