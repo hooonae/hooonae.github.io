@@ -4,14 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>게시판</title>
+
+    <!-- ✅ 구글 폰트 및 아이콘 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Noto Sans KR', sans-serif;
-            text-align: center;
-            background-color: #f8f9fa;
         }
+
+        body {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+        }
+
         .container {
             max-width: 900px;
             margin: auto;
@@ -20,9 +35,27 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
+            font-size: 24px;
             color: #333;
+            margin-bottom: 20px;
         }
+
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .search-bar input {
+            width: 80%;
+            max-width: 500px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
         .write-btn {
             background: #28a745;
             color: white;
@@ -34,27 +67,64 @@
             display: inline-block;
             margin-bottom: 20px;
         }
+
         .write-btn:hover {
             background: #218838;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
         }
-        th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
+
+        .post-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .post-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .post-content {
             text-align: left;
         }
-        th {
-            background: #f1f1f1;
-        }
-        a {
+
+        .post-title {
+            font-size: 18px;
+            font-weight: bold;
             color: #007bff;
-            text-decoration: none;
         }
-        a:hover {
-            text-decoration: underline;
+
+        .post-meta {
+            font-size: 14px;
+            color: #777;
+        }
+
+        .post-icon {
+            font-size: 24px;
+            color: #007bff;
+        }
+
+        @media (max-width: 600px) {
+            .post-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .post-icon {
+                align-self: flex-end;
+            }
         }
     </style>
 </head>
@@ -62,50 +132,76 @@
 
     <div class="container">
         <h1 id="section-title"></h1>
-        <a class="write-btn" href="#">글 작성</a>
+        <a class="write-btn" href="#">✏ 글 작성</a>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>작성자</th>
-                    <th>제목</th>
-                    <th>날짜</th>
-                </tr>
-            </thead>
-            <tbody id="post-list"></tbody>
-        </table>
+        <!-- ✅ 검색 기능 추가 -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍 제목 검색">
+        </div>
+
+        <div class="post-list" id="post-list">
+            <!-- 게시글 목록이 여기에 추가됨 -->
+        </div>
     </div>
 
     <script>
+        // ✅ Firebase 설정
         const firebaseConfig = {
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // ✅ URL 파라미터에서 섹션 이름 가져오기
         const params = new URLSearchParams(window.location.search);
         const sectionName = params.get("name");
         document.getElementById("section-title").innerText = sectionName + " 게시판";
         document.querySelector(".write-btn").href = `write.html?name=${sectionName}`;
 
+        // ✅ 게시글 로드 함수
         function loadPosts() {
+            const postList = document.getElementById("post-list");
+            postList.innerHTML = "<p>📡 게시글을 불러오는 중...</p>";
+
             db.ref(`posts/${sectionName}`).once("value", snapshot => {
-                const postList = document.getElementById("post-list");
                 postList.innerHTML = "";
+
+                if (!snapshot.exists()) {
+                    postList.innerHTML = "<p>📝 게시글이 없습니다. 글을 작성해보세요!</p>";
+                    return;
+                }
 
                 snapshot.forEach(childSnapshot => {
                     const post = childSnapshot.val();
-                    const row = document.createElement("tr");
-
-                    row.innerHTML = `
-                        <td>${post.author}</td>
-                        <td><a href="post.html?id=${childSnapshot.key}&name=${sectionName}">${post.title}</a></td>
-                        <td>${post.date}</td>
+                    const postCard = document.createElement("div");
+                    postCard.className = "post-card";
+                    postCard.innerHTML = `
+                        <div class="post-content">
+                            <div class="post-title">${post.title}</div>
+                            <div class="post-meta">👤 ${post.author} | 📅 ${post.date}</div>
+                        </div>
+                        <div class="post-icon">➡</div>
                     `;
-                    postList.appendChild(row);
+
+                    postCard.onclick = () => {
+                        window.location.href = `post.html?id=${childSnapshot.key}&name=${sectionName}`;
+                    };
+
+                    postList.appendChild(postCard);
                 });
             });
         }
+
+        // ✅ 검색 기능 추가
+        document.getElementById("searchInput").addEventListener("keyup", function () {
+            let filter = this.value.toLowerCase();
+            let postCards = document.querySelectorAll(".post-card");
+
+            postCards.forEach(card => {
+                let title = card.querySelector(".post-title").textContent.toLowerCase();
+                card.style.display = title.includes(filter) ? "flex" : "none";
+            });
+        });
 
         loadPosts();
     </script>
