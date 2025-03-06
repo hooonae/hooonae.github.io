@@ -53,6 +53,7 @@
             font-size: 16px;
             color: #333;
             line-height: 1.6;
+            white-space: pre-line;
         }
 
         .post-image {
@@ -104,6 +105,25 @@
             padding: 10px;
             border-radius: 5px;
             margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comment-text {
+            flex-grow: 1;
+        }
+
+        .comment-delete {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .comment-delete:hover {
+            color: #c82333;
         }
 
         .comment-input {
@@ -166,6 +186,12 @@
         const sectionName = params.get("name");
         const postId = params.get("id");
 
+        // ✅ 날짜 변환 함수
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toISOString().replace("T", " ").substring(0, 19);
+        }
+
         // ✅ 게시글 불러오기
         function loadPost() {
             db.ref(`posts/${sectionName}/${postId}`).once("value", snapshot => {
@@ -178,7 +204,7 @@
                 const post = snapshot.val();
                 document.getElementById("post-title").innerText = post.title;
                 document.getElementById("post-author").innerText = post.author;
-                document.getElementById("post-date").innerText = post.date;
+                document.getElementById("post-date").innerText = formatDate(post.date);
                 document.getElementById("post-content").innerText = post.content;
 
                 if (post.imageUrl) {
@@ -204,9 +230,15 @@
         // ✅ 게시글 수정
         function editPost() {
             const newTitle = prompt("새로운 제목을 입력하세요:", document.getElementById("post-title").innerText);
-            if (newTitle) {
-                db.ref(`posts/${sectionName}/${postId}`).update({ title: newTitle }).then(() => {
+            const newContent = prompt("새로운 내용을 입력하세요:", document.getElementById("post-content").innerText);
+
+            if (newTitle && newContent) {
+                db.ref(`posts/${sectionName}/${postId}`).update({ 
+                    title: newTitle,
+                    content: newContent
+                }).then(() => {
                     document.getElementById("post-title").innerText = newTitle;
+                    document.getElementById("post-content").innerText = newContent;
                     alert("✅ 게시글이 수정되었습니다.");
                 });
             }
@@ -224,7 +256,7 @@
             loadComments();
         }
 
-        // ✅ 댓글 불러오기
+        // ✅ 댓글 불러오기 및 삭제 추가
         function loadComments() {
             const commentList = document.getElementById("commentList");
             commentList.innerHTML = "";
@@ -234,10 +266,17 @@
                     const comment = childSnapshot.val();
                     const div = document.createElement("div");
                     div.className = "comment";
-                    div.innerText = comment.text;
+                    div.innerHTML = `<span class="comment-text">${comment.text}</span> 
+                                     <button class="comment-delete" onclick="deleteComment('${childSnapshot.key}')">❌</button>`;
                     commentList.appendChild(div);
                 });
             });
+        }
+
+        // ✅ 댓글 삭제
+        function deleteComment(commentId) {
+            db.ref(`comments/${postId}/${commentId}`).remove();
+            loadComments();
         }
 
         loadPost();
