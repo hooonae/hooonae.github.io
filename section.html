@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판</title>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <h1 id="section-title"></h1>
+    <button onclick="location.href='write.html?name=' + sectionName">글 작성</button>
+    
+    <table border="1">
+        <thead>
+            <tr>
+                <th>작성자</th>
+                <th>제목</th>
+                <th>날짜</th>
+            </tr>
+        </thead>
+        <tbody id="post-list"></tbody>
+    </table>
+
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const params = new URLSearchParams(window.location.search);
+        const sectionName = params.get("name");
+        document.getElementById("section-title").innerText = sectionName + " 게시판";
+
+        function loadPosts() {
+            db.ref(`posts/${sectionName}`).once("value", snapshot => {
+                const postList = document.getElementById("post-list");
+                postList.innerHTML = "";
+
+                snapshot.forEach(childSnapshot => {
+                    const post = childSnapshot.val();
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${post.author}</td>
+                        <td><a href="post.html?id=${childSnapshot.key}&name=${sectionName}">${post.title}</a></td>
+                        <td>${post.date}</td>
+                    `;
+                    postList.appendChild(row);
+                });
+            });
+        }
+        loadPosts();
+    </script>
+
+</body>
+</html>
