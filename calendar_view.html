@@ -108,9 +108,12 @@
         document.addEventListener("DOMContentLoaded", function () {
             let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
             selectedMonth = parseInt(selectedMonth); // 정수 변환
-            document.getElementById("month-title").textContent = `${selectedMonth}월 일정`;
 
-            console.log("✅ 선택한 월:", selectedMonth);
+            function updateMonthTitle(month) {
+                document.getElementById("month-title").textContent = `${month}월 일정`;
+            }
+
+            updateMonthTitle(selectedMonth); // ✅ 초기 월 제목 설정
 
             var calendarEl = document.getElementById("calendar");
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -119,7 +122,18 @@
                 editable: true,
                 selectable: true,
                 contentHeight: "auto",
-                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1), // 선택한 월로 캘린더 이동
+                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1), // ✅ 선택한 월로 초기 설정
+
+                // ✅ 월이 변경될 때 실행 (날짜 이동 감지)
+                datesSet: function(info) {
+                    let newMonth = info.view.currentStart.getMonth() + 1;
+                    if (newMonth !== selectedMonth) {
+                        selectedMonth = newMonth;
+                        localStorage.setItem("selectedMonth", selectedMonth);
+                        updateMonthTitle(selectedMonth); // ✅ 상단 월 제목 업데이트
+                        loadEvents(calendar, selectedMonth); // ✅ 새로운 월의 일정 불러오기
+                    }
+                },
 
                 // ✅ 일정 삭제 이벤트
                 eventClick: function(info) {
@@ -130,7 +144,7 @@
             });
 
             calendar.render();
-            loadEvents(calendar, selectedMonth); // ✅ 선택한 월의 일정 불러오기 실행
+            loadEvents(calendar, selectedMonth); // ✅ 초기 일정 불러오기
 
             let clickTimeout = null; // 🔥 더블클릭 감지용
 
@@ -167,7 +181,7 @@
                     color: color
                 });
 
-                loadEvents(calendar, selectedMonth); // ✅ 일정 추가 후 즉시 반영
+                loadEvents(calendar, selectedMonth);
             }
 
             function loadEvents(calendar, month) {
@@ -200,18 +214,6 @@
                     calendar.removeAllEvents();
                     calendar.addEventSource(events);
                 });
-            }
-
-            async function deleteEvent(calendar, event) {
-                let dateParts = event.startStr.split("-");
-                let year = dateParts[0];
-                let month = dateParts[1];
-                let day = dateParts[2];
-
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                console.log("🗑️ 삭제 완료:", event.id);
-
-                loadEvents(calendar, selectedMonth); // ✅ 삭제 후 일정 다시 불러오기
             }
         });
     </script>
