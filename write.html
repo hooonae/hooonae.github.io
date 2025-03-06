@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <!-- ✅ 구글 폰트 및 스타일 -->
+    <!-- ✅ 구글 폰트 및 아이콘 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
@@ -118,14 +118,21 @@
             formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
             try {
+                console.log("🚀 Cloudinary 업로드 시작...");
+                
                 const response = await fetch(CLOUDINARY_URL, {
                     method: "POST",
                     body: formData
                 });
+
+                console.log("✅ Cloudinary 응답 수신!", response);
+
                 const data = await response.json();
-                return data.secure_url;
+                console.log("📸 업로드된 이미지 URL:", data.secure_url);
+
+                return data.secure_url;  // 이미지 URL 반환
             } catch (error) {
-                console.error("❌ 이미지 업로드 실패:", error);
+                console.error("❌ Cloudinary 업로드 실패:", error);
                 return "";
             }
         }
@@ -146,10 +153,14 @@
             let imageUrl = "";
             if (imageFile) {
                 imageUrl = await uploadToCloudinary(imageFile);
+                console.log("✅ 업로드 완료된 이미지 URL:", imageUrl);
             }
 
             const sectionName = new URLSearchParams(window.location.search).get("name");
             const newPostRef = db.ref(`posts/${sectionName}`).push();
+            
+            console.log("🚀 Firebase 데이터 저장 시작...");
+            
             await newPostRef.set({
                 title,
                 author,
@@ -158,6 +169,8 @@
                 imageUrl
             });
 
+            console.log("✅ Firebase 저장 완료!");
+            
             alert("✅ 글이 성공적으로 등록되었습니다!");
             window.location.href = `section.html?name=${sectionName}`;
         }
