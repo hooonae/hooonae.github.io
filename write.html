@@ -4,21 +4,162 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>글 작성</title>
+
+    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <!-- ✅ 구글 폰트 및 스타일 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        textarea {
+            height: 150px;
+            resize: none;
+        }
+
+        .file-upload {
+            margin: 10px 0;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .loading {
+            display: none;
+            font-size: 16px;
+            color: #007bff;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>글 작성</h1>
-    <input type="text" id="title" placeholder="제목"><br>
-    <input type="text" id="author" placeholder="작성자"><br>
-    <textarea id="content" placeholder="내용"></textarea><br>
-    <input type="file" id="imageUpload">
-    <button onclick="submitPost()">작성</button>
+    <div class="container">
+        <h1>✏ 글 작성</h1>
+        <input type="text" id="title" placeholder="제목">
+        <input type="text" id="author" placeholder="작성자">
+        <textarea id="content" placeholder="내용"></textarea>
+
+        <!-- ✅ 이미지 업로드 -->
+        <input type="file" id="imageUpload" class="file-upload">
+
+        <!-- ✅ 로딩 표시 -->
+        <p class="loading" id="loading">⏳ 업로드 중...</p>
+
+        <button class="btn" onclick="submitPost()">글 작성 완료</button>
+    </div>
 
     <script>
-        function submitPost() {
-            alert("글 작성 기능 추가 필요!");
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ✅ Cloudinary 설정
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(CLOUDINARY_URL, {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error("❌ 이미지 업로드 실패:", error);
+                return "";
+            }
+        }
+
+        async function submitPost() {
+            const title = document.getElementById("title").value.trim();
+            const author = document.getElementById("author").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const imageFile = document.getElementById("imageUpload").files[0];
+
+            if (!title || !author || !content) {
+                alert("⚠️ 모든 항목을 입력하세요.");
+                return;
+            }
+
+            document.getElementById("loading").style.display = "block";
+
+            let imageUrl = "";
+            if (imageFile) {
+                imageUrl = await uploadToCloudinary(imageFile);
+            }
+
+            const sectionName = new URLSearchParams(window.location.search).get("name");
+            const newPostRef = db.ref(`posts/${sectionName}`).push();
+            await newPostRef.set({
+                title,
+                author,
+                content,
+                date: new Date().toLocaleDateString(),
+                imageUrl
+            });
+
+            alert("✅ 글이 성공적으로 등록되었습니다!");
+            window.location.href = `section.html?name=${sectionName}`;
         }
     </script>
 
