@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전시관 업데이트</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .section-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 0;
+            list-style: none;
+        }
+        .section-list li {
+            background: #007bff;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .section-list li:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>전시관 업데이트</h1>
+        <ul class="section-list">
+            <li onclick="goToSection('조선')">조선</li>
+            <li onclick="goToSection('일제')">일제</li>
+            <li onclick="goToSection('고려')">고려</li>
+            <li onclick="goToSection('기획')">기획</li>
+            <li onclick="goToSection('자수')">자수</li>
+            <li onclick="goToSection('보자기')">보자기</li>
+            <li onclick="goToSection('수장고')">수장고</li>
+        </ul>
+    </div>
+
+    <script>
+        function goToSection(section) {
+            window.location.href = `section.html?name=${encodeURIComponent(section)}`;
+        }
+    </script>
+
+</body>
+</html>
