@@ -122,20 +122,20 @@
                 editable: true,
                 selectable: true,
                 contentHeight: "auto",
-                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1), // ✅ 선택한 월로 초기 설정
+                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1),
 
-                // ✅ 월이 변경될 때 실행 (날짜 이동 감지)
+                // ✅ 월이 변경될 때 실행
                 datesSet: function(info) {
                     let newMonth = info.view.currentStart.getMonth() + 1;
                     if (newMonth !== selectedMonth) {
                         selectedMonth = newMonth;
                         localStorage.setItem("selectedMonth", selectedMonth);
-                        updateMonthTitle(selectedMonth); // ✅ 상단 월 제목 업데이트
-                        loadEvents(calendar, selectedMonth); // ✅ 새로운 월의 일정 불러오기
+                        updateMonthTitle(selectedMonth);
+                        loadEvents(calendar, selectedMonth);
                     }
                 },
 
-                // ✅ 일정 삭제 이벤트
+                // ✅ 일정 삭제 이벤트 (복구)
                 eventClick: function(info) {
                     if (confirm("일정을 삭제하시겠습니까?")) {
                         deleteEvent(calendar, info.event);
@@ -144,22 +144,21 @@
             });
 
             calendar.render();
-            loadEvents(calendar, selectedMonth); // ✅ 초기 일정 불러오기
+            loadEvents(calendar, selectedMonth); 
 
-            let clickTimeout = null; // 🔥 더블클릭 감지용
+            let clickTimeout = null;
 
             calendar.on("dateClick", function(info) {
                 if (clickTimeout !== null) {
                     clearTimeout(clickTimeout);
                     clickTimeout = null;
-                    // ✅ 더블클릭 시 일정 추가
                     let name = prompt("일정 이름을 입력하세요:");
                     if (name) {
                         addEvent(calendar, info.date, name, selectedColor);
                     }
                 } else {
                     clickTimeout = setTimeout(() => {
-                        clickTimeout = null; // 단일 클릭 무시
+                        clickTimeout = null;
                     }, 300);
                 }
             });
@@ -214,6 +213,13 @@
                     calendar.removeAllEvents();
                     calendar.addEventSource(events);
                 });
+            }
+
+            async function deleteEvent(calendar, event) {
+                let [year, month, day] = event.startStr.split("-");
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                console.log("🗑️ 삭제 완료:", event.id);
+                loadEvents(calendar, selectedMonth);
             }
         });
     </script>
