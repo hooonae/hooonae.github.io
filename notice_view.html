@@ -1,128 +1,105 @@
+<!-- notice_view.html 완벽 수정 코드 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📢 공지사항 상세 보기</title>
-
-    <!-- Firebase SDK -->
+    <title>공지사항 보기</title>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            text-align: center;
-            background: #F8F1E9;
-            margin: 0;
-            padding: 20px;
-        }
+        body { font-family: 'Noto Sans KR'; background: #F8F1E9; padding: 20px; }
         .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px; margin: auto; padding: 20px; background: white; border-radius: 10px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: left;
         }
-        h1 { font-size: 2em; }
-        p { color: #555; }
-        img {
-            max-width: 100%;
-            height: auto;
-            margin-top: 10px;
-            border-radius: 10px;
-            display: none;
-        }
-        button {
-            padding: 10px;
-            margin: 5px;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .delete-btn { background: #ff4d4d; }
-        .edit-btn { background: #3498db; }
+        img { max-width: 100%; display: none; margin: 10px 0; border-radius: 10px; }
+        button { padding: 10px; border-radius: 5px; color: white; cursor: pointer; }
+        .delete-btn { background: #dc3545; }
+        .edit-btn { background: #007bff; }
         .back-btn { background: #555; }
     </style>
 </head>
 <body>
 
-<h1>📢 공지사항 상세 보기</h1>
-
 <div class="container">
-    <h2 id="title"></h2>
+    <h1 id="title"></h1>
     <p id="date"></p>
-    <img id="image" alt="공지 이미지">
+    <img id="image" src="">
     <p id="content"></p>
-    <button class="back-btn" onclick="location.href='notices.html'">⬅ 목록으로</button>
-    <button class="edit-btn" onclick="goToEdit()">✏️ 수정</button>
-    <button class="delete-btn" onclick="deleteNotice()">🗑️ 삭제</button>
+
+    <button class="edit-btn" onclick="editNotice()">✏ 수정</button>
+    <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
+    <button class="delete-btn" onclick="deleteNotice()">🗑 삭제</button>
 </div>
 
 <script>
-    // Firebase 설정 (기존 코드에서 유지)
-    const firebaseConfig = {
-        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-        authDomain: "museum-web-370cd.firebaseapp.com",
-        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-        projectId: "museum-web-370cd",
-        storageBucket: "museum-web-370cd.appspot.com",
-        messagingSenderId: "154810876093",
-        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+const firebaseConfig = {
+    apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+    authDomain: "museum-web-370cd.firebaseapp.com",
+    databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+    projectId: "museum-web-370cd",
+    storageBucket: "museum-web-370cd.appspot.com",
+    messagingSenderId: "154810876093",
+    appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+};
 
-    const params = new URLSearchParams(window.location.search);
-    const noticeId = params.get("id");
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
+const noticeId = new URLSearchParams(window.location.search).get("id");
+
+function formatDate(isoDate) {
+    const date = new Date(isoDate);
+    return date.getFullYear() + "-" + (date.getMonth()+1).toString().padStart(2,'0') + "-" + date.getDate().toString().padStart(2,'0');
+}
+
+function loadNotice() {
     if (!noticeId) {
-        alert("공지사항 ID가 없습니다.");
+        alert("잘못된 접근입니다.");
         location.href = "notices.html";
+        return;
     }
 
-    // 날짜 변환 함수
-    function formatDate(isoString) {
-        const date = new Date(isoString);
-        return `${date.getFullYear()}-${('0'+(date.getMonth()+1)).slice(-2)}-${('0'+date.getDate()).slice(-2)} ${('0'+date.getHours()).slice(-2)}:${('0'+date.getMinutes()).slice(-2)}`;
-    }
-
-    // 공지사항 불러오기
-    function loadNotice() {
-        db.ref(`notices/${params.get('id')}`).once("value").then(snapshot => {
-            if (!snapshot.exists()) {
-                alert("공지사항이 없습니다.");
-                window.location.href = "notices.html";
-                return;
-            }
-
+    db.ref("notices/" + noticeId).once("value").then((snapshot) => {
+        if (snapshot.exists()) {
             const notice = snapshot.val();
-            document.getElementById("title").textContent = notice.title;
-            document.getElementById("date").textContent = `작성일: ${formatDate(notice.date)}`;
-            document.getElementById("content").textContent = notice.content;
-
-            if (notice.imageUrl) {
-                const imgEl = document.querySelector("img#image");
-                imgElement.src = notice.imageUrl;
-                imgElement.style.display = "block";
-            }
-        });
-
-    function deleteNotice() {
-        if (confirm("정말 삭제하시겠습니까?")) {
-            db.ref(`notices/${params.get("id")}`).remove().then(() => {
-                alert("🗑️ 삭제 완료!");
-                window.location.href = "notices.html";
-            }).catch(error => alert("삭제 실패: " + error.message));
+            document.getElementById("title").innerText = notice.title;
+            document.getElementById("date").innerText = formatDate(notice.date);
+            document.getElementById("image").src = notice.imageUrl || "";
+            document.getElementById("image").style.display = notice.imageUrl ? "block" : "none";
+            document.getElementById("content").innerText = notice.content;
+        } else {
+            alert("공지사항이 없습니다.");
+            location.href = "notices.html";
         }
+    });
+}
+
+function deleteNotice() {
+    if (confirm("정말 삭제하시겠습니까?")) {
+        db.ref("notices/" + noticeId).remove().then(() => {
+            alert("삭제되었습니다.");
+            location.href = "notices.html";
+        });
     }
+}
 
-    function goToEdit() {
-        window.location.href = `notice_form.html?id=${params.get("id")}`;
-    }
+function editNotice() {
+    location.href = `notice_form.html?id=${noticeId}`;
+}
 
-    document.querySelector(".back-btn").onclick = () => window.location.href = "notices.html";
+document.querySelector(".edit-btn").onclick = () => {
+    location.href = `notice_form.html?id=${noticeId}`;
+};
 
-    loadNotice();
+document.querySelector(".back-btn").onclick = () => {
+    location.href = "notices.html";
+};
+
+// ✅ loadNotice 함수 실행
+document.addEventListener("DOMContentLoaded", loadNotice);
 </script>
 
 </body>
