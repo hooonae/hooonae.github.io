@@ -8,8 +8,8 @@
 
     <!-- ✅ Firebase SDK -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         // ✅ Firebase 초기화
         const firebaseConfig = {
@@ -29,11 +29,6 @@
         function formatDate(isoString) {
             const date = new Date(isoString);
             return date.toISOString().slice(0, 16).replace("T", " ");
-        }
-
-        // ✅ 글 내용 일부만 표시
-        function shortenContent(content) {
-            return content.length > 50 ? content.slice(0, 50) + "..." : content;
         }
 
         // ✅ 공지사항 목록 로드
@@ -74,10 +69,16 @@
             });
         }
 
-        window.viewNotice = function (id) {
+        // ✅ 특정 공지사항 보기
+        function viewNotice(id) {
             location.href = `notice_view.html?id=${id}`;
-        };
+        }
 
+        // ✅ 전역 등록 (에러 해결)
+        window.loadNotices = loadNotices;
+        window.viewNotice = viewNotice;
+
+        // ✅ 페이지 로드 시 자동 실행
         window.addEventListener("DOMContentLoaded", loadNotices);
     </script>
 
@@ -150,11 +151,6 @@
         <button onclick="location.href='notice_form.html'">➕ 공지사항 작성</button>
         <button class="btn-secondary" onclick="location.href='index.html'">🏠 홈으로</button>
     </div>
-
-    <script type="module">
-        // 페이지 로드 시 공지사항 불러오기
-        loadNotices();
-    </script>
 </body>
 
 </html>
