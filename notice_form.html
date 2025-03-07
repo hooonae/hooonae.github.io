@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📢 공지사항 작성 및 수정</title>
+    <title>📢 공지사항 작성/수정</title>
 
-    <!-- Firebase SDK -->
+    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
-    <!-- Cloudinary 업로드 -->
-    <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 
     <style>
         body {
@@ -21,7 +17,6 @@
             margin: 0;
             padding: 20px;
         }
-
         .container {
             max-width: 600px;
             margin: 20px auto;
@@ -30,16 +25,13 @@
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        input,
-        textarea {
+        input, textarea {
             width: 90%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-
         button {
             background: #8B5E3C;
             color: white;
@@ -48,167 +40,127 @@
             border-radius: 5px;
             cursor: pointer;
             margin: 5px;
+            font-size: 16px;
         }
-
-        .back-btn {
-            background: #555;
-        }
-
-        #imagePreview {
-            max-width: 100%;
-            margin-top: 10px;
-            border-radius: 10px;
-            display: none;
-        }
+        .back-btn { background: #555; }
+        .delete-img-btn { background: #dc3545; }
+        img { max-width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
     </style>
 </head>
-
 <body>
 
-    <h1 id="formTitle">📢 공지사항 작성</h1>
+<h1>✏ 공지사항 작성 및 수정</h1>
 
-    <div class="container">
-        <input type="text" id="title" placeholder="공지 제목">
-        <textarea id="content" placeholder="공지 내용을 입력하세요"></textarea>
-        <input type="file" id="imageUpload" accept="image/*">
-        <img id="imagePreview" src="">
-        <button onclick="submitNotice()">✅ 등록하기</button>
-        <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
-    </div>
+<div class="container">
+    <input type="text" id="title" placeholder="공지 제목">
+    <textarea id="content" placeholder="공지 내용을 입력하세요"></textarea>
+    <input type="file" id="image" accept="image/*">
+    <img id="imagePreview">
+    <button class="delete-img-btn" onclick="deleteImage()">이미지 삭제</button>
+    <button onclick="submitNotice()">✅ 등록하기</button>
+    <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
+</div>
 
-    <!-- Firebase 초기화 -->
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+    authDomain: "museum-web-370cd.firebaseapp.com",
+    databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+    projectId: "museum-web-370cd",
+    storageBucket: "museum-web-370cd.appspot.com",
+    messagingSenderId: "154810876093",
+    appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+};
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+let noticeId = new URLSearchParams(location.search).get("id");
+let existingImageUrl = "";
+
+if (noticeId) loadNoticeForEdit(noticeId);
+
+function loadNoticeData(noticeId) {
+    db.ref(`notices/${noticeId}`).once('value').then(snapshot => {
+        const notice = snapshot.val();
+        document.getElementById("title").value = notice.title;
+        document.getElementById("content").value = notice.content;
+
+        if (notice.imageUrl) {
+            imageUrl = notice.imageUrl;
+            document.getElementById("imagePreview").src = notice.imageUrl;
+            document.getElementById("imagePreview").style.display = "block";
         }
-        const db = firebase.database();
+    });
+}
 
-        // URL에서 noticeId 가져오기
-        const params = new URLSearchParams(window.location.search);
-        const noticeId = params.get("id");
-        let existingImageUrl = "";
+let params = new URLSearchParams(location.search);
+let noticeId = params.get("id");
+let existingImageUrl = "";
 
-        if (noticeId) {
-            document.getElementById("formTitle").innerText = "✏ 공지사항 수정";
-            loadNoticeData(noticeId);
-        }
+if (noticeId) loadNoticeData(noticeId);
 
-        // 기존 공지사항 데이터 로드
-        function loadNoticeData(id) {
-            db.ref(`notices/${id}`).once("value").then(snapshot => {
-                const notice = snapshot.val();
-                if (notice) {
-                    document.getElementById("title").value = notice.title;
-                    document.getElementById("content").value = notice.content;
-                    if (notice.imageUrl) {
-                        existingImageUrl = notice.imageUrl;
-                        document.getElementById("imagePreview").src = notice.imageUrl;
-                        document.getElementById("imagePreview").style.display = "block";
-                    }
-                } else {
-                    alert("해당 공지사항이 없습니다.");
-                    window.location.href = "notices.html";
-                }
-            });
-        }
+function submitNotice() {
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+    const file = document.getElementById("image").files[0];
 
-        // Cloudinary 이미지 업로드
-        async function uploadToCloudinary(file) {
-            const cloudName = "dddmgnzlu";
-            const uploadPreset = "firebase_uploads";
+    if (!title || !content) {
+        alert("⚠️ 제목과 내용을 입력하세요.");
+        return;
+    }
 
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", uploadPreset);
+    if (file) {
+        uploadToCloudinary(file).then(url => {
+            saveNotice({ title, content, imageUrl: url });
+        }).catch(error => {
+            console.error("❌ 이미지 업로드 실패:", error);
+            alert("이미지 업로드 중 오류가 발생했습니다.");
+        });
+    } else {
+        saveNotice({ title, content, imageUrl: existingImageUrl });
+    }
+}
 
-            try {
-                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-                    method: "POST",
-                    body: formData
-                });
-                const data = await response.json();
-                return data.secure_url;
-            } catch (error) {
-                console.error("이미지 업로드 실패:", error);
-                return "";
-            }
-        }
+function uploadToCloudinary(file) {
+    const cloudName = "dddmgnzlu";
+    const uploadPreset = "firebase_uploads";
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-        // 공지사항 등록 및 수정
-        async function submitNotice() {
-            const title = document.getElementById("title").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const fileInput = document.getElementById("imageUpload");
-            const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
 
-            if (!title || !content) {
-                alert("⚠️ 제목과 내용을 입력하세요.");
-                return;
-            }
+    return fetch(url, { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => data.secure_url);
+}
 
-            let imageUrl = "";
-            if (file) {
-                imageUrl = await uploadToCloudinary(file);
-            } else if (noticeId && existingImageUrl) {
-                imageUrl = existingImageUrl;
-            }
+function saveNotice(noticeData) {
+    noticeData.date = new Date().toISOString();
 
-            const noticeData = {
-                title,
-                content,
-                imageUrl,
-                date: new Date().toISOString()
-            };
+    if (noticeId) {
+        db.ref(`notices/${noticeId}`).update(noticeData).then(() => {
+            alert("✅ 공지사항이 수정되었습니다!");
+            location.href = `notice_view.html?id=${noticeId}`;
+        });
+    } else {
+        db.ref("notices").push(noticeData).then(() => {
+            alert("✅ 공지사항이 등록되었습니다!");
+            window.location.href = "notices.html";
+        });
+    }
+}
 
-            if (noticeId) {
-                // 수정
-                db.ref(`notices/${noticeId}`).update(noticeData).then(() => {
-                    alert("✅ 공지사항이 수정되었습니다!");
-                    window.location.href = `notice_view.html?id=${noticeId}`;
-                });
-            } else {
-                // 신규 작성
-                db.ref("notices").push(noticeData).then(() => {
-                    alert("✅ 공지사항이 등록되었습니다!");
-                    window.location.href = "notices.html";
-                });
-            }
-        }
+function deleteImage() {
+    existingImageUrl = "";
+    document.getElementById("imagePreview").src = "";
+    document.getElementById("imagePreview").style.display = "none";
+}
 
-        // 데이터 객체 구성
-        function submitNotice() {
-            const noticeData = {
-                title: document.getElementById("title").value,
-                content: document.getElementById("content").value,
-                imageUrl: existingImageUrl || "",
-                date: new Date().toISOString()
-            };
-            submitNotice(noticeData);
-        }
+</script>
 
-        function submitNotice(noticeData) {
-            if (noticeId) {
-                db.ref(`notices/${noticeId}`).update(noticeData).then(() => {
-                    alert("공지사항이 수정되었습니다!");
-                    window.location.href = "notices.html";
-                });
-            } else {
-                db.ref("notices").push(noticeData).then(() => {
-                    alert("공지사항이 등록되었습니다!");
-                    window.location.href = "notices.html";
-                });
-            }
-        }
-    </script>
 </body>
 </html>
