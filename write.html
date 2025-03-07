@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>✏ 글 작성 및 수정</title>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
-        input, textarea { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { padding: 8px 12px; cursor: pointer; border-radius: 5px; margin: 5px; }
-        img { max-width: 100%; margin: 10px 0; border-radius: 10px; display: none; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #F8F1E9; padding: 20px; text-align:center; }
+        .container { max-width: 600px; margin:auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        input, textarea { width: 90%; padding: 10px; margin: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        button { padding:10px; margin:5px; cursor: pointer; border:none; border-radius:5px; background:#007bff; color:white; }
+        button:hover { opacity:0.9; }
+        img {max-width: 100%; display:none; margin: 10px 0; border-radius:10px;}
     </style>
 </head>
 <body>
@@ -18,13 +19,13 @@
     <h1 id="form-title">✏ 글 작성</h1>
     <input type="text" id="title" placeholder="제목">
     <input type="text" id="author" placeholder="작성자">
-    <textarea id="content" placeholder="내용"></textarea>
-    <input type="file" id="imageUpload" accept="image/*">
-    <img id="existing-image" src="" alt="기존 이미지" style="display:none;">
-    <button id="deleteImageBtn" style="display:none;" onclick="deleteImage()">🗑 이미지 삭제</button>
-    <button id="submitBtn">✅ 저장하기</button>
-    <button onclick="location.href=`section.html?name=${sectionName}`">⬅ 목록으로</button>
+    <textarea id="content" placeholder="내용을 입력하세요"></textarea>
+    <input type="file" id="imageUpload">
+    <img id="existingImage" src="">
+    <button id="removeImageBtn" style="display:none;background:#dc3545;color:white;" onclick="removeImage()">🗑 이미지 삭제</button>
     <p id="loading" style="display:none;">⏳ 업로드 중...</p>
+    <button id="submitBtn">✅ 저장</button>
+    <button onclick="location.href='section.html?name='+sectionName">⬅ 목록으로</button>
 </div>
 
 <!-- Firebase SDK -->
@@ -49,24 +50,24 @@
     const postId = params.get("id");
     let existingImageUrl = "";
 
-    document.getElementById("submitBtn").onclick = submitPost;
-
-    if (postId) {
+    if(postId){
         document.getElementById("form-title").innerText = "✏ 글 수정";
-        db.ref(`posts/${sectionName}/${postId}`).once("value", snap => {
+        db.ref(`posts/${sectionName}/${postId}`).once("value", snap=>{
             const post = snap.val();
-            document.getElementById("title").value = post.title;
-            document.getElementById("author").value = post.author;
-            document.getElementById("content").value = post.content;
+            document.getElementById("title").value=post.title;
+            document.getElementById("author").value=post.author;
+            document.getElementById("content").value=post.content;
+            
             if(post.imageUrl){
-                existingImageUrl = post.imageUrl;
-                const img = document.getElementById("existingImage");
-                img.src = post.imageUrl;
-                img.style.display = "block";
-                document.getElementById("existingImage").style.display = "block";
+                existingImageUrl=post.imageUrl;
+                document.getElementById("post-image").src=post.imageUrl;
+                document.getElementById("post-image").style.display="block";
+                document.getElementById("removeImageBtn").style.display="inline-block";
             }
         });
     }
+
+    let existingImageUrl = "";
 
     async function submitPost(){
         const title=document.getElementById("title").value.trim();
@@ -74,39 +75,44 @@
         const content=document.getElementById("content").value.trim();
         const file=document.getElementById("imageUpload").files[0];
 
-        if(!title||!author||!content)return alert("모든 필드를 입력하세요.");
+        if(!title||!author||!content) return alert("제목, 작성자, 내용을 입력해주세요.");
         document.getElementById("loading").style.display="block";
 
         let imageUrl=existingImageUrl||"";
-        if(file){ imageUrl=await uploadToCloudinary(file); }
+        if(file) imageUrl=await uploadToCloudinary(file);
 
-        const postData={ title,author,content,imageUrl,date:new Date().toISOString() };
+        const postData={title,author,content,date:new Date().toISOString(),imageUrl};
 
         if(postId){
             await db.ref(`posts/${sectionName}/${postId}`).update(postData);
-        } else{
+            alert("✅ 글이 수정되었습니다!");
+        }else{
             await db.ref(`posts/${sectionName}`).push(postData);
+            alert("✅ 글이 등록되었습니다!");
         }
 
         location.href=`section.html?name=${sectionName}`;
     }
 
     async function uploadToCloudinary(file){
+        const cloudName="dddmgnzlu";
+        const uploadPreset="firebase_uploads";
         const formData=new FormData();
         formData.append("file",file);
-        formData.append("upload_preset","firebase_uploads");
+        formData.append("upload_preset",uploadPreset);
 
-        const res=await fetch(`https://api.cloudinary.com/v1_1/dddmgnzlu/image/upload`,{ method:"POST", body:formData });
+        const res=await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,{method:"POST",body:formData});
         const data=await res.json();
         return data.secure_url;
     }
 
     function removeImage(){
         existingImageUrl="";
-        document.getElementById("existingImage").style.display="none";
+        document.getElementById("post-image").style.display="none";
+        document.getElementById("removeImageBtn").style.display="none";
     }
 
-    submitBtn.onclick=submitPost;
+    document.getElementById("submitBtn").onclick=submitPost;
 </script>
 
 </body>
