@@ -89,7 +89,7 @@
     <ul id="postList" class="post-list"></ul>
     <p id="noResults" class="no-results" style="display: none;">일치하는 일정이 없습니다.</p>
 
-    <a href="events_form.html" class="add-btn">+ 일정 추가</a>
+    <a href="events_form.html" class="add-btn" onclick="clearCurrentPostId()">+ 일정 추가</a>
 
     <script>
         // ✅ Firebase 설정
@@ -146,6 +146,11 @@
         function viewPost(id) {
             localStorage.setItem("currentPostId", id);
             window.location.href = "events_view.html";
+        }
+
+        // ✅ 이 부분만 새롭게 추가됨
+        function clearCurrentPostId() {
+            localStorage.removeItem("currentPostId");
         }
 
         loadEvents();
