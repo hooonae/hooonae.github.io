@@ -46,11 +46,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px; /* 버튼과 글씨 사이 간격 */
+            gap: 5px;
         }
         .color-buttons {
             display: flex;
-            gap: 8px; /* 버튼 간 간격 */
+            gap: 8px;
         }
         .color-btn {
             width: 30px;
@@ -63,18 +63,14 @@
         .blue { background-color: blue; }
         .red { background-color: red; }
         .green { background-color: green; }
-
-        /* ✅ 색상 버튼 아래 정렬 */
         .color-labels {
             display: flex;
             justify-content: center;
-            gap: 20px; /* 글씨 사이 간격 */
+            gap: 20px;
             font-size: 14px;
             font-weight: bold;
-            margin-top: -5px; /* 버튼과 더 밀착 */
+            margin-top: -5px;
         }
-
-        /* ✅ 글자 자동 조정 */
         .color-labels span {
             display: inline-block;
             max-width: 50px;
@@ -82,12 +78,9 @@
             white-space: nowrap;
             text-overflow: ellipsis;
         }
-
-        /* ✅ 4글자 이상 자동 조정 */
         .color-labels span[data-length="4"] { font-size: 14px; }
         .color-labels span[data-length="5"],
         .color-labels span[data-length="6"] { font-size: 12px; }
-
         #calendar {
             width: 100%;
             max-width: 700px;
@@ -137,7 +130,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let selectedColor = "black"; // 기본 색상 설정
+        let selectedColor = "black"; 
 
         function setColor(color) {
             selectedColor = color;
