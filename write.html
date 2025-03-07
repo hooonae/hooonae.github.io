@@ -3,164 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✏ 글 작성</title>
+    <title>게시글 상세보기</title>
+
+    <!-- ✅ Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <!-- ✅ 구글 폰트 및 아이콘 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            text-align: center;
-            background: #F8F1E9;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        input, textarea {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-            font-size: 16px;
-        }
-        .back-btn {
-            background: #555;
-        }
-        .loading {
-            display: none;
-            font-size: 14px;
-            color: #007bff;
-            margin-top: 10px;
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8f9fa; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .btn { padding: 8px 12px; cursor: pointer; border-radius: 5px; margin: 5px; }
+        .btn-edit { background: #007bff; color: white; }
+        .btn-delete { background: #dc3545; color: white; }
+        .comment { padding: 10px; background: #f1f1f1; margin-top: 5px; border-radius: 5px; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-    <h1>✏ 글 작성</h1>
+<div class="container">
+    <h1 id="post-title">📌 게시글 제목</h1>
+    <p>👤 <span id="post-author"></span> | 📅 <span id="post-date"></span></p>
+    <img id="post-image" src="" style="max-width:100%;display:none;border-radius:10px;margin:10px 0;">
+    <p id="post-content"></p>
 
-    <div class="container">
-        <input type="text" id="title" placeholder="제목">
-        <input type="text" id="author" placeholder="작성자">
-        <textarea id="content" placeholder="내용을 입력하세요"></textarea>
-        <input type="file" id="imageUpload" accept="image/*">
-        <p class="loading" id="loading">⏳ 업로드 중...</p>
-        <button onclick="submitPost()">✅ 등록</button>
-        <button class="back-btn" onclick="window.location.href='section.html?name=' + sectionName">⬅ 목록으로</button>
+    <div>
+        <button class="btn btn-edit" onclick="location.href=`write.html?name=${sectionName}&id=${postId}`">✏ 수정</button>
+        <button class="btn btn-delete" onclick="deletePost()">🗑 삭제</button>
     </div>
 
-    <!-- ✅ Firebase SDK 추가 -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <div>
+        <h3>💬 댓글</h3>
+        <input type="text" id="commentAuthor" placeholder="작성자" style="width:100%;margin-top:10px;padding:8px;border-radius:5px;border:1px solid #ddd;">
+        <input type="text" id="commentInput" placeholder="댓글 입력" style="width:100%;margin-top:5px;padding:8px;border-radius:5px;border:1px solid #ddd;">
+        <button onclick="addComment()" class="btn btn-edit">댓글 등록</button>
+        <div id="commentList"></div>
+    </div>
+</div>
 
-    <script>
-        console.log("📡 Firebase 스크립트 로드됨!");
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        storageBucket: "museum-web-370cd.appspot.com",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+    };
 
-        // ✅ Firebase 초기화
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        console.log("✅ Firebase 초기화 완료!");
+    const params = new URLSearchParams(window.location.search);
+    const sectionName = params.get("name");
+    const postId = params.get("id");
 
-        // ✅ URL에서 섹션 정보 가져오기
-        const params = new URLSearchParams(window.location.search);
-        const sectionName = params.get("name");
-
-        // ✅ 글 작성 함수
-        function submitPost() {
-            const title = document.getElementById("title").value.trim();
-            const author = document.getElementById("author").value.trim();
-            const content = document.getElementById("content").value.trim();
-            const fileInput = document.getElementById("imageUpload");
-            const file = fileInput.files[0];
-
-            if (!title || !author || !content) {
-                alert("⚠️ 제목, 작성자, 내용을 입력하세요.");
-                return;
+    function loadPost() {
+        db.ref(`posts/${sectionName}/${postId}`).once("value", snap => {
+            if (!snap.exists()) { alert("게시글이 없습니다."); return; }
+            const post = snap.val();
+            document.getElementById("post-title").innerText = post.title;
+            document.getElementById("post-author").innerText = post.author;
+            document.getElementById("post-date").innerText = new Date(post.date).toLocaleString();
+            document.getElementById("post-content").innerText = post.content;
+            if(post.imageUrl) {
+                const img = document.getElementById("post-image");
+                img.src = post.imageUrl;
+                img.style.display = "block";
             }
+            loadComments();
+        });
+    }
 
-            document.getElementById("loading").style.display = "block";
-
-            if (file) {
-                uploadToCloudinary(file)
-                    .then(url => savePostToDatabase(title, author, content, url))
-                    .catch(error => {
-                        console.error("❌ 이미지 업로드 실패:", error);
-                        alert("이미지 업로드 중 오류가 발생했습니다.");
-                        document.getElementById("loading").style.display = "none";
-                    });
-            } else {
-                savePostToDatabase(title, author, content, "");
-            }
+    function deletePost() {
+        if(confirm("정말 삭제하시겠습니까?")){
+            db.ref(`posts/${sectionName}/${postId}`).remove().then(() => location.href=`section.html?name=${sectionName}`);
         }
+    }
 
-        // ✅ Cloudinary 이미지 업로드
-        function uploadToCloudinary(file) {
-            return new Promise((resolve, reject) => {
-                const cloudName = "dddmgnzlu"; // 🔥 Cloudinary 계정의 Cloud Name 입력
-                const uploadPreset = "firebase_uploads"; // 🔥 Cloudinary 업로드 프리셋 입력
-                const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+    function editPost(){
+        location.href = `write.html?name=${sectionName}&id=${postId}`;
+    }
 
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", uploadPreset);
+    function addComment(){
+        const author = document.getElementById("commentAuthor").value.trim();
+        const text = document.getElementById("commentInput").value.trim();
+        if(!author || !text){alert("작성자와 댓글을 입력하세요.");return;}
 
-                fetch(url, {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("✅ Cloudinary 업로드 완료:", data.secure_url);
-                    resolve(data.secure_url);
-                })
-                .catch(error => reject(error));
+        db.ref(`comments/${postId}`).push({author,text}).then(()=>{
+            document.getElementById("commentAuthor").value='';
+            document.getElementById("commentInput").value='';
+            loadComments();
+        });
+    }
+
+    function deleteComment(cid){
+        db.ref(`comments/${postId}/${cid}`).remove().then(loadComments);
+    }
+
+    function loadComments(){
+        const commentList=document.getElementById("commentList");
+        commentList.innerHTML="";
+        db.ref(`comments/${postId}`).once("value",snap=>{
+            snap.forEach(c=>{
+                const comment=c.val();
+                commentList.innerHTML+=`<div class="comment">${comment.author}: ${comment.text}<button onclick="deleteComment('${c.key}')" class="btn-delete">❌</button></div>`;
             });
-        }
+        });
+    }
 
-        // ✅ Firebase에 글 저장
-        function savePostToDatabase(title, author, content, imageUrl) {
-            const newPostRef = db.ref(`posts/${sectionName}`).push();
-            newPostRef.set({
-                title,
-                author,
-                content,
-                imageUrl,
-                date: new Date().toISOString()
-            })
-            .then(() => {
-                alert("✅ 글이 성공적으로 등록되었습니다!");
-                window.location.href = `section.html?name=${sectionName}`;
-            })
-            .catch(error => {
-                console.error("❌ 글 저장 실패:", error);
-                document.getElementById("loading").style.display = "none";
-            });
-        }
-    </script>
+    loadPost();
+</script>
 
 </body>
 </html>
