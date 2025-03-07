@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지사항 보기</title>
-    
+    <title>📢 공지사항 상세 보기</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -27,130 +28,102 @@
             max-width: 100%;
             height: auto;
             margin-top: 10px;
+            border-radius: 10px;
             display: none;
         }
-        .button-container {
-            margin-top: 20px;
-        }
         button {
-            background: #8B5E3C;
-            color: white;
             padding: 10px;
+            margin: 5px;
             border: none;
+            color: white;
             border-radius: 5px;
             cursor: pointer;
-            margin: 5px;
         }
-        .delete-btn {
-            background: #ff4d4d;
-        }
+        .delete-btn { background: #ff4d4d; }
+        .edit-btn { background: #3498db; }
+        .back-btn { background: #555; }
     </style>
 </head>
 <body>
 
-    <h1>📢 공지사항 상세 보기</h1>
+<h1>📢 공지사항 상세 보기</h1>
 
-    <div class="container">
-        <h2 id="title"></h2>
-        <p id="date"></p>
-        <p id="content"></p>
-        <img id="image" src="" alt="공지 이미지">
-        <div class="button-container">
-            <button onclick="window.location.href='notices.html'">⬅ 목록으로</button>
-            <button class="delete-btn" onclick="deleteNotice()">🗑️ 삭제</button>
-        </div>
-    </div>
+<div class="container">
+    <h2 id="title"></h2>
+    <p id="date"></p>
+    <img id="image" alt="공지 이미지">
+    <p id="content"></p>
+    <button class="back-btn" onclick="location.href='notices.html'">⬅ 목록으로</button>
+    <button class="edit-btn" onclick="goToEdit()">✏️ 수정</button>
+    <button class="delete-btn" onclick="deleteNotice()">🗑️ 삭제</button>
+</div>
 
-    <!-- ✅ Firebase 최신 버전 SDK 추가 -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+<script>
+    // Firebase 설정 (기존 코드에서 유지)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        storageBucket: "museum-web-370cd.appspot.com",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    <script>
-        console.log("📡 Firebase 스크립트 로드됨!");
+    const params = new URLSearchParams(window.location.search);
+    const noticeId = params.get("id");
 
-        // ✅ Firebase 초기화
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
-        };
+    if (!noticeId) {
+        alert("공지사항 ID가 없습니다.");
+        location.href = "notices.html";
+    }
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        console.log("✅ Firebase 초기화 완료!");
+    // 날짜 변환 함수
+    function formatDate(isoString) {
+        const date = new Date(isoString);
+        return `${date.getFullYear()}-${('0'+(date.getMonth()+1)).slice(-2)}-${('0'+date.getDate()).slice(-2)} ${('0'+date.getHours()).slice(-2)}:${('0'+date.getMinutes()).slice(-2)}`;
+    }
 
-        // ✅ URL에서 공지사항 ID 가져오기
-        function getNoticeIdFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get("id");
-        }
-
-        // ✅ 날짜 변환 함수 (ISO → "YYYY-MM-DD HH:MM" 형식)
-        function formatDate(isoString) {
-            const date = new Date(isoString);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
-            const hours = String(date.getHours()).padStart(2, "0");
-            const minutes = String(date.getMinutes()).padStart(2, "0");
-            return `${year}-${month}-${day} ${hours}:${minutes}`;
-        }
-
-        // ✅ 공지사항 불러오기
-        function loadNotice() {
-            const noticeId = getNoticeIdFromURL();
-            if (!noticeId) {
-                alert("공지사항 ID가 없습니다.");
+    // 공지사항 불러오기
+    function loadNotice() {
+        db.ref(`notices/${params.get('id')}`).once("value").then(snapshot => {
+            if (!snapshot.exists()) {
+                alert("공지사항이 없습니다.");
                 window.location.href = "notices.html";
                 return;
             }
 
-            console.log(`📡 공지사항 ID: ${noticeId}`);
+            const notice = snapshot.val();
+            document.getElementById("title").textContent = notice.title;
+            document.getElementById("date").textContent = `작성일: ${formatDate(notice.date)}`;
+            document.getElementById("content").textContent = notice.content;
 
-            const noticeRef = db.ref(`notices/${noticeId}`);
-            noticeRef.once("value").then(snapshot => {
-                if (!snapshot.exists()) {
-                    alert("공지사항을 찾을 수 없습니다.");
-                    window.location.href = "notices.html";
-                    return;
-                }
-
-                const notice = snapshot.val();
-                document.getElementById("title").textContent = notice.title;
-                document.getElementById("date").textContent = `작성일: ${formatDate(notice.date)}`;
-                document.getElementById("content").textContent = notice.content;
-
-                // ✅ 이미지 표시 (이미지가 있는 경우)
-                if (notice.imageUrl) {
-                    document.getElementById("image").src = notice.imageUrl;
-                    document.getElementById("image").style.display = "block";
-                }
-            }).catch(error => {
-                console.error("❌ 공지사항 로드 실패:", error);
-            });
-        }
-
-        // ✅ 공지사항 삭제 기능
-        function deleteNotice() {
-            const noticeId = getNoticeIdFromURL();
-            if (!noticeId) return;
-
-            if (confirm("정말로 이 공지사항을 삭제하시겠습니까?")) {
-                db.ref(`notices/${noticeId}`).remove()
-                    .then(() => {
-                        alert("공지사항이 삭제되었습니다.");
-                        window.location.href = "notices.html";
-                    })
-                    .catch(error => console.error("❌ 삭제 실패:", error));
+            if (notice.imageUrl) {
+                const imgEl = document.querySelector("img#image");
+                imgElement.src = notice.imageUrl;
+                imgElement.style.display = "block";
             }
-        }
+        });
 
-        // ✅ 페이지 로드 시 공지사항 불러오기
-        document.addEventListener("DOMContentLoaded", loadNotice);
-    </script>
+    function deleteNotice() {
+        if (confirm("정말 삭제하시겠습니까?")) {
+            db.ref(`notices/${params.get("id")}`).remove().then(() => {
+                alert("🗑️ 삭제 완료!");
+                window.location.href = "notices.html";
+            }).catch(error => alert("삭제 실패: " + error.message));
+        }
+    }
+
+    function goToEdit() {
+        window.location.href = `notice_form.html?id=${params.get("id")}`;
+    }
+
+    document.querySelector(".back-btn").onclick = () => window.location.href = "notices.html";
+
+    loadNotice();
+</script>
 
 </body>
 </html>
