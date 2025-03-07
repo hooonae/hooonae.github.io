@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📢 공지사항</title>
 
-    <!-- ✅ Firebase SDK 추가 -->
+    <!-- ✅ Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
@@ -24,27 +25,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        window.viewNotice = function (id) {
-            location.href = `notice_view.html?id=${id}`;
-        };
-
         // ✅ 날짜 형식 함수
         function formatDate(isoString) {
             const date = new Date(isoString);
-            return date.toISOString().slice(0,16).replace("T"," ");
+            return date.toISOString().slice(0, 16).replace("T", " ");
         }
 
-        // ✅ 내용 짧게 자르는 함수
-        function shortenContent(content, maxLength = 50) {
-            return content.length > maxLength ? content.substring(0, maxLength) + "..." : content;
+        // ✅ 글 내용 일부만 표시
+        function shortenContent(content) {
+            return content.length > 50 ? content.slice(0, 50) + "..." : content;
         }
 
-        // ✅ 모든 공지사항 불러오기
+        // ✅ 공지사항 목록 로드
         function loadNotices() {
             const noticesList = document.getElementById("noticesList");
             noticesList.innerHTML = "<p>📡 로딩 중...</p>";
 
-            const noticesRef = ref(getDatabase(), "notices");
+            const noticesRef = ref(db, "notices");
             onValue(noticesRef, (snapshot) => {
                 noticesList.innerHTML = "";
 
@@ -53,25 +50,35 @@
                     return;
                 }
 
-                let notices = [];
-                snapshot.forEach((child) => {
-                    const notice = child.val();
-                    notice.id = child.key;
-                    noticesList.innerHTML += `
-                        <div class="notice-card" onclick="viewNotice('${notice.id}')">
-                            <h3>${notice.title}</h3>
-                            <p class="notice-date">📅 ${formatDate(notice.date)}</p>
-                            <p class="notice-content">${shortenContent(notice.content)}</p>
-                            ${notice.imageUrl ? `<img src="${notice.imageUrl}" alt="공지 이미지" style="max-width:100%;border-radius:10px;margin-top:10px;">` : ''}
-                        </div>
-                    `;
+                const notices = [];
+                snapshot.forEach(childSnapshot => {
+                    const notice = childSnapshot.val();
+                    notices.push({ id: childSnapshot.key, ...notice });
                 });
-            }, { onlyOnce: true });
-        });
 
-        window.viewNotice = function(id) {
-            window.location.href = `notice_view.html?id=${id}`;
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                notices.forEach(notice => {
+                    const noticeCard = document.createElement("div");
+                    noticeCard.classList.add("notice-card");
+                    noticeCard.onclick = () => viewNotice(notice.id);
+
+                    noticeCard.innerHTML = `
+                        <h3>${notice.title}</h3>
+                        <p class="notice-date">📅 ${formatDate(notice.date)}</p>
+                        <p class="notice-content">${notice.content.substring(0, 50)}${notice.content.length > 50 ? "..." : ""}</p>
+                        ${notice.imageUrl ? `<img src="${notice.imageUrl}">` : ""}
+                    `;
+                    noticesList.appendChild(noticeCard);
+                });
+            });
+        }
+
+        window.viewNotice = function (id) {
+            location.href = `notice_view.html?id=${id}`;
         };
+
+        window.addEventListener("DOMContentLoaded", loadNotices);
     </script>
 
     <style>
@@ -82,73 +89,72 @@
             margin: 0;
             padding: 20px;
         }
-        h1 { font-size: 2em; }
+
         .container {
             max-width: 800px;
             margin: auto;
         }
+
         .notice-card {
             background: white;
             padding: 15px;
-            margin: 10px 0;
+            margin-bottom: 10px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             text-align: left;
-            transition: transform 0.2s;
+            transition: 0.3s;
         }
+
         .notice-card:hover {
             transform: translateY(-5px);
         }
+
         .notice-date {
             color: gray;
             font-size: 0.9em;
-            margin: 5px 0;
         }
+
         .notice-content {
             color: #444;
             margin-top: 5px;
         }
+
         img {
-            margin-top: 10px;
             width: 100%;
+            margin-top: 10px;
             border-radius: 8px;
         }
+
         button {
-            background: #8B5E3C;
-            color: white;
             padding: 10px;
+            margin-top: 15px;
+            color: white;
+            background: #8B5E3C;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
         }
-        .home-btn { background: #555; }
+
+        .btn-secondary {
+            background: #555;
+        }
     </style>
 </head>
-<body>
 
+<body>
     <h1>📢 공지사항</h1>
 
     <div class="container">
         <div id="noticesList"></div>
-
         <button onclick="location.href='notice_form.html'">➕ 공지사항 작성</button>
-        <button onclick="location.href='index.html'" style="background: #555;">🏠 홈으로</button>
+        <button class="btn-secondary" onclick="location.href='index.html'">🏠 홈으로</button>
     </div>
 
+    <script type="module">
+        // 페이지 로드 시 공지사항 불러오기
+        loadNotices();
+    </script>
 </body>
+
 </html>
-
----
-
-## ✅ 적용된 기능 정리
-- **공지사항 정상 로딩 및 Firebase 연동**
-- **날짜 형식**: `YYYY-MM-DD HH:mm`으로 표시
-- 클릭 시 `notice_view.html`로 이동하여 상세 내용 확인 가능
-- 간략한 **이미지 미리보기** 포함
-- **공지 등록**, **홈으로** 버튼 완벽 작동
-
----
-
-이제 이 코드로 **공지사항 목록(notices.html)**을 완벽하게 사용할 수 있습니다!
