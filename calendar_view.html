@@ -42,9 +42,15 @@
             text-decoration: none;
             color: black;
         }
+        .color-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
         .color-buttons {
             display: flex;
-            gap: 5px;
+            gap: 8px;
         }
         .color-btn {
             width: 30px;
@@ -57,6 +63,25 @@
         .blue { background-color: blue; }
         .red { background-color: red; }
         .green { background-color: green; }
+        .color-labels {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            width: 100%;
+        }
+        .color-labels span {
+            display: inline-block;
+            width: 50px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .color-labels span[data-length="4"] { font-size: 14px; }
+        .color-labels span[data-length="5"],
+        .color-labels span[data-length="6"] { font-size: 12px; }
         #calendar {
             width: 100%;
             max-width: 700px;
@@ -65,7 +90,7 @@
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            height: 900px;
+            height: auto;
         }
     </style>
 </head>
@@ -74,11 +99,19 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div class="color-buttons">
-            <button class="color-btn black" onclick="setColor('black')"></button>
-            <button class="color-btn blue" onclick="setColor('blue')"></button>
-            <button class="color-btn red" onclick="setColor('red')"></button>
-            <button class="color-btn green" onclick="setColor('green')"></button>
+        <div class="color-container">
+            <div class="color-buttons">
+                <button class="color-btn black" onclick="setColor('black')"></button>
+                <button class="color-btn blue" onclick="setColor('blue')"></button>
+                <button class="color-btn red" onclick="setColor('red')"></button>
+                <button class="color-btn green" onclick="setColor('green')"></button>
+            </div>
+            <div class="color-labels">
+                <span data-length="2">고정</span>
+                <span data-length="2">연차</span>
+                <span data-length="2">대휴</span>
+                <span data-length="2">일정</span>
+            </div>
         </div>
     </div>
 
@@ -98,7 +131,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let selectedColor = "black"; // 기본 색상 설정
+        let selectedColor = "black"; 
 
         function setColor(color) {
             selectedColor = color;
@@ -107,13 +140,13 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-            selectedMonth = parseInt(selectedMonth); // 정수 변환
+            selectedMonth = parseInt(selectedMonth);
 
             function updateMonthTitle(month) {
                 document.getElementById("month-title").textContent = `${month}월 일정`;
             }
 
-            updateMonthTitle(selectedMonth); // ✅ 초기 월 제목 설정
+            updateMonthTitle(selectedMonth);
 
             var calendarEl = document.getElementById("calendar");
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -121,10 +154,7 @@
                 locale: "ko",
                 editable: true,
                 selectable: true,
-                contentHeight: "auto",
-                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1),
-
-                // ✅ 월이 변경될 때 실행
+                height: "auto",
                 datesSet: function(info) {
                     let newMonth = info.view.currentStart.getMonth() + 1;
                     if (newMonth !== selectedMonth) {
@@ -134,8 +164,6 @@
                         loadEvents(calendar, selectedMonth);
                     }
                 },
-
-                // ✅ 일정 삭제 이벤트 (복구)
                 eventClick: function(info) {
                     if (confirm("일정을 삭제하시겠습니까?")) {
                         deleteEvent(calendar, info.event);
@@ -147,7 +175,6 @@
             loadEvents(calendar, selectedMonth); 
 
             let clickTimeout = null;
-
             calendar.on("dateClick", function(info) {
                 if (clickTimeout !== null) {
                     clearTimeout(clickTimeout);
@@ -171,8 +198,6 @@
                 const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
                 await newRef.set({ name, color });
 
-                console.log("✅ 일정 저장 완료:", { name, color });
-
                 calendar.addEvent({
                     id: newRef.key,
                     title: name,
@@ -184,41 +209,28 @@
             }
 
             function loadEvents(calendar, month) {
-                console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
                 let today = new Date();
                 let year = today.getFullYear();
 
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    if (!snapshot.exists()) {
-                        console.log("📭 일정 없음");
-                        calendar.removeAllEvents();
-                        return;
-                    }
-
-                    let events = [];
+                    calendar.removeAllEvents();
                     snapshot.forEach((daySnapshot) => {
-                        const day = daySnapshot.key;
                         daySnapshot.forEach((eventSnapshot) => {
                             const event = eventSnapshot.val();
-                            events.push({
+                            calendar.addEvent({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                start: `${year}-${month}-${daySnapshot.key}`,
                                 color: event.color || "black"
                             });
                         });
                     });
-
-                    console.log("✅ 불러온 일정:", events);
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(events);
                 });
             }
 
             async function deleteEvent(calendar, event) {
                 let [year, month, day] = event.startStr.split("-");
                 await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                console.log("🗑️ 삭제 완료:", event.id);
                 loadEvents(calendar, selectedMonth);
             }
         });
