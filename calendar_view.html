@@ -204,35 +204,35 @@
 
             function shortenTitle(title) {
                 if (title.length > 6) {
-                    return `<span style="font-size: 12px;">${title.substring(0, 6)}</span>`;
+                    return title.substring(0, 6) + "...";
+                } else if (title.length > 3) {
+                    return `<span style="font-size: 12px;">${title}</span>`;
                 }
                 return title;
             }
 
+            function deleteEvent(calendar, event) {
+                let [year, month, day] = event.startStr.split("-");
+                db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove().then(() => {
+                    console.log("🗑️ 삭제 완료:", event.id);
+                    loadEvents(calendar, selectedMonth);
+                });
+            }
+
             function loadEvents(calendar, month) {
-                let today = new Date();
-                let year = today.getFullYear();
-
+                let year = new Date().getFullYear();
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    if (!snapshot.exists()) {
-                        calendar.removeAllEvents();
-                        return;
-                    }
-
                     let events = [];
-                    snapshot.forEach((daySnapshot) => {
-                        const day = daySnapshot.key;
-                        daySnapshot.forEach((eventSnapshot) => {
-                            const event = eventSnapshot.val();
+                    snapshot.forEach(daySnapshot => {
+                        daySnapshot.forEach(eventSnapshot => {
                             events.push({
                                 id: eventSnapshot.key,
-                                title: shortenTitle(event.name),
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                                color: event.color || "black"
+                                title: shortenTitle(eventSnapshot.val().name),
+                                start: `${year}-${String(month).padStart(2, '0')}-${daySnapshot.key}`,
+                                color: eventSnapshot.val().color || "black"
                             });
                         });
                     });
-
                     calendar.removeAllEvents();
                     calendar.addEventSource(events);
                 });
