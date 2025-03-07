@@ -5,141 +5,141 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>게시글 상세보기</title>
 
-    <!-- ✅ Firebase SDK -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <!-- ✅ 구글 폰트 및 아이콘 -->
+    <!-- 구글 폰트 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; }
-
-        body { background-color: #f8f9fa; text-align: center; padding: 20px; }
-
-        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-
-        h1 { font-size: 24px; color: #333; margin-bottom: 10px; }
-
-        .post-meta { font-size: 14px; color: #777; margin-bottom: 20px; }
-
-        .post-content { text-align: left; font-size: 16px; color: #333; line-height: 1.6; white-space: pre-line; }
-
-        .post-image { max-width: 100%; margin: 15px 0; border-radius: 10px; display: none; }
-
-        .btn-container { display: flex; justify-content: space-between; margin-top: 20px; }
-
-        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: 0.3s; }
-
-        .btn-delete { background: #dc3545; color: white; }
-
-        .btn-delete:hover { background: #c82333; }
-
-        .btn-edit { background: #007bff; color: white; }
-
-        .btn-edit:hover { background: #0056b3; }
-
-        .comments { margin-top: 30px; text-align: left; }
-
-        .comment { background: #f1f1f1; padding: 10px; border-radius: 5px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
-
-        .comment-delete { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 14px; }
-
-        .comment-input, .author-input { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; }
-
-        .btn-comment { margin-top: 5px; background: #28a745; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; transition: 0.3s; }
-
-        .btn-comment:hover { background: #218838; }
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background-color: #f8f9fa; padding:20px; }
+        .container { max-width:700px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); }
+        h1 { margin-bottom: 10px; }
+        .post-meta { color: #777; font-size: 14px; margin-bottom:20px; }
+        .post-content { white-space: pre-line; text-align:left; margin-bottom:20px; }
+        .post-image { max-width:100%; border-radius:10px; margin-bottom:20px; display:none; }
+        button { padding:8px 15px; border:none; border-radius:5px; cursor:pointer; }
+        .btn-edit { background:#007bff;color:#fff; }
+        .btn-delete { background:#dc3545; color:white; }
+        .comments { text-align:left; margin-top:20px; }
+        .comment { background:#eee; padding:10px; margin:10px 0; border-radius:5px; display:flex; justify-content:space-between; align-items:center; }
+        .comment-delete { background:none; border:none; color:red; cursor:pointer; }
     </style>
 </head>
+
 <body>
 
 <div class="container">
-    <h1 id="post-title">📌 게시글 제목</h1>
-    <p class="post-meta">👤 <span id="post-author"></span> | 📅 <span id="post-date"></span></p>
-    <img id="post-image" class="post-image" src="" alt="게시글 이미지">
+    <h1 id="post-title">게시글 제목</h1>
+    <p class="post-meta">
+        👤 <span id="post-author"></span> |
+        📅 <span id="post-date"></span>
+    </p>
+    <img id="post-image" class="post-image">
     <p class="post-content" id="post-content"></p>
 
-    <div class="btn-container">
-        <button class="btn btn-edit" onclick="editPost()">✏ 수정</button>
-        <button class="btn btn-delete" onclick="deletePost()">🗑 삭제</button>
-    </div>
+    <button onclick="location.href=`write.html?name=${sectionName}&id=${postId}`">✏ 수정</button>
+    <button onclick="deletePost()">🗑 삭제</button>
+    <button onclick="location.href=`section.html?name=${sectionName}`">⬅ 목록으로</button>
 
     <div class="comments">
         <h3>💬 댓글</h3>
-        <input type="text" id="commentAuthor" class="author-input" placeholder="작성자 이름">
-        <input type="text" id="commentInput" class="comment-input" placeholder="댓글을 입력하세요">
-        <button class="btn-comment" onclick="addComment()">등록</button>
-        <div id="commentList"></div>
-    </div>
+        <input type="text" id="commentAuthor" placeholder="작성자 이름" style="width:48%;padding:8px;border-radius:5px;border:1px solid #ccc;">
+        <input type="text" id="commentInput" placeholder="댓글 내용" style="width:48%;padding:8px;border-radius:5px;border:1px solid #ccc;">
+        <button onclick="addComment()" style="width:100%;margin-top:5px;padding:10px;background:#28a745;color:white;border:none;border-radius:5px;">등록</button>
+
+    <div id="commentList" class="comment-list"></div>
 </div>
 
+<!-- Firebase 초기화 및 기능 구현 -->
 <script>
-    const firebaseConfig = {
-        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+const firebaseConfig = {
+    apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+    authDomain: "museum-web-370cd.firebaseapp.com",
+    databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+    projectId: "museum-web-370cd",
+    storageBucket: "museum-web-370cd.appspot.com",
+    messagingSenderId: "154810876093",
+    appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+};
 
-    const params = new URLSearchParams(window.location.search);
-    const sectionName = params.get("name");
-    const postId = params.get("id");
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    function loadPost() {
-        db.ref(`posts/${sectionName}/${postId}`).once("value", snapshot => {
-            if (!snapshot.exists()) return alert("게시글이 없습니다.");
-            const post = snapshot.val();
-            document.getElementById("post-title").innerText = post.title;
-            document.getElementById("post-author").innerText = post.author;
-            document.getElementById("post-date").innerText = new Date(post.date).toLocaleString();
-            document.getElementById("post-content").innerText = post.content;
-            if(post.imageUrl){
-                document.getElementById("post-image").src = post.imageUrl;
-                document.getElementById("post-image").style.display = "block";
-            }
-            loadComments();
-        });
-    }
+const params = new URLSearchParams(window.location.search);
+const sectionName = params.get("name");
+const postId = params.get("id");
 
-    function editPost(){
-        location.href=`write.html?name=${sectionName}&id=${postId}`;
-    }
-
-    function deletePost(){
-        if(confirm("정말 삭제하시겠습니까?")){
-            db.ref(`posts/${sectionName}/${postId}`).remove().then(()=>{
-                alert("게시글 삭제됨.");
-                location.href=`section.html?name=${sectionName}`;
-            });
+// 게시글 로드 함수
+function loadPost() {
+    db.ref(`posts/${sectionName}/${postId}`).once("value", snap => {
+        if (!snap.exists()) {
+            alert("⚠️ 게시글이 없습니다.");
+            location.href=`section.html?name=${sectionName}`;
+            return;
         }
-    }
+        const post = snap.val();
+        document.getElementById("post-title").innerText=post.title;
+        document.getElementById("post-author").innerText=post.author;
+        document.getElementById("post-date").innerText=new Date(post.date).toLocaleString();
+        document.getElementById("post-content").innerText=post.content;
 
-    function addComment(){
-        const author=document.getElementById("commentAuthor").value;
-        const text=document.getElementById("commentInput").value;
-        if(!author || !text)return alert("작성자와 댓글을 입력하세요.");
-        db.ref(`comments/${postId}`).push({author,text}).then(()=>{
-            document.getElementById("commentAuthor").value='';
-            document.getElementById("commentInput").value='';
-            loadComments();
+        if(post.imageUrl){
+            const img=document.getElementById("post-image");
+            img.src=post.imageUrl;
+            img.style.display="block";
+        }
+
+        loadComments();
+    });
+}
+
+// 댓글 로드 함수
+function loadComments(){
+    db.ref(`comments/${postId}`).on("value",snap=>{
+        commentList.innerHTML="";
+        snap.forEach(child=>{
+            const comment=child.val();
+            const div=document.createElement("div");
+            div.className="comment";
+            div.innerHTML=`<span><strong>${comment.author}</strong>: ${comment.text}</span>
+            <button class="comment-delete" onclick="deleteComment('${child.key}')">❌</button>`;
+            commentList.appendChild(div);
+        });
+    });
+}
+
+// 댓글 추가
+function addComment(){
+    const author=document.getElementById("commentAuthor").value.trim();
+    const text=document.getElementById("commentInput").value.trim();
+    if(!author||!text)return alert("작성자와 댓글 내용을 입력해주세요.");
+    db.ref(`comments/${postId}`).push({author,text,date:new Date().toISOString()});
+    document.getElementById("commentAuthor").value="";
+    document.getElementById("commentInput").value="";
+}
+
+// 댓글 삭제
+function deleteComment(commentId){
+    if(confirm("댓글을 삭제하시겠습니까?")){
+        db.ref(`comments/${postId}/${commentId}`).remove();
+    }
+}
+
+// 게시글 삭제 함수
+function deletePost(){
+    if(confirm("정말 삭제하시겠습니까?")){
+        db.ref(`posts/${sectionName}/${postId}`).remove().then(()=>{
+            alert("게시글이 삭제되었습니다.");
+            location.href=`section.html?name=${sectionName}`;
         });
     }
+}
 
-    function deleteComment(cid){
-        db.ref(`comments/${postId}/${commentId}`).remove().then(loadComments);
-    }
-
-    function loadComments(){
-        db.ref(`comments/${postId}`).once("value",snap=>{
-            commentList.innerHTML='';
-            snap.forEach(c=>{
-                commentList.innerHTML+=`<div class="comment">${c.val().author}: ${c.val().text}<button onclick="deleteComment('${c.key}')">❌</button></div>`;
-            });
-        });
-    }
-
+window.onload=()=>{
     loadPost();
+};
 </script>
 
 </body>
