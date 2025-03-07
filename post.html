@@ -14,257 +14,137 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Noto Sans KR', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; }
 
-        body {
-            background-color: #f8f9fa;
-            text-align: center;
-            padding: 20px;
-        }
+        body { background-color: #f8f9fa; text-align: center; padding: 20px; }
 
-        .container {
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
 
-        h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 10px;
-        }
+        h1 { font-size: 24px; color: #333; margin-bottom: 10px; }
 
-        .post-meta {
-            font-size: 14px;
-            color: #777;
-            margin-bottom: 20px;
-        }
+        .post-meta { font-size: 14px; color: #777; margin-bottom: 20px; }
 
-        .post-content {
-            text-align: left;
-            font-size: 16px;
-            color: #333;
-            line-height: 1.6;
-            white-space: pre-line;
-        }
+        .post-content { text-align: left; font-size: 16px; color: #333; line-height: 1.6; white-space: pre-line; }
 
-        .post-image {
-            max-width: 100%;
-            margin: 15px 0;
-            border-radius: 10px;
-        }
+        .post-image { max-width: 100%; margin: 15px 0; border-radius: 10px; }
 
-        .btn-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
+        .btn-container { display: flex; justify-content: space-between; margin-top: 20px; }
 
-        .btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.3s;
-        }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: 0.3s; }
 
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-        }
+        .btn-delete { background: #dc3545; color: white; }
 
-        .btn-delete:hover {
-            background: #c82333;
-        }
+        .btn-delete:hover { background: #c82333; }
 
-        .btn-edit {
-            background: #007bff;
-            color: white;
-        }
+        .btn-edit { background: #007bff; color: white; }
 
-        .btn-edit:hover {
-            background: #0056b3;
-        }
+        .btn-edit:hover { background: #0056b3; }
 
-        /* ✅ 수정 모달 스타일 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
+        .post-image { max-width: 100%; display: none; margin-bottom: 15px; border-radius: 10px; }
 
-        .modal-content {
-            background: white;
-            padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: left;
-        }
+        .comments { margin-top: 30px; text-align: left; }
 
-        .modal input, .modal textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+        .comment { background: #f1f1f1; padding: 10px; border-radius: 5px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-        .modal button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+        .comment-delete { background: none; border: none; color: #dc3545; cursor: pointer; }
 
-        .save-btn {
-            background: #28a745;
-            color: white;
-        }
+        .comment-input, .author-input { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; }
 
-        .close-btn {
-            background: #555;
-            color: white;
-        }
-
-        /* ✅ 댓글 스타일 */
-        .comments {
-            margin-top: 30px;
-            text-align: left;
-        }
-
-        .comment {
-            background: #f1f1f1;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .comment-author {
-            font-weight: bold;
-            color: #007bff;
-            margin-right: 8px;
-        }
-
-        .comment-delete {
-            background: none;
-            border: none;
-            color: #dc3545;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .comment-delete:hover {
-            color: #c82333;
-        }
-
-        .comment-input, .author-input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .btn-comment {
-            margin-top: 5px;
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px;
-            width: 100%;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-comment:hover {
-            background: #218838;
-        }
+        .btn-comment { margin-top: 5px; background: #28a745; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; transition: 0.3s; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1 id="post-title">📌 게시글 제목</h1>
-        <p class="post-meta">👤 <span id="post-author"></span> | 📅 <span id="post-date"></span></p>
-        <img id="post-image" class="post-image" src="" alt="게시글 이미지" style="display: none;">
-        <p class="post-content" id="post-content"></p>
+<div class="container">
+    <h1 id="post-title">📌 게시글 제목</h1>
+    <p class="post-meta">👤 <span id="post-author"></span> | 📅 <span id="post-date"></span></p>
+    <img id="post-image" class="post-image" src="" alt="게시글 이미지">
+    <p class="post-content" id="post-content"></p>
 
-        <div class="btn-container">
-            <button class="btn btn-edit" onclick="openEditModal()">✏ 수정</button>
-            <button class="btn btn-delete" onclick="deletePost()">🗑 삭제</button>
-        </div>
-
-        <!-- ✅ 수정 모달 -->
-        <div class="modal" id="editModal">
-            <div class="modal-content">
-                <h2>📌 게시글 수정</h2>
-                <input type="text" id="edit-title" placeholder="제목">
-                <textarea id="edit-content" placeholder="내용을 입력하세요"></textarea>
-                <button class="save-btn" onclick="saveEdit()">✅ 저장</button>
-                <button class="close-btn" onclick="closeEditModal()">❌ 닫기</button>
-            </div>
-        </div>
-
-        <!-- ✅ 댓글 섹션 -->
-        <div class="comments">
-            <h3>💬 댓글</h3>
-            <input type="text" id="commentAuthor" class="author-input" placeholder="작성자 이름">
-            <input type="text" id="commentInput" class="comment-input" placeholder="댓글을 입력하세요">
-            <button class="btn-comment" onclick="addComment()">등록</button>
-            <div id="commentList"></div>
-        </div>
+    <div class="btn-container">
+        <button class="btn btn-edit" onclick="editPost()">✏ 수정</button>
+        <button class="btn btn-delete" onclick="deletePost()">🗑 삭제</button>
     </div>
 
-    <script>
-        const db = firebase.database();
-        const params = new URLSearchParams(window.location.search);
-        const sectionName = params.get("name");
-        const postId = params.get("id");
+    <div class="comments">
+        <h3>💬 댓글</h3>
+        <input type="text" id="commentAuthor" class="author-input" placeholder="작성자 이름">
+        <input type="text" id="commentInput" class="comment-input" placeholder="댓글을 입력하세요">
+        <button class="btn-comment" onclick="addComment()">등록</button>
+        <div id="commentList"></div>
+    </div>
+</div>
 
-        function loadPost() {
-            db.ref(`posts/${sectionName}/${postId}`).once("value", snapshot => {
-                const post = snapshot.val();
-                document.getElementById("post-title").innerText = post.title;
-                document.getElementById("post-author").innerText = post.author;
-                document.getElementById("post-date").innerText = new Date(post.date).toLocaleString();
-                document.getElementById("post-content").innerText = post.content;
-                if (post.imageUrl) document.getElementById("post-image").src = post.imageUrl;
-                loadComments();
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        storageBucket: "museum-web-370cd.appspot.com",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const params = new URLSearchParams(window.location.search);
+    const sectionName = params.get("name");
+    const postId = params.get("id");
+
+    function loadPost() {
+        db.ref(`posts/${sectionName}/${postId}`).once("value", snapshot => {
+            if (!snapshot.exists()) return alert("⚠️ 게시글을 찾을 수 없습니다.");
+            const post = snapshot.val();
+            document.getElementById("post-title").innerText = post.title;
+            document.getElementById("post-author").innerText = post.author;
+            document.getElementById("post-date").innerText = new Date(post.date).toLocaleString();
+            document.getElementById("post-content").innerText = post.content;
+            if (post.imageUrl) {
+                const imgElement = document.getElementById("post-image");
+                imgElement.src = post.imageUrl;
+                imgElement.style.display = "block";
+            }
+            loadComments();
+        });
+    }
+
+    function deletePost() {
+        if (confirm("정말 삭제하시겠습니까?")) {
+            db.ref(`posts/${sectionName}/${postId}`).remove().then(() => {
+                alert("🗑 게시글이 삭제되었습니다.");
+                window.location.href = `section.html?name=${sectionName}`;
             });
         }
+    }
 
-        function addComment() {
-            const author = document.getElementById("commentAuthor").value.trim();
-            const text = document.getElementById("commentInput").value.trim();
-            if (!author || !text) return alert("⚠️ 작성자 이름과 댓글을 입력하세요.");
-            db.ref(`comments/${postId}`).push({ author, text });
-            loadComments();
-        }
+    function loadComments() {
+        const commentList = document.getElementById("commentList");
+        commentList.innerHTML = "";
 
-        loadPost();
-    </script>
+        db.ref(`comments/${postId}`).once("value", snapshot => {
+            snapshot.forEach(childSnapshot => {
+                const comment = childSnapshot.val();
+                const div = document.createElement("div");
+                div.className = "comment";
+                div.innerHTML = `<strong>${comment.author}</strong>: ${comment.text} <button class="comment-delete" onclick="deleteComment('${childSnapshot.key}')">❌</button>`;
+                commentList.appendChild(div);
+            });
+        });
+    }
+
+    function deleteComment(commentId) {
+        db.ref(`comments/${postId}/${commentId}`).remove();
+        loadComments();
+    }
+
+    function loadComments() {
+        deletePost();
+    }
+
+    loadPost();
+</script>
+
 </body>
 </html>
