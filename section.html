@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>게시판</title>
 
-    <!-- ✅ 구글 폰트 및 아이콘 -->
+    <!-- ✅ 구글 폰트 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -16,108 +15,103 @@
     <style>
         * {margin:0;padding:0;box-sizing:border-box;font-family:'Noto Sans KR', sans-serif;}
         body {background:#f8f9fa;text-align:center;padding:20px;}
-        .container {max-width:900px;margin:auto;background:white;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+        .container {max-width:700px;margin:auto;background:white;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.1);}
         h1 {font-size:24px;color:#333;margin-bottom:20px;}
-        .search-bar {display:flex;justify-content:center;margin-bottom:15px;}
-        .search-bar input {width:80%;max-width:500px;padding:8px;border:1px solid #ddd;border-radius:5px;}
-        .write-btn {background:#28a745;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;text-decoration:none;display:inline-block;margin-bottom:20px;}
-        .write-btn:hover {background:#218838;}
-        .post-list {display:flex;flex-direction:column;gap:10px;padding:10px;}
-        .post-card {background:white;padding:15px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.1);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:0.3s;}
-        .post-card:hover {transform:translateY(-3px);box-shadow:0 6px 12px rgba(0,0,0,0.15);}
-        .post-content {text-align:left;}
-        .post-title {font-size:18px;font-weight:bold;color:#007bff;}
-        .post-meta {font-size:14px;color:#777;}
-        .post-icon {font-size:24px;color:#007bff;}
-        .home-btn {background:#555;color:white;padding:8px 15px;border-radius:5px;text-decoration:none;margin-bottom:20px;display:inline-block;}
-        .home-btn:hover {background:#333;}
-        @media (max-width:600px){
-            .post-card {flex-direction:column;align-items:flex-start;}
-            .post-icon {align-self:flex-end;}
-        }
+        .home-btn{background:#555;color:white;padding:8px 15px;border-radius:5px;text-decoration:none;}
+        .write-btn{background:#28a745;color:white;padding:10px 15px;border-radius:5px;text-decoration:none;}
+        .search-bar input{padding:8px;width:80%;margin:15px 0;border-radius:5px;border:1px solid #ddd;}
+        .post-list{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+        .post-card{background:white;padding:15px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.1);display:flex;align-items:center;cursor:pointer;}
+        .post-image{width:60px;height:60px;object-fit:cover;border-radius:5px;margin-right:15px;background:#eee;}
+        .post-content{text-align:left;flex-grow:1;}
+        .post-title{font-weight:bold;color:#007bff;}
+        .post-meta{font-size:14px;color:#777;}
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <a href="index.html" class="home-btn">🏠 홈으로</a>
-        <h1 id="section-title"></h1>
-        <a class="write-btn" href="#">✏ 글 작성</a>
+<div class="container">
+    <a href="index.html" class="home-btn">🏠 홈으로</a>
+    <h1 id="section-title"></h1>
+    <a class="write-btn" href="#">✏ 글 작성</a>
 
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="🔍 제목 검색">
-        </div>
-
-        <div class="post-list" id="post-list"></div>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
     </div>
 
-    <script>
-        // ✅ Firebase 설정 유지
-        const firebaseConfig = {
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    <div class="post-list" id="post-list"></div>
+</div>
 
-        // ✅ URL 파라미터에서 섹션 이름 가져오기
-        const params = new URLSearchParams(window.location.search);
-        const sectionName = params.get("name");
-        document.getElementById("section-title").innerText = sectionName + " 게시판";
-        document.querySelector(".write-btn").href = `write.html?name=${sectionName}`;
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        storageBucket: "museum-web-370cd.appspot.com",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+    };
 
-        // ✅ 날짜 형식 보기좋게 변경
-        function formatDate(isoString) {
-            const d = new Date(isoString);
-            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-        }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        // ✅ 게시글 로드 함수
-        function loadPosts() {
-            const postList = document.getElementById("post-list");
-            postList.innerHTML = "<p>📡 게시글을 불러오는 중...</p>";
+    const params = new URLSearchParams(window.location.search);
+    const sectionName = params.get("name");
+    document.getElementById("section-title").innerText = `${sectionName} 게시판`;
+    document.querySelector(".write-btn").href = `write.html?name=${sectionName}`;
 
-            db.ref(`posts/${sectionName}`).once("value", snapshot => {
-                postList.innerHTML = "";
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
 
-                if (!snapshot.exists()) {
-                    postList.innerHTML = "<p>📝 게시글이 없습니다. 글을 작성해보세요!</p>";
-                    return;
-                }
+    function loadPosts() {
+        const postList = document.getElementById("post-list");
+        postList.innerHTML = "📡 게시글을 불러오는 중...";
 
-                snapshot.forEach(childSnapshot => {
-                    const post = childSnapshot.val();
-                    const postCard = document.createElement("div");
-                    postCard.className = "post-card";
-                    postCard.innerHTML = `
-                        <div class="post-content">
-                            <div class="post-title">${post.title}</div>
-                            <div class="post-meta">👤 ${post.author} | 📅 ${formatDate(post.date)}</div>
-                        </div>
-                        <div class="post-icon">➡</div>
-                    `;
+        db.ref(`posts/${sectionName}`).once("value", snapshot => {
+            postList.innerHTML = "";
+            if (!snapshot.exists()) {
+                postList.innerHTML = "📝 게시글이 없습니다.";
+                return;
+            }
 
-                    postCard.onclick = () => {
-                        window.location.href = `post.html?id=${childSnapshot.key}&name=${sectionName}`;
-                    };
+            snapshot.forEach(childSnapshot => {
+                const post = childSnapshot.val();
+                const postId = childSnapshot.key;
 
-                    postList.appendChild(postCard);
-                });
-            });
-        }
+                const postCard = document.createElement("div");
+                postCard.className = "post-card";
+                postCard.innerHTML = `
+                    ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : `<div class="post-image"></div>`}
+                    <div class="post-content">
+                        <div class="post-title">${post.title}</div>
+                        <div class="post-meta">👤 ${post.author} | 📅 ${formatDate(post.date)}</div>
+                    </div>
+                `;
 
-        // ✅ 검색 기능 추가
-        document.getElementById("searchInput").addEventListener("keyup", function () {
-            let filter = this.value.toLowerCase();
-            let postCards = document.querySelectorAll(".post-card");
-
-            postCards.forEach(card => {
-                let title = card.querySelector(".post-title").textContent.toLowerCase();
-                card.style.display = title.includes(filter) ? "flex" : "none";
+                postCard.onclick = () => {
+                    window.location.href = `post.html?id=${snapshot.key}&name=${sectionName}`;
+                };
+                postList.appendChild(postCard);
             });
         });
+    }
 
-        loadPosts();
-    </script>
+    // 검색 기능
+    document.getElementById("searchInput").addEventListener("keyup", function () {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll(".post-card").forEach(card => {
+            const title = card.querySelector(".post-title").textContent.toLowerCase();
+            card.style.display = title.includes(filter) ? "flex" : "none";
+        });
+    });
+
+    window.onload = loadPosts;
+</script>
+
+<div id="post-list"></div>
 
 </body>
 </html>
