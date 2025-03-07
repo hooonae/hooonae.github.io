@@ -151,7 +151,7 @@
             db.ref("events/" + eventId).update(eventData).then(() => {
                 alert("일정이 수정되었습니다!");
                 localStorage.removeItem("currentPostId");
-                window.location.href = "event_view.html";
+                window.location.href = "events_view.html";
             }).catch(console.error);
         } else {
             db.ref("events").push(eventData).then(() => {
