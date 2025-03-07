@@ -1,165 +1,113 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>✏ 글 작성 및 수정</title>
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            text-align: center;
-            background: #F8F1E9;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        input, textarea {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            padding: 10px;
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 5px;
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; background: #F8F1E9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
+        input, textarea { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 8px 12px; cursor: pointer; border-radius: 5px; margin: 5px; }
+        img { max-width: 100%; margin: 10px 0; border-radius: 10px; display: none; }
     </style>
 </head>
-
 <body>
 
+<div class="container">
     <h1 id="form-title">✏ 글 작성</h1>
+    <input type="text" id="title" placeholder="제목">
+    <input type="text" id="author" placeholder="작성자">
+    <textarea id="content" placeholder="내용"></textarea>
+    <input type="file" id="imageUpload" accept="image/*">
+    <img id="existing-image" src="" alt="기존 이미지" style="display:none;">
+    <button id="deleteImageBtn" style="display:none;" onclick="deleteImage()">🗑 이미지 삭제</button>
+    <button id="submitBtn">✅ 저장하기</button>
+    <button onclick="location.href=`section.html?name=${sectionName}`">⬅ 목록으로</button>
+    <p id="loading" style="display:none;">⏳ 업로드 중...</p>
+</div>
 
-    <div class="container">
-        <input type="text" id="title" placeholder="제목">
-        <input type="text" id="author" placeholder="작성자">
-        <textarea id="content" placeholder="내용을 입력하세요"></textarea>
-        <input type="file" id="imageUpload" accept="image/*">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-        <button id="submit-btn">✅ 저장하기</button>
-        <button onclick="location.href=`section.html?name=${sectionName}`">⬅ 목록으로</button>
-        <p id="loading" style="display:none;">⏳ 업로드 중...</p>
-    </div>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-            authDomain: "museum-web-370cd.firebaseapp.com",
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-            projectId: "museum-web-370cd",
-            storageBucket: "museum-web-370cd.appspot.com",
-            messagingSenderId: "154810876093",
-            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        storageBucket: "museum-web-370cd.appspot.com",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    const params = new URLSearchParams(window.location.search);
+    const sectionName = params.get("name");
+    const postId = params.get("id");
+    let existingImageUrl = "";
 
-        const params = new URLSearchParams(window.location.search);
-        const sectionName = params.get("name");
-        const postId = params.get("id");  // 수정 모드인지 확인하기 위한 파라미터
+    document.getElementById("submitBtn").onclick = submitPost;
 
-        const titleInput = document.getElementById("title");
-        const authorInput = document.createElement("input");
-        const contentInput = document.createElement("textarea");
-        const submitBtn = document.getElementById("submit-btn");
-        const loading = document.getElementById("loading");
+    if (postId) {
+        document.getElementById("form-title").innerText = "✏ 글 수정";
+        db.ref(`posts/${sectionName}/${postId}`).once("value", snap => {
+            const post = snap.val();
+            document.getElementById("title").value = post.title;
+            document.getElementById("author").value = post.author;
+            document.getElementById("content").value = post.content;
+            if(post.imageUrl){
+                existingImageUrl = post.imageUrl;
+                const img = document.getElementById("existingImage");
+                img.src = post.imageUrl;
+                img.style.display = "block";
+                document.getElementById("existingImage").style.display = "block";
+            }
+        });
+    }
 
-        // 🔥 게시글 불러오기 (수정 모드)
-        if (postId) {
-            document.getElementById("form-title").innerText = "✏ 글 수정";
-            db.ref(`posts/${sectionName}/${postId}`).once("value", snap => {
-                const post = snap.val();
-                titleInput.value = post.title;
-                document.body.querySelector("#author")?.remove(); // 수정 시 작성자 변경 방지
-                contentInput.value = post.content;
-            });
+    async function submitPost(){
+        const title=document.getElementById("title").value.trim();
+        const author=document.getElementById("author").value.trim();
+        const content=document.getElementById("content").value.trim();
+        const file=document.getElementById("imageUpload").files[0];
+
+        if(!title||!author||!content)return alert("모든 필드를 입력하세요.");
+        document.getElementById("loading").style.display="block";
+
+        let imageUrl=existingImageUrl||"";
+        if(file){ imageUrl=await uploadToCloudinary(file); }
+
+        const postData={ title,author,content,imageUrl,date:new Date().toISOString() };
+
+        if(postId){
+            await db.ref(`posts/${sectionName}/${postId}`).update(postData);
+        } else{
+            await db.ref(`posts/${sectionName}`).push(postData);
         }
 
-        document.getElementById("submit-btn").onclick = submitPost;
+        location.href=`section.html?name=${sectionName}`;
+    }
 
-        async function submitPost() {
-            const title = titleInput.value.trim();
-            const author = postId ? undefined : prompt("작성자 이름을 입력하세요"); // 수정모드 시 작성자 변경 금지
-            const content = document.getElementById("content").value.trim();
-            const file = document.getElementById("imageUpload").files[0];
+    async function uploadToCloudinary(file){
+        const formData=new FormData();
+        formData.append("file",file);
+        formData.append("upload_preset","firebase_uploads");
 
-            if (!title || (!postId && !author) || !content) {
-                alert("모든 항목을 입력하세요!");
-                return;
-            }
+        const res=await fetch(`https://api.cloudinary.com/v1_1/dddmgnzlu/image/upload`,{ method:"POST", body:formData });
+        const data=await res.json();
+        return data.secure_url;
+    }
 
-            document.getElementById("loading").style.display = "block";
+    function removeImage(){
+        existingImageUrl="";
+        document.getElementById("existingImage").style.display="none";
+    }
 
-            let imageUrl = "";
-
-            if (file) {
-                imageUrl = await uploadToCloudinary(file);
-            }
-
-            const postData = {
-                title,
-                content,
-                date: new Date().toISOString(),
-            };
-
-            if (author) postData.author = author;
-            if (imageUrl) postData.imageUrl = imageUrl;
-
-            if (postId) { // 수정
-                await db.ref(`posts/${sectionName}/${postId}`).update(postData);
-                alert("✅ 게시글이 수정되었습니다.");
-            } else { // 새 글 등록
-                await db.ref(`posts/${sectionName}`).push(postData);
-                alert("✅ 게시글이 등록되었습니다.");
-            }
-
-            location.href = `section.html?name=${sectionName}`;
-        }
-
-        // ✅ Cloudinary 업로드
-        function uploadToCloudinary(file) {
-            const cloudName = "dddmgnzlu";
-            const uploadPreset = "firebase_uploads";
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", uploadPreset);
-
-            return fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-                method: "POST",
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => data.secure_url)
-            .catch(err => {
-                console.error("Cloudinary 업로드 실패", err);
-                return "";
-            });
-        }
-
-        submitBtn.onclick = submitPost;
-    </script>
+    submitBtn.onclick=submitPost;
+</script>
 
 </body>
 </html>
