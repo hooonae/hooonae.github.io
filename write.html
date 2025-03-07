@@ -24,7 +24,7 @@
     <button id="removeImageBtn" onclick="removeImage()" style="display:none; background:#dc3545; color:white;">🗑 이미지 삭제</button>
     <p id="loading" style="display:none;">⏳ 업로드 중...</p>
     <button id="submitBtn">✅ 저장하기</button>
-    <button class="back-btn">⬅ 목록으로</button>
+    <button id="backBtn">⬅ 목록으로</button>
 </div>
 
 <!-- Firebase SDK -->
@@ -109,6 +109,7 @@
     }
 
     document.getElementById("submitBtn").onclick = submitPost;
+    document.getElementById("backBtn").onclick = () => location.href = `section.html?name=${sectionName}`;
 </script>
 
 </body>
