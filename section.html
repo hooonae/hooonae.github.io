@@ -5,206 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>게시판</title>
 
-    <!-- ✅ 구글 폰트 및 아이콘 -->
+    <!-- ✅ 구글 폰트 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-
-        body {
-            background-color: #f8f9fa;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .search-bar {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .search-bar input {
-            width: 80%;
-            max-width: 500px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .write-btn {
-            background: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
-        .write-btn:hover {
-            background: #218838;
-        }
-
-        .post-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 10px;
-        }
-
-        .post-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .post-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .post-content {
-            text-align: left;
-        }
-
-        .post-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        .post-meta {
-            font-size: 14px;
-            color: #777;
-        }
-
-        .post-icon {
-            font-size: 24px;
-            color: #007bff;
-        }
-
-        @media (max-width: 600px) {
-            .post-card {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .post-icon {
-                align-self: flex-end;
-            }
-        }
+        * {margin:0;padding:0;box-sizing:border-box;font-family:'Noto Sans KR', sans-serif;}
+        body {background:#f8f9fa;padding:20px;text-align:center;}
+        .container {max-width:700px;margin:auto;background:white;padding:20px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+        h1 {margin-bottom:20px;color:#333;}
+        .search-bar {margin-bottom:15px;}
+        .search-bar input {width:80%;padding:10px;border-radius:5px;border:1px solid #ccc;}
+        .write-btn {background:#28a745;color:white;padding:10px;border-radius:5px;text-decoration:none;}
+        .write-btn:hover {background:#218838;}
+        .post-card {display:flex;justify-content:space-between;align-items:center;background:#fff;padding:15px;margin-bottom:10px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.1);cursor:pointer;}
+        .post-title {font-size:17px;color:#007bff;}
+        .post-meta {font-size:14px;color:#777;}
+        .no-post {padding:20px;color:#777;}
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1 id="section-title"></h1>
-        <a class="write-btn" href="#">✏ 글 작성</a>
+        <a class="write-btn" id="write-btn">✏ 글 작성</a>
 
-        <!-- ✅ 검색 기능 추가 -->
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="🔍 제목 검색">
+            <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
         </div>
 
-        <div class="post-list" id="post-list">
-            <!-- 게시글 목록이 여기에 추가됨 -->
-        </div>
+        <div id="post-list"></div>
     </div>
 
     <script>
-        // ✅ Firebase 설정
+        // ✅ Firebase 설정 유지
         const firebaseConfig = {
-            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ✅ URL 파라미터에서 섹션 이름 가져오기
         const params = new URLSearchParams(window.location.search);
         const sectionName = params.get("name");
-        document.getElementById("section-title").innerText = sectionName + " 게시판";
+        document.querySelector("#section-title").innerText = `${sectionName} 게시판`;
+
+        // 글 작성 버튼 링크 수정
         document.querySelector(".write-btn").href = `write.html?name=${sectionName}`;
 
-        // ✅ 게시글 로드 함수
-        function loadPosts() {
-            const postList = document.getElementById("post-list");
-            postList.innerHTML = "<p>📡 게시글을 불러오는 중...</p>";
+        const postList = document.getElementById("post-list");
 
-            db.ref(`posts/${sectionName}`).once("value", snapshot => {
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.getFullYear() + "-" +
+                   String(date.getMonth() + 1).padStart(2, '0') + "-" +
+                   String(date.getDate()).padStart(2, '0') + " " +
+                   String(date.getHours()).padStart(2, '0') + ":" +
+                   String(date.getMinutes()).padStart(2, '0');
+        }
+
+        // 게시글 목록 불러오기
+        function loadPosts() {
+            postList.innerHTML = "<p class='no-post'>📡 게시글을 불러오는 중...</p>";
+
+            db.ref(`posts/${sectionName}`).on("value", snap => {
                 postList.innerHTML = "";
 
-                if (!snapshot.exists()) {
-                    postList.innerHTML = "<p>📝 게시글이 없습니다. 글을 작성해보세요!</p>";
+                if (!snap.exists()) {
+                    postList.innerHTML = "<p class='no-post'>게시글이 없습니다.</p>";
                     return;
                 }
 
-                snapshot.forEach(childSnapshot => {
-                    const post = childSnapshot.val();
-                    const postCard = document.createElement("div");
-                    postCard.className = "post-card";
-                    postCard.innerHTML = `
-                        <div class="post-content">
+                snap.forEach(child => {
+                    const post = child.val();
+                    const postId = child.key;
+
+                    const div = document.createElement("div");
+                    div.className = "post-card";
+                    divHTML = `
+                        <div>
                             <div class="post-title">${post.title}</div>
-                            <div class="post-meta">👤 ${post.author} | 📅 ${post.date}</div>
-                        </div>
-                        <div class="post-icon">➡</div>
-                    `;
-
-                    postCard.onclick = () => {
-                        window.location.href = `post.html?id=${childSnapshot.key}&name=${sectionName}`;
-                    };
-
-                    postList.appendChild(postCard);
+                            <div class="post-meta">👤 ${post.author} | 📅 ${formatDate(post.date)}</div>
+                        </div>`;
+                    div.innerHTML = divHTML;
+                    div.onclick = () => location.href = `post.html?name=${sectionName}&id=${childSnapshot.key}`;
+                    postList.appendChild(div);
                 });
             });
         }
 
-        // ✅ 검색 기능 추가
-        document.getElementById("searchInput").addEventListener("keyup", function () {
-            let filter = this.value.toLowerCase();
-            let postCards = document.querySelectorAll(".post-card");
+        document.querySelector(".write-btn").href = `write.html?name=${sectionName}`;
 
-            postCards.forEach(card => {
-                let title = card.querySelector(".post-title").textContent.toLowerCase();
-                card.style.display = title.includes(filter) ? "flex" : "none";
+        // 🔍 검색 기능 추가
+        document.getElementById("searchInput").addEventListener("keyup", () => {
+            const filter = document.getElementById("searchInput").value.toLowerCase();
+            const posts = document.querySelectorAll(".post-card");
+
+            posts.forEach(post => {
+                const title = post.querySelector(".post-title").textContent.toLowerCase();
+                post.style.display = title.includes(filter) ? "flex" : "none";
             });
         });
 
         loadPosts();
     </script>
-
 </body>
 </html>
