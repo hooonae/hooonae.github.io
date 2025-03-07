@@ -24,36 +24,24 @@
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-            text-align: left;
         }
-        h1 { font-size: 26px; text-align: center; }
+        h2 { font-size: 26px; margin-bottom: 15px; }
         .image-preview {
             width: 100%;
-            height: auto;
             max-height: 250px;
             border-radius: 5px;
+            margin-bottom: 15px;
             display: none;
         }
         .desc {
             font-size: 18px;
             line-height: 1.5;
-            margin-top: 10px;
+            text-align: left;
+            white-space: pre-line;
         }
-        .delete-btn {
+        button {
             width: 100%;
             padding: 15px;
-            background: red;
-            color: white;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 15px;
-        }
-        .back-btn {
-            width: 100%;
-            padding: 15px;
-            background: gray;
             color: white;
             border: none;
             font-size: 18px;
@@ -61,28 +49,24 @@
             border-radius: 5px;
             margin-top: 10px;
         }
-        .error-message {
-            text-align: center;
-            font-size: 18px;
-            color: red;
-            margin-top: 20px;
-            display: none;
-        }
+        .delete-btn { background: red; }
+        .edit-btn { background: #007bff; margin-bottom:10px; }
+        .back-btn { background: gray; }
     </style>
 </head>
 <body>
 
-    <h1>전시 일정 상세</h1>
-
-    <div id="errorMessage" class="error-message">데이터를 불러올 수 없습니다.</div>
+    <div id="errorMessage" style="display:none;">데이터를 불러올 수 없습니다.</div>
 
     <div class="container" id="eventContainer" style="display: none;">
         <h2 id="title"></h2>
-        <p>📅 <br> <span id="startDate"></span> <br> ~ <br> <span id="endDate"></span></p>
+        <p>📅 <span id="startDate"></span> ~ <span id="endDate"></span></p>
         <img id="imagePreview" class="image-preview">
         <p class="desc" id="description"></p>
-        <button class="delete-btn" onclick="deleteEvent()">삭제</button>
-        <button class="back-btn" onclick="goBack()">뒤로 가기</button>
+
+        <button onclick="goEdit()" style="margin-top:15px;background:#007bff;" id="editBtn">✏ 수정하기</button>
+        <button onclick="deleteEvent()" class="delete-btn delete-btn-red" style="margin-top:10px;background:#dc3545;">🗑 삭제하기</button>
+        <button onclick="goBack()" class="back-btn">⬅ 뒤로가기</button>
     </div>
 
     <script>
@@ -96,64 +80,59 @@
             messagingSenderId: "154810876093",
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let eventId = localStorage.getItem("currentPostId");
 
-        if (!eventId) {
-            document.getElementById("errorMessage").style.display = "block";
-        } else {
-            db.ref("events/" + eventId).once("value").then((snapshot) => {
-                let event = snapshot.val();
-                if (event) {
-                    document.getElementById("title").textContent = event.title;
-                    document.getElementById("startDate").textContent = event.startDate;
-                    document.getElementById("endDate").textContent = event.endDate;
-                    document.getElementById("description").textContent = event.description || "내용이 없습니다.";
-
-                    if (event.image) {
-                        document.getElementById("imagePreview").src = event.image;
-                        document.getElementById("imagePreview").style.display = "block";
-                    }
-
-                    // ✅ 정상 데이터가 있으면 컨테이너 표시
-                    document.getElementById("eventContainer").style.display = "block";
-                } else {
+        function loadEvent() {
+            db.ref(`events/${eventId}`).once("value").then(snapshot => {
+                const event = snapshot.val();
+                if (!event) {
                     document.getElementById("errorMessage").style.display = "block";
+                    return;
                 }
-            }).catch((error) => {
-                console.error("데이터 로드 실패:", error);
-                document.getElementById("errorMessage").style.display = "block";
+
+                document.getElementById("title").textContent = event.title;
+                document.getElementById("desc").textContent = event.description;
+                document.getElementById("desc").innerHTML = event.description;
+                document.getElementById("startDate").textContent = event.startDate;
+                document.getElementById("endDate").textContent = event.endDate;
+
+                if (event.image) {
+                    document.getElementById("imagePreview").src = event.image;
+                    document.getElementById("imagePreview").style.display = "block";
+                }
+
+                document.getElementById("eventContainer").style.display = "block";
             });
         }
 
-        // ✅ 삭제 기능 (Firebase에서 데이터 삭제 후 목록 페이지로 이동)
         function deleteEvent() {
-            if (!eventId) {
-                alert("삭제할 수 없습니다. 잘못된 요청입니다.");
-                return;
-            }
-
             if (confirm("정말 삭제하시겠습니까?")) {
-                db.ref("events/" + eventId).remove()
-                    .then(() => {
-                        alert("삭제되었습니다.");
-                        localStorage.removeItem("currentPostId");
-                        window.location.href = "events.html";
-                    })
-                    .catch(error => {
-                        console.error("삭제 실패:", error);
-                        alert("삭제하는 동안 오류가 발생했습니다.");
-                    });
+                db.ref(`events/${eventId}`).remove().then(() => {
+                    alert("삭제되었습니다.");
+                    window.location.href = "events.html";
+                });
             }
         }
 
-        // ✅ 뒤로 가기 버튼 기능 추가
-        function goBack() {
-            window.history.back();
-        }
-    </script>
+        // ✅ 수정 버튼 클릭 시 수정 페이지 이동 및 ID 설정
+        document.getElementById("editBtn").onclick = function () {
+            localStorage.setItem("currentPostId", eventId);
+            window.location.href = "event_form.html";
+        };
 
+        function goBack() {
+            window.location.href = "events.html";
+        }
+
+        loadEvent();
+    }
+
+    loadEvent();
+
+    </script>
 </body>
 </html>
