@@ -42,6 +42,12 @@
             text-decoration: none;
             color: black;
         }
+        .color-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
         .color-buttons {
             display: flex;
             gap: 5px;
@@ -52,13 +58,6 @@
             border-radius: 50%;
             border: none;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
         .black { background-color: black; }
         .blue { background-color: blue; }
@@ -69,7 +68,6 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-top: 10px;
             font-size: 14px;
             font-weight: bold;
         }
@@ -91,20 +89,20 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div class="color-buttons">
-            <button class="color-btn black" onclick="setColor('black')"></button>
-            <button class="color-btn blue" onclick="setColor('blue')"></button>
-            <button class="color-btn red" onclick="setColor('red')"></button>
-            <button class="color-btn green" onclick="setColor('green')"></button>
+        <div class="color-container">
+            <div class="color-buttons">
+                <button class="color-btn black" onclick="setColor('black')"></button>
+                <button class="color-btn blue" onclick="setColor('blue')"></button>
+                <button class="color-btn red" onclick="setColor('red')"></button>
+                <button class="color-btn green" onclick="setColor('green')"></button>
+            </div>
+            <div class="color-labels">
+                <span style="color: black;">고정</span>
+                <span style="color: blue;">연차</span>
+                <span style="color: red;">대휴</span>
+                <span style="color: green;">일정</span>
+            </div>
         </div>
-    </div>
-
-    <!-- 🔹 색상별 설명 -->
-    <div class="color-labels">
-        <span style="color: black;">고정</span>
-        <span style="color: blue;">연차</span>
-        <span style="color: red;">대휴</span>
-        <span style="color: green;">일정</span>
     </div>
 
     <div id="calendar"></div>
@@ -147,7 +145,7 @@
                 editable: true,
                 selectable: true,
                 contentHeight: "auto",
-                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1),
+                initialDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1),
 
                 datesSet: function(info) {
                     let newMonth = info.view.currentStart.getMonth() + 1;
@@ -238,12 +236,6 @@
                     calendar.removeAllEvents();
                     calendar.addEventSource(events);
                 });
-            }
-
-            async function deleteEvent(calendar, event) {
-                let [year, month, day] = event.startStr.split("-");
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                loadEvents(calendar, selectedMonth);
             }
         });
     </script>
