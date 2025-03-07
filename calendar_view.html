@@ -174,19 +174,10 @@
             calendar.render();
             loadEvents(calendar, selectedMonth); 
 
-            let clickTimeout = null;
             calendar.on("dateClick", function(info) {
-                if (clickTimeout !== null) {
-                    clearTimeout(clickTimeout);
-                    clickTimeout = null;
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(calendar, info.date, name, selectedColor);
-                    }
-                } else {
-                    clickTimeout = setTimeout(() => {
-                        clickTimeout = null;
-                    }, 300);
+                let name = prompt("일정 이름을 입력하세요:");
+                if (name) {
+                    addEvent(calendar, info.date, name, selectedColor);
                 }
             });
 
@@ -198,13 +189,6 @@
                 const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
                 await newRef.set({ name, color });
 
-                calendar.addEvent({
-                    id: newRef.key,
-                    title: name,
-                    start: `${year}-${month}-${day}`,
-                    color: color
-                });
-
                 loadEvents(calendar, selectedMonth);
             }
 
@@ -212,12 +196,13 @@
                 let today = new Date();
                 let year = today.getFullYear();
 
-                db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
+                db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).on("value", (snapshot) => {
                     calendar.removeAllEvents();
+                    let events = [];
                     snapshot.forEach((daySnapshot) => {
                         daySnapshot.forEach((eventSnapshot) => {
                             const event = eventSnapshot.val();
-                            calendar.addEvent({
+                            events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
                                 start: `${year}-${month}-${daySnapshot.key}`,
@@ -225,6 +210,7 @@
                             });
                         });
                     });
+                    calendar.addEventSource(events);
                 });
             }
 
