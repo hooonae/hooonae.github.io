@@ -24,19 +24,19 @@
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: left;
         }
-        h2 { font-size: 26px; margin-bottom: 15px; }
+        h1 { font-size: 26px; text-align: center; }
         .image-preview {
             width: 100%;
             max-height: 250px;
             border-radius: 5px;
-            margin-bottom: 15px;
             display: none;
         }
         .desc {
             font-size: 18px;
             line-height: 1.5;
-            text-align: left;
+            margin-top: 10px;
             white-space: pre-line;
         }
         button {
@@ -50,23 +50,30 @@
             margin-top: 10px;
         }
         .delete-btn { background: red; }
-        .edit-btn { background: #007bff; margin-bottom:10px; }
+        .edit-btn { background: #007bff; }
         .back-btn { background: gray; }
+        .error-message {
+            font-size: 18px;
+            color: red;
+            margin-top: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <div id="errorMessage" style="display:none;">데이터를 불러올 수 없습니다.</div>
+    <h1>전시 일정 상세</h1>
+
+    <div id="errorMessage" class="error-message">데이터를 불러올 수 없습니다.</div>
 
     <div class="container" id="eventContainer" style="display: none;">
         <h2 id="title"></h2>
         <p>📅 <span id="startDate"></span> ~ <span id="endDate"></span></p>
-        <img id="imagePreview" class="image-preview">
+        <img id="imagePreview" class="image-preview" style="display:none;">
         <p class="desc" id="description"></p>
-
-        <button onclick="goEdit()" style="margin-top:15px;background:#007bff;" id="editBtn">✏ 수정하기</button>
-        <button onclick="deleteEvent()" class="delete-btn delete-btn-red" style="margin-top:10px;background:#dc3545;">🗑 삭제하기</button>
-        <button onclick="goBack()" class="back-btn">⬅ 뒤로가기</button>
+        <button class="edit-btn" onclick="editEvent()">✏ 수정하기</button>
+        <button class="delete-btn" onclick="deleteEvent()">🗑 삭제하기</button>
+        <button class="back-btn" onclick="goBack()">⬅ 뒤로 가기</button>
     </div>
 
     <script>
@@ -80,59 +87,71 @@
             messagingSenderId: "154810876093",
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
-
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let eventId = localStorage.getItem("currentPostId");
+        const eventId = localStorage.getItem("currentPostId");
 
         function loadEvent() {
-            db.ref(`events/${eventId}`).once("value").then(snapshot => {
-                const event = snapshot.val();
-                if (!event) {
+            if (!eventId) {
+                document.getElementById("errorMessage").style.display = "block";
+                return;
+            }
+
+            db.ref("events/" + eventId).once("value").then((snapshot) => {
+                let event = snapshot.val();
+                if (event) {
+                    document.getElementById("title").textContent = event.title;
+                    document.getElementById("startDate").textContent = event.startDate;
+                    document.getElementById("endDate").textContent = event.endDate;
+                    document.getElementById("description").textContent = event.description || "내용이 없습니다.";
+
+                    if (event.image) {
+                        document.getElementById("imagePreview").src = event.image;
+                        document.getElementById("imagePreview").style.display = "block";
+                    }
+
+                    document.getElementById("eventContainer").style.display = "block";
+                } else {
                     document.getElementById("errorMessage").style.display = "block";
-                    return;
                 }
-
-                document.getElementById("title").textContent = event.title;
-                document.getElementById("desc").textContent = event.description;
-                document.getElementById("desc").innerHTML = event.description;
-                document.getElementById("startDate").textContent = event.startDate;
-                document.getElementById("endDate").textContent = event.endDate;
-
-                if (event.image) {
-                    document.getElementById("imagePreview").src = event.image;
-                    document.getElementById("imagePreview").style.display = "block";
-                }
-
-                document.getElementById("eventContainer").style.display = "block";
+            }).catch((error) => {
+                console.error("데이터 로드 실패:", error);
+                document.getElementById("errorMessage").style.display = "block";
             });
         }
 
+        // ✅ 삭제 기능
         function deleteEvent() {
+            if (!eventId) return alert("삭제할 수 없습니다.");
             if (confirm("정말 삭제하시겠습니까?")) {
-                db.ref(`events/${eventId}`).remove().then(() => {
+                db.ref("events/" + eventId).remove()
+                .then(() => {
                     alert("삭제되었습니다.");
+                    localStorage.removeItem("currentPostId");
                     window.location.href = "events.html";
+                })
+                .catch(error => {
+                    console.error("삭제 실패:", error);
+                    alert("삭제 중 오류 발생.");
                 });
             }
         }
 
-        // ✅ 수정 버튼 클릭 시 수정 페이지 이동 및 ID 설정
-        document.getElementById("editBtn").onclick = function () {
+        // ✅ 수정 버튼 클릭 시 기존 데이터를 유지하고 폼으로 이동
+        function editEvent() {
             localStorage.setItem("currentPostId", eventId);
             window.location.href = "event_form.html";
-        };
+        }
 
+        // ✅ 뒤로 가기 버튼
         function goBack() {
             window.location.href = "events.html";
         }
 
+        // 초기화
         loadEvent();
-    }
-
-    loadEvent();
-
     </script>
+
 </body>
 </html>
