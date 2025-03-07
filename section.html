@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>게시판</title>
 
-    <!-- ✅ 구글 폰트 -->
+    <!-- ✅ 구글 폰트 및 아이콘 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -24,8 +25,13 @@
         .post-card{background:white;padding:15px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.1);display:flex;align-items:center;cursor:pointer;}
         .post-image{width:60px;height:60px;object-fit:cover;border-radius:5px;margin-right:15px;background:#eee;}
         .post-content{text-align:left;flex-grow:1;}
-        .post-title{font-weight:bold;color:#007bff;}
-        .post-meta{font-size:14px;color:#777;}
+        .post-title{font-weight:bold;color:#007bff;margin-bottom:4px;}
+        .post-preview{font-size:14px;color:#555;margin-bottom:6px;}
+        .post-meta{font-size:13px;color:#777;}
+        @media (max-width:600px){
+            .post-card {flex-direction:column;align-items:flex-start;}
+            .post-image{margin-bottom:10px;}
+        }
     </style>
 </head>
 <body>
@@ -36,7 +42,7 @@
     <a class="write-btn" href="#">✏ 글 작성</a>
 
     <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
+        <input type="text" id="searchInput" placeholder="🔍 제목 검색">
     </div>
 
     <div class="post-list" id="post-list"></div>
@@ -66,6 +72,11 @@
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     }
 
+    // 내용 미리보기 간략화 함수
+    function getPreview(content, length = 30) {
+        return content.length > length ? content.substring(0, length) + "..." : content;
+    }
+
     function loadPosts() {
         const postList = document.getElementById("post-list");
         postList.innerHTML = "📡 게시글을 불러오는 중...";
@@ -87,19 +98,20 @@
                     ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : `<div class="post-image"></div>`}
                     <div class="post-content">
                         <div class="post-title">${post.title}</div>
+                        <div class="post-preview">${getPreview(post.content)}</div>
                         <div class="post-meta">👤 ${post.author} | 📅 ${formatDate(post.date)}</div>
                     </div>
                 `;
 
                 postCard.onclick = () => {
-                    window.location.href = `post.html?id=${snapshot.key}&name=${sectionName}`;
+                    window.location.href = `post.html?id=${postId}&name=${sectionName}`;
                 };
                 postList.appendChild(postCard);
             });
         });
     }
 
-    // 검색 기능
+    // 검색 기능 추가
     document.getElementById("searchInput").addEventListener("keyup", function () {
         const filter = this.value.toLowerCase();
         document.querySelectorAll(".post-card").forEach(card => {
@@ -110,8 +122,6 @@
 
     window.onload = loadPosts;
 </script>
-
-<div id="post-list"></div>
 
 </body>
 </html>
