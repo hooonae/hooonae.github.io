@@ -48,72 +48,78 @@
     const params = new URLSearchParams(window.location.search);
     const sectionName = params.get("name");
     const postId = params.get("id");
-    let existingImageUrl = "";
 
-    if(postId){
+    let existingImageUrl = "";  // ✅ 여기 한번만 선언!
+
+    if (postId) {
         document.getElementById("form-title").innerText = "✏ 글 수정";
-        db.ref(`posts/${sectionName}/${postId}`).once("value", snap=>{
+        db.ref(`posts/${sectionName}/${postId}`).once("value", snap => {
             const post = snap.val();
-            document.getElementById("title").value=post.title;
-            document.getElementById("author").value=post.author;
-            document.getElementById("content").value=post.content;
-            
-            if(post.imageUrl){
-                existingImageUrl=post.imageUrl;
-                document.getElementById("post-image").src=post.imageUrl;
-                document.getElementById("post-image").style.display="block";
-                document.getElementById("removeImageBtn").style.display="inline-block";
+            document.getElementById("title").value = post.title;
+            document.getElementById("author").value = post.author;
+            document.getElementById("content").value = post.content;
+
+            if (post.imageUrl) {
+                existingImageUrl = post.imageUrl;
+                const img = document.getElementById("existingImage");
+                img.src = post.imageUrl;
+                img.style.display = "block";
+                document.getElementById("removeImageBtn").style.display = "inline-block";
             }
         });
     }
 
-    let existingImageUrl = "";
+    async function submitPost() {
+        const title = document.getElementById("title").value.trim();
+        const author = document.getElementById("author").value.trim();
+        const content = document.getElementById("content").value.trim();
+        const file = document.getElementById("imageUpload").files[0];
 
-    async function submitPost(){
-        const title=document.getElementById("title").value.trim();
-        const author=document.getElementById("author").value.trim();
-        const content=document.getElementById("content").value.trim();
-        const file=document.getElementById("imageUpload").files[0];
-
-        if(!title||!author||!content) return alert("제목, 작성자, 내용을 입력해주세요.");
-        document.getElementById("loading").style.display="block";
-
-        let imageUrl=existingImageUrl||"";
-        if(file) imageUrl=await uploadToCloudinary(file);
-
-        const postData={title,author,content,date:new Date().toISOString(),imageUrl};
-
-        if(postId){
-            await db.ref(`posts/${sectionName}/${postId}`).update(postData);
-            alert("✅ 글이 수정되었습니다!");
-        }else{
-            await db.ref(`posts/${sectionName}`).push(postData);
-            alert("✅ 글이 등록되었습니다!");
+        if (!title || !author || !content) {
+            alert("모든 필드를 입력해주세요.");
+            return;
         }
 
-        location.href=`section.html?name=${sectionName}`;
+        document.getElementById("loading").style.display = "block";
+
+        let imageUrl = existingImageUrl;
+
+        if (file) {
+            imageUrl = await uploadToCloudinary(file);
+        }
+
+        const postData = { title, author, content, date: new Date().toISOString(), imageUrl };
+
+        if (postId) {
+            await db.ref(`posts/${sectionName}/${postId}`).update(postData);
+            alert("✅ 게시글이 수정되었습니다.");
+        } else {
+            await db.ref(`posts/${sectionName}`).push(postData);
+            alert("✅ 게시글이 등록되었습니다.");
+        }
+
+        location.href = `section.html?name=${sectionName}`;
     }
 
-    async function uploadToCloudinary(file){
-        const cloudName="dddmgnzlu";
-        const uploadPreset="firebase_uploads";
-        const formData=new FormData();
-        formData.append("file",file);
-        formData.append("upload_preset",uploadPreset);
+    async function uploadToCloudinary(file) {
+        const cloudName = "dddmgnzlu";
+        const uploadPreset = "firebase_uploads";
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", uploadPreset);
 
-        const res=await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,{method:"POST",body:formData});
-        const data=await res.json();
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: formData });
+        const data = await res.json();
         return data.secure_url;
     }
 
-    function removeImage(){
-        existingImageUrl="";
-        document.getElementById("post-image").style.display="none";
-        document.getElementById("removeImageBtn").style.display="none";
+    function removeImage() {
+        existingImageUrl = "";
+        document.getElementById("existingImage").style.display = "none";
+        document.getElementById("removeImageBtn").style.display = "none";
     }
 
-    document.getElementById("submitBtn").onclick=submitPost;
-</script>
-
+    document.getElementById("submitBtn").onclick = submitPost;
+<script>
 </body>
 </html>
