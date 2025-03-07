@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📢 공지사항 상세보기</title>
+    <title>📢 공지사항 작성 및 수정</title>
 
-    <!-- ✅ Firebase SDK (한 번만 로딩) -->
+    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <!-- ✅ Cloudinary 위젯 -->
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 
     <style>
         body {
@@ -21,44 +24,48 @@
             max-width: 600px;
             margin: 20px auto;
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
-            color: #333;
-        }
-        img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: none;
+        input, textarea {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         button {
-            padding: 10px;
-            border-radius: 5px;
+            background: #8B5E3C;
             color: white;
-            cursor: pointer;
+            padding: 10px;
             border: none;
+            border-radius: 5px;
+            cursor: pointer;
             margin: 5px;
         }
-        .delete-btn { background: #dc3545; }
-        .edit-btn { background: #007bff; }
-        .back-btn { background: #555; }
+        .back-btn {
+            background: #555;
+        }
+        #imagePreview {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>📢 공지사항 상세보기</h1>
-        <h2 id="title"></h2>
-        <p>📅 <span id="date"></span></p>
-        <img id="image" src="" alt="공지 이미지" style="display:none;">
-        <p id="content"></p>
+    <h1 id="formTitle">📢 공지사항 작성</h1>
 
-        <button class="edit-btn" onclick="editNotice()">✏ 수정</button>
+    <div class="container">
+        <input type="text" id="title" placeholder="공지 제목">
+        <textarea id="content" placeholder="공지 내용을 입력하세요"></textarea>
+        <input type="file" id="imageUpload" accept="image/*">
+        <img id="imagePreview" src="">
+        <button onclick="submitNotice()">✅ 등록/수정</button>
         <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
-        <button class="delete-btn" onclick="deleteNotice()">🗑 삭제</button>
     </div>
 
     <script>
@@ -72,53 +79,81 @@
             appId: "1:154810876093:web:d9cc427254abfb609e37d4"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const params = new URLSearchParams(window.location.search);
         const noticeId = params.get("id");
 
-        function formatDate(isoString) {
-            const date = new Date(isoString);
-            return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+        let existingImageUrl = "";
+
+        if (noticeId) {
+            document.getElementById("formTitle").innerText = "✏ 공지사항 수정";
+            loadExistingNotice();
         }
 
-        function loadNotice() {
+        function loadExistingNotice() {
             db.ref(`notices/${noticeId}`).once("value").then(snapshot => {
-                if (!snapshot.exists()) {
-                    alert("⚠️ 공지사항을 찾을 수 없습니다.");
-                    window.location.href = "notices.html";
-                    return;
-                }
-
                 const notice = snapshot.val();
-                document.getElementById("title").innerText = notice.title;
-                document.getElementById("content").innerText = notice.content;
-                document.getElementById("date").innerText = formatDate(notice.date);
-
-                if (notice.imageUrl) {
-                    document.getElementById("image").src = notice.imageUrl;
-                    document.getElementById("image").style.display = "block";
+                if (notice) {
+                    document.getElementById("title").value = notice.title;
+                    document.getElementById("content").value = notice.content;
+                    existingImageUrl = notice.imageUrl || "";
                 }
             });
         }
 
-        function deleteNotice() {
-            if(confirm("정말 삭제하시겠습니까?")) {
-                db.ref("notices/" + noticeId).remove().then(() => {
-                    alert("🗑️ 삭제되었습니다.");
-                    window.location.href = "notices.html";
-                });
+        async function uploadToCloudinary(file) {
+            const cloudName = "dddmgnzlu";
+            const uploadPreset = "firebase_uploads";
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", uploadPreset);
+
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            return data.secure_url;
+        }
+
+        async function submitNotice() {
+            const title = document.getElementById("title").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const fileInput = document.getElementById("image");
+            const file = fileInput.files[0];
+
+            let imageUrl = existingImageUrl;
+
+            if (file) {
+                imageUrl = await uploadToCloudinary(file);
             }
+
+            const noticeData = {
+                title,
+                content,
+                imageUrl,
+                date: new Date().toISOString()
+            };
+
+            if (noticeId) {
+                // 수정모드
+                await db.ref(`notices/${noticeId}`).update(noticeData);
+                alert("✅ 공지사항이 수정되었습니다!");
+            } else {
+                // 새글모드
+                await db.ref("notices").push(noticeData);
+                alert("✅ 공지사항이 등록되었습니다!");
+            }
+
+            window.location.href = "notices.html";
         }
 
-        function editNotice() {
-            window.location.href = `notice_form.html?id=${noticeId}`;
-        }
-
-        document.addEventListener("DOMContentLoaded", loadNotice);
+        document.querySelector("button[onclick='submitNotice()']").onclick = submitNotice;
+        document.getElementById("formTitle").innerText = noticeId ? "✏ 공지사항 수정" : "📢 공지사항 작성";
     </script>
 
 </body>
