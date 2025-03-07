@@ -46,11 +46,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 5px; /* 버튼과 글씨 사이 간격 */
         }
         .color-buttons {
             display: flex;
-            gap: 5px;
+            gap: 8px; /* 버튼 간 간격 */
         }
         .color-btn {
             width: 30px;
@@ -64,13 +64,29 @@
         .red { background-color: red; }
         .green { background-color: green; }
 
+        /* ✅ 색상 버튼 아래 정렬 */
         .color-labels {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 20px; /* 글씨 사이 간격 */
             font-size: 14px;
             font-weight: bold;
+            margin-top: -5px; /* 버튼과 더 밀착 */
         }
+
+        /* ✅ 글자 자동 조정 */
+        .color-labels span {
+            display: inline-block;
+            max-width: 50px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* ✅ 4글자 이상 자동 조정 */
+        .color-labels span[data-length="4"] { font-size: 14px; }
+        .color-labels span[data-length="5"],
+        .color-labels span[data-length="6"] { font-size: 12px; }
 
         #calendar {
             width: 100%;
@@ -97,10 +113,10 @@
                 <button class="color-btn green" onclick="setColor('green')"></button>
             </div>
             <div class="color-labels">
-                <span style="color: black;">고정</span>
-                <span style="color: blue;">연차</span>
-                <span style="color: red;">대휴</span>
-                <span style="color: green;">일정</span>
+                <span data-length="2">고정</span>
+                <span data-length="2">연차</span>
+                <span data-length="2">대휴</span>
+                <span data-length="2">일정</span>
             </div>
         </div>
     </div>
@@ -129,6 +145,11 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".color-labels span").forEach(span => {
+                let length = span.textContent.length;
+                span.setAttribute("data-length", length > 6 ? 6 : length);
+            });
+
             let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
             selectedMonth = parseInt(selectedMonth);
 
@@ -145,8 +166,6 @@
                 editable: true,
                 selectable: true,
                 contentHeight: "auto",
-                initialDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1),
-
                 datesSet: function(info) {
                     let newMonth = info.view.currentStart.getMonth() + 1;
                     if (newMonth !== selectedMonth) {
@@ -156,7 +175,6 @@
                         loadEvents(calendar, selectedMonth);
                     }
                 },
-
                 eventClick: function(info) {
                     if (confirm("일정을 삭제하시겠습니까?")) {
                         deleteEvent(calendar, info.event);
@@ -168,7 +186,6 @@
             loadEvents(calendar, selectedMonth); 
 
             let clickTimeout = null;
-
             calendar.on("dateClick", function(info) {
                 if (clickTimeout !== null) {
                     clearTimeout(clickTimeout);
@@ -194,7 +211,7 @@
 
                 calendar.addEvent({
                     id: newRef.key,
-                    title: shortenTitle(name),
+                    title: name,
                     start: `${year}-${month}-${day}`,
                     color: color
                 });
@@ -202,40 +219,30 @@
                 loadEvents(calendar, selectedMonth);
             }
 
-            function shortenTitle(title) {
-                if (title.length > 6) {
-                    return title.substring(0, 6) + "...";
-                } else if (title.length > 3) {
-                    return `<span style="font-size: 12px;">${title}</span>`;
-                }
-                return title;
-            }
-
-            function deleteEvent(calendar, event) {
-                let [year, month, day] = event.startStr.split("-");
-                db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove().then(() => {
-                    console.log("🗑️ 삭제 완료:", event.id);
-                    loadEvents(calendar, selectedMonth);
-                });
-            }
-
             function loadEvents(calendar, month) {
-                let year = new Date().getFullYear();
+                let today = new Date();
+                let year = today.getFullYear();
+
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    let events = [];
-                    snapshot.forEach(daySnapshot => {
-                        daySnapshot.forEach(eventSnapshot => {
-                            events.push({
+                    calendar.removeAllEvents();
+                    snapshot.forEach((daySnapshot) => {
+                        daySnapshot.forEach((eventSnapshot) => {
+                            const event = eventSnapshot.val();
+                            calendar.addEvent({
                                 id: eventSnapshot.key,
-                                title: shortenTitle(eventSnapshot.val().name),
-                                start: `${year}-${String(month).padStart(2, '0')}-${daySnapshot.key}`,
-                                color: eventSnapshot.val().color || "black"
+                                title: event.name,
+                                start: `${year}-${month}-${daySnapshot.key}`,
+                                color: event.color || "black"
                             });
                         });
                     });
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(events);
                 });
+            }
+
+            async function deleteEvent(calendar, event) {
+                let [year, month, day] = event.startStr.split("-");
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                loadEvents(calendar, selectedMonth);
             }
         });
     </script>
