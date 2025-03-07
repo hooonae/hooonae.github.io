@@ -26,7 +26,7 @@
 
         .post-content { text-align: left; font-size: 16px; color: #333; line-height: 1.6; white-space: pre-line; }
 
-        .post-image { max-width: 100%; margin: 15px 0; border-radius: 10px; }
+        .post-image { max-width: 100%; margin: 15px 0; border-radius: 10px; display: none; }
 
         .btn-container { display: flex; justify-content: space-between; margin-top: 20px; }
 
@@ -40,17 +40,17 @@
 
         .btn-edit:hover { background: #0056b3; }
 
-        .post-image { max-width: 100%; display: none; margin-bottom: 15px; border-radius: 10px; }
-
         .comments { margin-top: 30px; text-align: left; }
 
         .comment { background: #f1f1f1; padding: 10px; border-radius: 5px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-        .comment-delete { background: none; border: none; color: #dc3545; cursor: pointer; }
+        .comment-delete { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 14px; }
 
         .comment-input, .author-input { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; }
 
         .btn-comment { margin-top: 5px; background: #28a745; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+
+        .btn-comment:hover { background: #218838; }
     </style>
 </head>
 <body>
@@ -77,15 +77,8 @@
 
 <script>
     const firebaseConfig = {
-        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
-        authDomain: "museum-web-370cd.firebaseapp.com",
-        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
-        projectId: "museum-web-370cd",
-        storageBucket: "museum-web-370cd.appspot.com",
-        messagingSenderId: "154810876093",
-        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -95,52 +88,55 @@
 
     function loadPost() {
         db.ref(`posts/${sectionName}/${postId}`).once("value", snapshot => {
-            if (!snapshot.exists()) return alert("⚠️ 게시글을 찾을 수 없습니다.");
+            if (!snapshot.exists()) return alert("게시글이 없습니다.");
             const post = snapshot.val();
             document.getElementById("post-title").innerText = post.title;
             document.getElementById("post-author").innerText = post.author;
             document.getElementById("post-date").innerText = new Date(post.date).toLocaleString();
             document.getElementById("post-content").innerText = post.content;
-            if (post.imageUrl) {
-                const imgElement = document.getElementById("post-image");
-                imgElement.src = post.imageUrl;
-                imgElement.style.display = "block";
+            if(post.imageUrl){
+                document.getElementById("post-image").src = post.imageUrl;
+                document.getElementById("post-image").style.display = "block";
             }
             loadComments();
         });
     }
 
-    function deletePost() {
-        if (confirm("정말 삭제하시겠습니까?")) {
-            db.ref(`posts/${sectionName}/${postId}`).remove().then(() => {
-                alert("🗑 게시글이 삭제되었습니다.");
-                window.location.href = `section.html?name=${sectionName}`;
+    function editPost(){
+        location.href=`write.html?name=${sectionName}&id=${postId}`;
+    }
+
+    function deletePost(){
+        if(confirm("정말 삭제하시겠습니까?")){
+            db.ref(`posts/${sectionName}/${postId}`).remove().then(()=>{
+                alert("게시글 삭제됨.");
+                location.href=`section.html?name=${sectionName}`;
             });
         }
     }
 
-    function loadComments() {
-        const commentList = document.getElementById("commentList");
-        commentList.innerHTML = "";
-
-        db.ref(`comments/${postId}`).once("value", snapshot => {
-            snapshot.forEach(childSnapshot => {
-                const comment = childSnapshot.val();
-                const div = document.createElement("div");
-                div.className = "comment";
-                div.innerHTML = `<strong>${comment.author}</strong>: ${comment.text} <button class="comment-delete" onclick="deleteComment('${childSnapshot.key}')">❌</button>`;
-                commentList.appendChild(div);
-            });
+    function addComment(){
+        const author=document.getElementById("commentAuthor").value;
+        const text=document.getElementById("commentInput").value;
+        if(!author || !text)return alert("작성자와 댓글을 입력하세요.");
+        db.ref(`comments/${postId}`).push({author,text}).then(()=>{
+            document.getElementById("commentAuthor").value='';
+            document.getElementById("commentInput").value='';
+            loadComments();
         });
     }
 
-    function deleteComment(commentId) {
-        db.ref(`comments/${postId}/${commentId}`).remove();
-        loadComments();
+    function deleteComment(cid){
+        db.ref(`comments/${postId}/${commentId}`).remove().then(loadComments);
     }
 
-    function loadComments() {
-        deletePost();
+    function loadComments(){
+        db.ref(`comments/${postId}`).once("value",snap=>{
+            commentList.innerHTML='';
+            snap.forEach(c=>{
+                commentList.innerHTML+=`<div class="comment">${c.val().author}: ${c.val().text}<button onclick="deleteComment('${c.key}')">❌</button></div>`;
+            });
+        });
     }
 
     loadPost();
