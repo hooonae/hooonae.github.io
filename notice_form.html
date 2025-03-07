@@ -1,42 +1,40 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📢 공지사항 작성/수정</title>
-
-    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background: #F8F1E9;
-            padding: 20px;
             text-align: center;
+            background: #F8F1E9;
+            margin: 0;
+            padding: 20px;
         }
+
         .container {
             max-width: 600px;
-            margin: auto;
+            margin: 20px auto;
             background: white;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        input, textarea {
+
+        input,
+        textarea {
             width: 90%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        img {
-            max-width: 100%;
-            display: none;
-            margin: 10px auto;
-            border-radius: 10px;
-        }
+
         button {
             background: #8B5E3C;
             color: white;
@@ -46,11 +44,21 @@
             cursor: pointer;
             margin: 5px;
         }
+
         .back-btn {
             background: #555;
         }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+            display: none;
+            border-radius: 10px;
+        }
     </style>
 </head>
+
 <body>
 
     <h1>📢 공지사항 작성/수정</h1>
@@ -59,13 +67,17 @@
         <input type="text" id="title" placeholder="공지 제목">
         <textarea id="content" placeholder="공지 내용을 입력하세요"></textarea>
         <input type="file" id="image" accept="image/*">
-        <img id="previewImage" src="">
+        <img id="previewImage" style="display: none;">
         <button onclick="submitNotice()">✅ 저장</button>
-        <button class="back-btn" onclick="location.href='notices.html'">⬅ 목록으로</button>
+        <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <script>
-        // ✅ Firebase 초기화
+        // Firebase 초기화 (정상 설정!)
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -79,126 +91,89 @@
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const db = firebase.database();
 
-        // ✅ Cloudinary 설정
-        const cloudName = "dddmgnzlu";
-        const uploadPreset = "firebase_uploads";
-        let imageUrl = "";
+        const db = firebase.database();
 
         const params = new URLSearchParams(window.location.search);
         const noticeId = params.get("id");
-
-        // ✅ 수정할 공지사항 데이터 로드
-        function loadNotice() {
-            if (noticeId) {
-                db.ref("notices/" + noticeId).once("value").then(snapshot => {
-                    const notice = snapshot.val();
-                    if (notice) {
-                        document.getElementById("title").value = notice.title;
-                        document.getElementById("content").value = notice.content;
-                        if (notice.imageUrl) {
-                            imageUrl = notice.imageUrl;
-                            document.getElementById("previewImage").src = notice.imageUrl;
-                            document.getElementById("previewImage").style.display = "block";
-                        }
-                    }
-                }).catch(error => {
-                    console.error("공지사항 로딩 실패:", error);
-                });
-            }
-        }
-
-        // URL에서 공지사항 ID 얻기
-        const noticeId = new URLSearchParams(window.location.search).get("id");
-        loadNoticeToForm();
-
-        // ✅ 이미지 미리보기
         let imageUrl = "";
 
-        document.getElementById("image").addEventListener("change", (event) => {
-            const file = event.target.files[0];
+        if (noticeId) {
+            loadNoticeData();
+        }
+
+        function loadNoticeData() {
+            db.ref(`notices/${noticeId}`).once("value").then(snapshot => {
+                const notice = snapshot.val();
+                if (notice) {
+                    document.getElementById("title").value = notice.title;
+                    document.getElementById("content").value = notice.content;
+                    if (notice.imageUrl) {
+                        imageUrl = notice.imageUrl;
+                        document.getElementById("previewImage").src = imageUrl;
+                        document.getElementById("previewImage").style.display = "block";
+                    }
+                }
+            });
+        }
+
+        document.getElementById("image").addEventListener("change", async (e) => {
+            const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    document.getElementById("previewImage").src = reader.result;
-                    document.getElementById("previewImage").style.display = "block";
-                };
-                reader.readAsDataURL(file);
+                imageUrl = await uploadToCloudinary(file);
+                document.getElementById("previewImage").src = imageUrl;
+                document.getElementById("previewImage").style.display = "block";
             }
         });
 
-        // ✅ 이미지 업로드 함수
         async function uploadToCloudinary(file) {
             const cloudName = "dddmgnzlu";
             const uploadPreset = "firebase_uploads";
-
             const formData = new FormData();
             formData.append("file", file);
             formData.append("upload_preset", uploadPreset);
 
-            const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
                 method: "POST",
                 body: formData
             });
-            const data = await response.json();
+
+            const data = await res.json();
             return data.secure_url;
         }
 
-        // ✅ 공지사항 저장 또는 업데이트 함수
-        async function submitNotice() {
+        function submitNotice() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("content").value.trim();
-            const file = document.getElementById("image").files[0];
 
             if (!title || !content) {
                 alert("⚠️ 제목과 내용을 입력하세요.");
                 return;
             }
 
-            let imageUrlToSave = imageUrl;
-            if (fileInput.files[0]) {
-                imageUrlToSave = await uploadToCloudinary(fileInput.files[0]);
-            }
-
             const noticeData = {
                 title,
                 content,
-                imageUrl: imageUrlToSave || imageUrl || "",
+                imageUrl,
                 date: new Date().toISOString()
             };
 
             if (noticeId) {
-                db.ref("notices/" + noticeId).update(noticeData).then(() => {
-                    alert("✅ 공지사항 수정 완료!");
-                    window.location.href = "notices.html";
-                });
+                db.ref(`notices/${noticeId}`).update(noticeData)
+                    .then(() => {
+                        alert("✅ 수정 완료!");
+                        window.location.href = "notices.html";
+                    });
             } else {
-                db.ref("notices").push(noticeData).then(() => {
-                    alert("✅ 공지사항 추가 완료!");
-                    window.location.href = "notices.html";
-                });
-            }
-        }
-
-        // ✅ 폼에 공지사항 내용 불러오기 함수
-        function loadNoticeToForm() {
-            if (noticeId) {
-                db.ref("notices/" + noticeId).once("value").then(snapshot => {
-                    const notice = snapshot.val();
-                    if (notice) {
-                        document.getElementById("title").value = notice.title;
-                        document.getElementById("content").value = notice.content;
-                        if (notice.imageUrl) {
-                            document.getElementById("previewImage").src = notice.imageUrl;
-                            document.getElementById("previewImage").style.display = "block";
-                            imageUrl = notice.imageUrl;
-                        }
-                    }
-                });
+                db.ref("notices").push(noticeData)
+                    .then(() => {
+                        alert("✅ 공지사항이 등록되었습니다!");
+                        window.location.href = "notices.html";
+                    });
             }
         }
     </script>
 
 </body>
+
 </html>
