@@ -33,6 +33,8 @@
             font-size: 22px;
             font-weight: bold;
             text-align: left;
+            display: inline-block;
+            white-space: nowrap;
         }
         .home-btn {
             background: none;
@@ -45,7 +47,7 @@
         .color-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-end; /* 오른쪽 정렬 */
         }
         .color-buttons {
             display: flex;
@@ -64,14 +66,13 @@
         .green { background-color: green; }
         .color-labels {
             display: flex;
-            justify-content: center;
+            justify-content: flex-end; /* 오른쪽 정렬 */
             gap: 10px;
             font-size: 14px;
-            margin-top: 5px;
+            margin-top: 3px;
         }
         .color-labels span {
-            display: inline-block;
-            width: 50px;
+            width: 30px;
             text-align: center;
         }
         #calendar {
@@ -99,7 +100,7 @@
                 <button class="color-btn green" onclick="setColor('green')"></button>
             </div>
             <div class="color-labels">
-                <span>일반</span>
+                <span>고정</span>
                 <span>대휴</span>
                 <span>일정</span>
                 <span>연차</span>
@@ -132,13 +133,13 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-            selectedMonth = parseInt(selectedMonth); // 정수 변환
+            selectedMonth = parseInt(selectedMonth);
 
             function updateMonthTitle(month) {
                 document.getElementById("month-title").textContent = `${month}월 일정`;
             }
 
-            updateMonthTitle(selectedMonth); // ✅ 초기 월 제목 설정
+            updateMonthTitle(selectedMonth);
 
             var calendarEl = document.getElementById("calendar");
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -147,9 +148,8 @@
                 editable: true,
                 selectable: true,
                 contentHeight: "auto",
-                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1),
+                initialDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1),
 
-                // ✅ 월이 변경될 때 실행
                 datesSet: function(info) {
                     let newMonth = info.view.currentStart.getMonth() + 1;
                     if (newMonth !== selectedMonth) {
@@ -160,7 +160,6 @@
                     }
                 },
 
-                // ✅ 일정 삭제 이벤트 (복구)
                 eventClick: function(info) {
                     if (confirm("일정을 삭제하시겠습니까?")) {
                         deleteEvent(calendar, info.event);
@@ -169,22 +168,12 @@
             });
 
             calendar.render();
-            loadEvents(calendar, selectedMonth); 
-
-            let clickTimeout = null;
+            loadEvents(calendar, selectedMonth);
 
             calendar.on("dateClick", function(info) {
-                if (clickTimeout !== null) {
-                    clearTimeout(clickTimeout);
-                    clickTimeout = null;
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(calendar, info.date, name, selectedColor);
-                    }
-                } else {
-                    clickTimeout = setTimeout(() => {
-                        clickTimeout = null;
-                    }, 300);
+                let name = prompt("일정 이름을 입력하세요:");
+                if (name) {
+                    addEvent(calendar, info.date, name, selectedColor);
                 }
             });
 
@@ -195,8 +184,6 @@
 
                 const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
                 await newRef.set({ name, color });
-
-                console.log("✅ 일정 저장 완료:", { name, color });
 
                 calendar.addEvent({
                     id: newRef.key,
@@ -209,13 +196,11 @@
             }
 
             function loadEvents(calendar, month) {
-                console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
                 let today = new Date();
                 let year = today.getFullYear();
 
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
                     if (!snapshot.exists()) {
-                        console.log("📭 일정 없음");
                         calendar.removeAllEvents();
                         return;
                     }
@@ -228,13 +213,12 @@
                             events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                start: `${year}-${month}-${day}`,
                                 color: event.color || "black"
                             });
                         });
                     });
 
-                    console.log("✅ 불러온 일정:", events);
                     calendar.removeAllEvents();
                     calendar.addEventSource(events);
                 });
