@@ -75,30 +75,28 @@
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            height: /* ✅ 일정 텍스트 자동 크기 조정 및 줄바꿈 */
-/* ✅ 일정 텍스트 자동 조정 + 줄바꿈 허용 */
+            height: /* ✅ 일정 텍스트 자동 크기 조정 및 /* ✅ 일정 텍스트 크기 자동 조정 + 줄바꿈 허용 */
 .fc-event-title {
-    font-size: clamp(10px, 3vw, 14px);  /* 10px ~ 14px 사이에서 자동 조정 */
-    white-space: normal !important;  /* ✅ 자동 줄바꿈 허용 */
-    word-break: break-word;  /* 긴 단어 자동 줄바꿈 */
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: min(3.5vw, 14px);  /* 화면 크기에 따라 자동 조정 (최대 14px) */
+    white-space: normal !important;  /* ✅ 줄바꿈 허용 */
+    word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
+    line-height: 1.1;  /* ✅ 줄 간격 줄이기 */
     display: block;
-    line-height: 1.2;
+    text-align: center;
 }
 
-/* ✅ 일정 박스 높이 조정 */
+/* ✅ 일정 박스 크기 자동 조절 */
 .fc-event {
-    min-height: 20px; /* 최소 높이 지정 (너무 작지 않게) */
-    max-height: 40px; /* 최대 높이 지정 (너무 길어지지 않게) */
-    overflow: hidden;
-    padding: 2px; /* 일정 내부 여백 */
+    min-height: 20px; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
+    max-height: 60px; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
+    overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
+    padding: 2px;
 }
 
 /* ✅ 모바일 화면에서 더 작은 폰트 적용 */
 @media screen and (max-width: 600px) {
     .fc-event-title {
-        font-size: clamp(8px, 3.5vw, 12px); /* 더 작은 화면에서는 최소 8px */
+        font-size: min(4vw, 12px); /* ✅ 더 작은 화면에서는 최대 12px */
     }
 }
     </style>
