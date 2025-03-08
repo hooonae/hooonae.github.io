@@ -42,7 +42,7 @@
             text-decoration: none;
             color: black;
         }
-        /* ✅ 색상 원과 글자가 수직으로 정렬되도록 개선 */
+        /* ✅ 색상 원과 글자가 수직 정렬 */
         .color-container {
             display: flex;
             gap: 10px;
@@ -62,7 +62,7 @@
             border-radius: 50%;
             border: none;
             cursor: pointer;
-            margin-bottom: 3px; /* 원과 글자 사이 간격 */
+            margin-bottom: 3px;
         }
         .black { background-color: black; }
         .blue { background-color: blue; }
@@ -166,22 +166,30 @@
             calendar.render();
             loadEvents(calendar, selectedMonth);
 
-            let clickTimeout = null;
-
             calendar.on("dateClick", function(info) {
-                if (clickTimeout !== null) {
-                    clearTimeout(clickTimeout);
-                    clickTimeout = null;
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(calendar, info.date, name, selectedColor);
-                    }
-                } else {
-                    clickTimeout = setTimeout(() => {
-                        clickTimeout = null;
-                    }, 300);
+                let name = prompt("일정 이름을 입력하세요:");
+                if (name) {
+                    addEvent(calendar, info.date, name, selectedColor);
                 }
             });
+
+            async function addEvent(calendar, date, name, color) {
+                let year = date.getFullYear();
+                let month = String(date.getMonth() + 1).padStart(2, '0');
+                let day = String(date.getDate()).padStart(2, '0');
+
+                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                await newRef.set({ name, color });
+
+                calendar.addEvent({
+                    id: newRef.key,
+                    title: name,
+                    start: `${year}-${month}-${day}`,
+                    color: color
+                });
+
+                loadEvents(calendar, selectedMonth);
+            }
 
             function loadEvents(calendar, month) {
                 let today = new Date();
@@ -195,12 +203,13 @@
 
                     let events = [];
                     snapshot.forEach((daySnapshot) => {
+                        const day = daySnapshot.key;
                         daySnapshot.forEach((eventSnapshot) => {
                             const event = eventSnapshot.val();
                             events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${daySnapshot.key}`,
+                                start: `${year}-${month}-${day}`,
                                 color: event.color || "black"
                             });
                         });
