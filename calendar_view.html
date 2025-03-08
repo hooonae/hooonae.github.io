@@ -76,14 +76,23 @@
             border-radius: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             height: /* ✅ 일정 텍스트 자동 크기 조정 및 줄바꿈 */
+/* ✅ 일정 텍스트 자동 조정 + 줄바꿈 허용 */
 .fc-event-title {
     font-size: clamp(10px, 3vw, 14px);  /* 10px ~ 14px 사이에서 자동 조정 */
     white-space: normal !important;  /* ✅ 자동 줄바꿈 허용 */
     word-break: break-word;  /* 긴 단어 자동 줄바꿈 */
     overflow: hidden;
     text-overflow: ellipsis;
-    display: block;  /* ✅ 여러 줄 표시 가능하게 */
-    line-height: 1.2;  /* 줄 간격 조정 */
+    display: block;
+    line-height: 1.2;
+}
+
+/* ✅ 일정 박스 높이 조정 */
+.fc-event {
+    min-height: 20px; /* 최소 높이 지정 (너무 작지 않게) */
+    max-height: 40px; /* 최대 높이 지정 (너무 길어지지 않게) */
+    overflow: hidden;
+    padding: 2px; /* 일정 내부 여백 */
 }
 
 /* ✅ 모바일 화면에서 더 작은 폰트 적용 */
