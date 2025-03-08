@@ -92,19 +92,31 @@
 }
 
 /* ✅ 일정 박스 크기 조정 */
+/* ✅ 일정 텍스트 크기 자동 조정 + 줄바꿈 허용 */
+.fc-event-title {
+    font-size: min(3.5vw, 10px);  /* 화면 크기에 따라 자동 조정 (최대 14px) */
+    white-space: normal !important;  /* ✅ 줄바꿈 허용 */
+    word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
+    line-height: 1.1;  /* ✅ 줄 간격 줄이기 */
+    display: block;
+    text-align: center;
+}
+
+/* ✅ 일정 박스 크기 자동 조절 */
 .fc-event {
     display: flex;
     align-items: center; /* ✅ 세로(수직) 중앙 정렬 */
     justify-content: center; /* ✅ 가로(수평) 중앙 정렬 */
-    height: 18px !important; /* ✅ 일정 박스 높이를 18px로 강제 조정 */
-    overflow: hidden; /* ✅ 내용이 넘칠 경우 숨김 처리 */
-    padding: 1px 3px; /* ✅ 내부 여백 최소화 */
+    min-height: 12px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
+    max-height: 24px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
+    overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
+    padding: 2px;
 }
 
 /* ✅ 모바일 화면에서 더 작은 폰트 적용 */
 @media screen and (max-width: 600px) {
     .fc-event-title {
-        font-size: min(3.8vw, 9px); /* ✅ 모바일에서 더 작은 글자 크기 조정 */
+        font-size: min(4vw, 10px); /* ✅ 더 작은 화면에서는 최대 12px */
     }
 }
 </style>
