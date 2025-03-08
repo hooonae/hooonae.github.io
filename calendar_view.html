@@ -86,7 +86,7 @@
     font-size: min(3.5vw, 10px);  /* 화면 크기에 따라 자동 조정 (최대 14px) */
     white-space: normal !important;  /* ✅ 줄바꿈 허용 */
     word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
-    line-height: 1.1;  /* ✅ 줄 간격 줄이기 */
+    line-height: 1;  /* ✅ 줄 간격 줄이기 */
     display: block;
     text-align: center;
 }
@@ -96,10 +96,10 @@
     display: flex;
     align-items: center; /* ✅ 세로(수직) 중앙 정렬 */
     justify-content: center; /* ✅ 가로(수평) 중앙 정렬 */
-    min-height: 12px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
-    max-height: 24px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
+    min-height: 10px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
+    max-height: 20px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
     overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
-    padding: 2px;
+    padding: 1px 2px;
 }
 
 /* ✅ 모바일 화면에서 더 작은 폰트 적용 */
