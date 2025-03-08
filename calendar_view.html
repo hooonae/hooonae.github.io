@@ -42,7 +42,6 @@
             text-decoration: none;
             color: black;
         }
-        /* ✅ 색상 원과 글자가 수직 정렬 */
         .color-container {
             display: flex;
             gap: 10px;
@@ -144,7 +143,7 @@
                 editable: true,
                 selectable: true,
                 contentHeight: "auto",
-                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1), // ✅ 복구됨!
+                defaultDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1), // ✅ 복구 완료!
 
                 datesSet: function(info) {
                     let newMonth = info.view.currentStart.getMonth() + 1;
@@ -185,11 +184,13 @@
             }
 
             function loadEvents(calendar, month) {
+                console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
                 let today = new Date();
                 let year = today.getFullYear();
 
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
                     if (!snapshot.exists()) {
+                        console.log("📭 일정 없음");
                         calendar.removeAllEvents();
                         return;
                     }
@@ -202,14 +203,15 @@
                             events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${month}-${day}`,
+                                start: `${year}-${String(month).padStart(2, '0')}-${day}`,
                                 color: event.color || "black"
                             });
                         });
                     });
 
+                    console.log("✅ 불러온 일정:", events);
                     calendar.removeAllEvents();
-                    calendar.addEventSource(events);
+                    calendar.addEventSource(events); // ✅ 일정 정상 표시
                 });
             }
         });
