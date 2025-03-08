@@ -42,9 +42,16 @@
             text-decoration: none;
             color: black;
         }
+        /* ✅ 색상 원 및 설명을 오른쪽 정렬 */
+        .color-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
         .color-buttons {
             display: flex;
             gap: 5px;
+            justify-content: flex-end;
         }
         .color-btn {
             width: 30px;
@@ -52,6 +59,15 @@
             border-radius: 50%;
             border: none;
             cursor: pointer;
+        }
+        .color-labels {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+            font-size: 12px;
+            margin-top: 2px;
+            color: #333;
         }
         .black { background-color: black; }
         .blue { background-color: blue; }
@@ -67,15 +83,6 @@
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             height: 900px;
         }
-        /* ✅ 추가된 부분: 색상 설명 */
-        .color-labels {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            font-size: 12px;
-            margin-top: 2px;
-            color: #333;
-        }
     </style>
 </head>
 <body>
@@ -83,7 +90,7 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div>
+        <div class="color-container">
             <div class="color-buttons">
                 <button class="color-btn black" onclick="setColor('black')"></button>
                 <button class="color-btn blue" onclick="setColor('blue')"></button>
@@ -91,10 +98,10 @@
                 <button class="color-btn green" onclick="setColor('green')"></button>
             </div>
             <div class="color-labels">
-                <span>검정</span>
-                <span>파랑 (대휴)</span>
-                <span>빨강 (일정)</span>
-                <span>녹색 (연차)</span>
+                <span>고정</span>
+                <span>대휴</span>
+                <span>일정</span>
+                <span>연차</span>
             </div>
         </div>
     </div>
@@ -102,7 +109,6 @@
     <div id="calendar"></div>
 
     <script>
-        // ✅ Firebase 설정 (네 코드 그대로 유지)
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -177,24 +183,6 @@
                     }, 300);
                 }
             });
-
-            async function addEvent(calendar, date, name, color) {
-                let year = date.getFullYear();
-                let month = String(date.getMonth() + 1).padStart(2, '0');
-                let day = String(date.getDate()).padStart(2, '0');
-
-                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name, color });
-
-                calendar.addEvent({
-                    id: newRef.key,
-                    title: name,
-                    start: `${year}-${month}-${day}`,
-                    color: color
-                });
-
-                loadEvents(calendar, selectedMonth);
-            }
 
             function loadEvents(calendar, month) {
                 console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
