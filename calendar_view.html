@@ -164,23 +164,6 @@
             calendar.render();
             loadEvents(calendar, selectedMonth);
 
-            let clickTimeout = null;
-
-            calendar.on("dateClick", function(info) {
-                if (clickTimeout !== null) {
-                    clearTimeout(clickTimeout);
-                    clickTimeout = null;
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(calendar, info.date, name, selectedColor);
-                    }
-                } else {
-                    clickTimeout = setTimeout(() => {
-                        clickTimeout = null;
-                    }, 300);
-                }
-            });
-
             async function addEvent(calendar, date, name, color) {
                 let year = date.getFullYear();
                 let month = String(date.getMonth() + 1).padStart(2, '0');
@@ -202,7 +185,10 @@
                 let year = new Date().getFullYear();
 
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    if (!snapshot.exists()) return;
+                    if (!snapshot.exists()) {
+                        calendar.removeAllEvents();
+                        return;
+                    }
 
                     let events = [];
                     snapshot.forEach((daySnapshot) => {
@@ -212,7 +198,7 @@
                             events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${month}-${day}`,
+                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                                 color: event.color || "black"
                             });
                         });
