@@ -164,6 +164,23 @@
             calendar.render();
             loadEvents(calendar, selectedMonth);
 
+            let clickTimeout = null;
+
+            calendar.on("dateClick", function(info) {
+                if (clickTimeout !== null) {
+                    clearTimeout(clickTimeout);
+                    clickTimeout = null;
+                    let name = prompt("일정 이름을 입력하세요:");
+                    if (name) {
+                        addEvent(calendar, info.date, name, selectedColor);
+                    }
+                } else {
+                    clickTimeout = setTimeout(() => {
+                        clickTimeout = null;
+                    }, 300);
+                }
+            });
+
             function loadEvents(calendar, month) {
                 console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
                 let year = new Date().getFullYear();
