@@ -67,18 +67,6 @@
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             height: 900px;
         }
-            .color-labels {
-        display: flex;
-        justify-content: center;
-        gap: 14px;
-        font-size: 12px;
-        color: #555;
-        margin-top: 5px;
-    }
-    .color-label {
-        width: 30px;
-        text-align: center;
-    }
     </style>
 </head>
 <body>
@@ -87,16 +75,11 @@
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
         <div class="color-buttons">
-        <button class="color-btn black" onclick="setColor('black')"></button>
-        <button class="color-btn blue" onclick="setColor('blue')"></button>
-        <button class="color-btn red" onclick="setColor('red')"></button>
-        <button class="color-btn green" onclick="setColor('green')"></button>
-    </div>
-    <div class="color-labels">
-        <span class="color-label">고정</span>
-        <span class="color-label">대휴</span>
-        <span class="color-label">일정</span>
-        <span class="color-label">연차</span>
+            <button class="color-btn black" onclick="setColor('black')"></button>
+            <button class="color-btn blue" onclick="setColor('blue')"></button>
+            <button class="color-btn red" onclick="setColor('red')"></button>
+            <button class="color-btn green" onclick="setColor('green')"></button>
+        </div>
     </div>
 
     <div id="calendar"></div>
