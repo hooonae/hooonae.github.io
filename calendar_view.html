@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 지킴이 일정</title>
 
+    <!-- ✅ FullCalendar CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 
+    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
@@ -20,11 +22,29 @@
             padding: 20px;
             margin: 0;
         }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 700px;
+            margin: auto;
+        }
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: left;
+        }
+        .home-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
         .color-buttons {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 5px;
         }
         .color-btn {
             width: 30px;
@@ -37,32 +57,23 @@
         .blue { background-color: blue; }
         .red { background-color: red; }
         .green { background-color: green; }
-
-        /* ✅ 색상 설명 스타일 */
-        .color-labels {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 5px;
-            font-size: 14px;
-            font-weight: bold;
+        #calendar {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            height: 900px;
         }
-        .color-label {
-            width: 40px;
-            text-align: center;
-            display: block;
-        }
-        .color-label.black { color: black; }
-        .color-label.blue { color: blue; }
-        .color-label.red { color: red; }
-        .color-label.green { color: green; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
-        <div class="title" id="month-title">📅 지킴이 일정</div> <!-- ✅ 여기 id 추가 -->
+        <div class="title" id="month-title">📅 지킴이 일정</div>
         <div class="color-buttons">
             <button class="color-btn black" onclick="setColor('black')"></button>
             <button class="color-btn blue" onclick="setColor('blue')"></button>
@@ -71,14 +82,8 @@
         </div>
     </div>
 
-    <div class="color-labels">
-        <span class="color-label black">고정</span>
-        <span class="color-label blue">대휴</span>
-        <span class="color-label red">일정</span>
-        <span class="color-label green">연차</span>
-    </div>
-
     <div id="calendar"></div>
+
     <script>
         // ✅ Firebase 설정
         const firebaseConfig = {
@@ -221,3 +226,4 @@
 
 </body>
 </html>
+
