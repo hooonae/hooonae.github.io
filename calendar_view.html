@@ -197,12 +197,16 @@
             }
 
             function loadEvents(calendar, month) {
+                console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
                 let today = new Date();
                 let year = today.getFullYear();
 
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    calendar.removeAllEvents();
-                    if (!snapshot.exists()) return;
+                    if (!snapshot.exists()) {
+                        console.log("📭 일정 없음");
+                        calendar.removeAllEvents();
+                        return;
+                    }
 
                     let events = [];
                     snapshot.forEach((daySnapshot) => {
@@ -212,12 +216,14 @@
                             events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${month}-${day}`,
+                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                                 color: event.color || "black"
                             });
                         });
                     });
 
+                    console.log("✅ 불러온 일정:", events);
+                    calendar.removeAllEvents();
                     calendar.addEventSource(events);
                 });
             }
