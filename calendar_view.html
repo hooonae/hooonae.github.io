@@ -181,16 +181,28 @@
                 }
             });
 
+            async function addEvent(calendar, date, name, color) {
+                let year = date.getFullYear();
+                let month = String(date.getMonth() + 1).padStart(2, '0');
+                let day = String(date.getDate()).padStart(2, '0');
+
+                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                await newRef.set({ name, color });
+
+                loadEvents(calendar, selectedMonth);
+            }
+
+            async function deleteEvent(calendar, event) {
+                let [year, month, day] = event.startStr.split("-");
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                loadEvents(calendar, selectedMonth);
+            }
+
             function loadEvents(calendar, month) {
-                console.log(`📡 Firebase에서 ${month}월 일정 불러오기...`);
                 let year = new Date().getFullYear();
 
                 db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    if (!snapshot.exists()) {
-                        console.log("📭 일정 없음");
-                        calendar.removeAllEvents();
-                        return;
-                    }
+                    if (!snapshot.exists()) return;
 
                     let events = [];
                     snapshot.forEach((daySnapshot) => {
@@ -200,23 +212,15 @@
                             events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                                start: `${year}-${month}-${day}`,
                                 color: event.color || "black"
                             });
                         });
                     });
 
-                    console.log("✅ 불러온 일정:", events);
                     calendar.removeAllEvents();
                     calendar.addEventSource(events);
                 });
-            }
-
-            async function deleteEvent(calendar, event) {
-                let [year, month, day] = event.startStr.split("-");
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                console.log("🗑️ 삭제 완료:", event.id);
-                loadEvents(calendar, selectedMonth);
             }
         });
     </script>
