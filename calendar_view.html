@@ -102,7 +102,7 @@
     <div id="calendar"></div>
 
     <script>
-        // ✅ Firebase 설정
+        // ✅ Firebase 설정 (네 코드 그대로 유지)
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -220,12 +220,6 @@
 
                     calendar.addEventSource(events);
                 });
-            }
-
-            async function deleteEvent(calendar, event) {
-                let [year, month, day] = event.startStr.split("-");
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                loadEvents(calendar, selectedMonth);
             }
         });
     </script>
