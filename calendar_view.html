@@ -60,14 +60,17 @@
 </head>
 <body>
 
-    <div class="color-buttons">
-        <button class="color-btn black" onclick="setColor('black')"></button>
-        <button class="color-btn blue" onclick="setColor('blue')"></button>
-        <button class="color-btn red" onclick="setColor('red')"></button>
-        <button class="color-btn green" onclick="setColor('green')"></button>
+    <div class="header">
+        <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
+        <div class="title" id="month-title">📅 지킴이 일정</div> <!-- ✅ 여기 id 추가 -->
+        <div class="color-buttons">
+            <button class="color-btn black" onclick="setColor('black')"></button>
+            <button class="color-btn blue" onclick="setColor('blue')"></button>
+            <button class="color-btn red" onclick="setColor('red')"></button>
+            <button class="color-btn green" onclick="setColor('green')"></button>
+        </div>
     </div>
 
-    <!-- ✅ 색상 설명 추가 -->
     <div class="color-labels">
         <span class="color-label black">고정</span>
         <span class="color-label blue">대휴</span>
@@ -76,7 +79,6 @@
     </div>
 
     <div id="calendar"></div>
-
     <script>
         // ✅ Firebase 설정
         const firebaseConfig = {
