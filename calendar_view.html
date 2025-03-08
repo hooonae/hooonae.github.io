@@ -13,61 +13,74 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
-            color: #333;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 700px;
-            margin: auto;
-        }
-        .title {
-            font-size: 22px;
-            font-weight: bold;
-            text-align: left;
-        }
-        .home-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
-        }
-        .color-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        .color-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-        }
-        .black { background-color: black; }
-        .blue { background-color: blue; }
-        .red { background-color: red; }
-        .green { background-color: green; }
-        #calendar {
-            width: 100%;
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            height: 900px;
-        }
-    </style>
+<style>
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+        color: #333;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
+    }
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 700px;
+        margin: auto;
+    }
+    .title {
+        font-size: 22px;
+        font-weight: bold;
+        text-align: left;
+    }
+    .color-buttons {
+        display: flex;
+        gap: 5px;
+    }
+    .color-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+    }
+    .black { background-color: black; }
+    .blue { background-color: blue; }
+    .red { background-color: red; }
+    .green { background-color: green; }
+    #calendar {
+        width: 100%;
+        max-width: 700px;
+        margin: auto;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        height: 900px;
+    }
+
+    /* ✅ 추가한 부분: 색상 설명 스타일 */
+    .color-labels {
+        display: flex;  /* 버튼과 동일하게 가로 정렬 */
+        justify-content: center; /* 가운데 정렬 */
+        gap: 18px;  /* 버튼 간격과 동일하게 맞추기 */
+        margin-top: 5px; /* 버튼과 설명 사이 간격 조절 */
+        font-size: 14px; /* 글씨 크기 */
+        font-weight: bold; /* 글씨 두껍게 */
+    }
+
+    .color-label {
+        width: 30px; /* 버튼 크기와 동일하게 */
+        text-align: center; /* 글씨 가운데 정렬 */
+    }
+
+    .color-label.black { color: black; }
+    .color-label.blue { color: blue; }
+    .color-label.red { color: red; }
+    .color-label.green { color: green; }
+
+</style>
 </head>
 <body>
 
