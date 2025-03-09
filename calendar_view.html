@@ -85,7 +85,7 @@
     display: inline-block !important; /* ✅ 글자 크기에 맞게 자동 조정 */
     width: auto !important; /* ✅ 기본 너비 제한 해제 */
     height: auto !important; /* ✅ 기본 높이 제한 해제 */
-    padding: 0px 1px !important; /* ✅ 최소한의 여백 */
+    padding: 0px 0px !important; /* ✅ 최소한의 여백 */
     white-space: normal !important; /* ✅ 일정 내에서 줄바꿈 허용 */
     word-break: break-word !important; /* ✅ 긴 단어도 자동 줄바꿈 */
     overflow: visible !important; /* ✅ 내용이 잘리지 않도록 설정 */
@@ -93,7 +93,7 @@
 }
 
 .fc-event-title {
-    font-size: min(3.5vw, 10px) !important; /* ✅ 글자 크기 조정 */
+    font-size: min(3.5vw, 8px) !important; /* ✅ 글자 크기 조정 */
     line-height: 1.2 !important;  /* ✅ 줄 간격 조정 */
     font-weight: bold !important;
     white-space: normal !important; /* ✅ 줄바꿈 허용 */
@@ -184,10 +184,10 @@
             return {
                 html: `<div style="
                     display: inline-block; 
-                    padding: 2px 5px; 
+                    padding: 1px 1px; 
                     white-space: normal; 
                     word-break: break-word;
-                    font-size: 10px;
+                    font-size: 8px;
                     text-align: center;
                     min-width: auto; 
                     min-height: auto;
