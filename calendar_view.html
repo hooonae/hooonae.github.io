@@ -5,67 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 지킴이 일정</title>
 
+    <!-- ✅ FullCalendar CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <!-- ✅ React & ReactDOM (React 18 지원) -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
-            color: #333;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 700px;
-            margin: auto;
-        }
-        .title {
-            font-size: 22px;
-            font-weight: bold;
-            text-align: left;
-        }
-        .home-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
-        }
-        #calendar-container {
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+        color: #333;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
+    }
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 700px;
+        margin: auto;
+    }
+    .title {
+        font-size: 22px;
+        font-weight: bold;
+        text-align: left;
+    }
+    .home-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        text-decoration: none;
+        color: black;
+    }
+    .color-container {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .color-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+    }
+    .color-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 3px;
+    }
+    .black { background-color: black; }
+    .blue { background-color: blue; }
+    .red { background-color: red; }
+    .green { background-color: green; }
+
+    /* ✅ #calendar 높이값 정상 복구 */
+    #calendar {
+        width: 100%;
+        max-width: 1200px;
+        margin: auto;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        height: 1000px; /* ✅ 정상적으로 높이 설정 */
+    }
+
+    /* ✅ 일정 박스 크기 자동 조정 */
+    .fc-event-title {
+        font-size: min(3.5vw, 10px);  /* 화면 크기에 따라 자동 조정 */
+        white-space: normal !important;  /* ✅ 줄바꿈 허용 */
+        word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
+        line-height: 1;  /* ✅ 줄 간격 줄이기 */
+        display: block;
+        text-align: center;
+    }
+
+    .fc-event {
+        display: flex;
+        align-items: center; /* ✅ 세로(수직) 중앙 정렬 */
+        justify-content: center; /* ✅ 가로(수평) 중앙 정렬 */
+        min-height: 10px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
+        max-height: 24px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
+        overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
+        padding: 1px 2px;
+    }
     </style>
 </head>
 <body>
 
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
-        <div class="title">📅 지킴이 일정</div>
+        <div class="title" id="month-title">📅 지킴이 일정</div>
+        <div class="color-container">
+            <div class="color-item">
+                <button class="color-btn black" onclick="setColor('black')"></button>
+                <span>고정</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn blue" onclick="setColor('blue')"></button>
+                <span>대휴</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn red" onclick="setColor('red')"></button>
+                <span>일정</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn green" onclick="setColor('green')"></button>
+                <span>연차</span>
+            </div>
+        </div>
     </div>
 
-    <div id="calendar-container">
-        <div id="calendar"></div> <!-- ✅ React에서 이 부분을 렌더링 -->
-    </div>
+    <div id="calendar"></div>
 
-    <script type="text/babel">
-        // ✅ Firebase 설정
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -78,85 +141,86 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ✅ React 캘린더 컴포넌트 (ColorfulCalendar 기반)
-        function Calendar() {
-            const [events, setEvents] = React.useState([]);
+        let selectedColor = "black";
 
-            // ✅ Firebase에서 일정 불러오기
-            React.useEffect(() => {
-                const year = new Date().getFullYear();
-                const month = String(new Date().getMonth() + 1).padStart(2, '0');
-                const ref = db.ref(`calendar/${year}/${month}`);
+        function setColor(color) {
+            selectedColor = color;
+            console.log("✅ 선택한 색상:", selectedColor);
+        }
 
-                ref.on("value", (snapshot) => {
-                    let eventList = [];
+        document.addEventListener("DOMContentLoaded", function () {
+            let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+            selectedMonth = parseInt(selectedMonth);
+
+            function updateMonthTitle(month) {
+                document.getElementById("month-title").textContent = `${month}월 일정`;
+            }
+
+            updateMonthTitle(selectedMonth);
+
+            var calendarEl = document.getElementById("calendar");
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                locale: "ko",
+                editable: true,
+                selectable: true,
+                contentHeight: "auto",
+
+                eventClick: function(info) {
+                    if (confirm("일정을 삭제하시겠습니까?")) {
+                        deleteEvent(calendar, info.event);
+                    }
+                }
+            });
+
+            calendar.render();
+            loadEvents(calendar, selectedMonth);
+
+            async function addEvent(calendar, date, name, color) {
+                let year = date.getFullYear();
+                let month = String(date.getMonth() + 1).padStart(2, '0');
+                let day = String(date.getDate()).padStart(2, '0');
+
+                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                await newRef.set({ name, color });
+
+                loadEvents(calendar, selectedMonth);
+            }
+
+            async function deleteEvent(calendar, event) {
+                let [year, month, day] = event.startStr.split("-");
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                loadEvents(calendar, selectedMonth);
+            }
+
+            function loadEvents(calendar, month) {
+                let year = new Date().getFullYear();
+
+                db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
+                    if (!snapshot.exists()) {
+                        calendar.removeAllEvents();
+                        return;
+                    }
+
+                    let events = [];
                     snapshot.forEach((daySnapshot) => {
                         const day = daySnapshot.key;
                         daySnapshot.forEach((eventSnapshot) => {
                             const event = eventSnapshot.val();
-                            eventList.push({
+                            events.push({
                                 id: eventSnapshot.key,
                                 title: event.name,
-                                date: `${year}-${month}-${String(day).padStart(2, '0')}`,
+                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                                 color: event.color || "black"
                             });
                         });
                     });
-                    setEvents(eventList);
+
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(events);
                 });
-
-                return () => ref.off();
-            }, []);
-
-            // ✅ 일정 추가 기능
-            function addEvent(date) {
-                const name = prompt("일정 이름을 입력하세요:");
-                if (!name) return;
-                
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-
-                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                newRef.set({ name, color: "blue" });
-
-                setEvents([...events, { id: newRef.key, title: name, date: `${year}-${month}-${day}`, color: "blue" }]);
             }
-
-            return (
-                <div>
-                    <h3>📅 일정 관리</h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px" }}>
-                        {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
-                            const date = new Date(new Date().getFullYear(), new Date().getMonth(), day);
-                            const event = events.find(e => e.date === date.toISOString().split('T')[0]);
-
-                            return (
-                                <div 
-                                    key={day} 
-                                    style={{
-                                        border: "1px solid #ddd",
-                                        padding: "10px",
-                                        borderRadius: "5px",
-                                        textAlign: "center",
-                                        cursor: "pointer",
-                                        background: event ? event.color : "#fff"
-                                    }}
-                                    onClick={() => addEvent(date)}
-                                >
-                                    {day}
-                                    {event && <div style={{ fontSize: "12px", marginTop: "5px" }}>{event.title}</div>}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            );
-        }
-
-        // ✅ React 18 방식으로 렌더링 (ReactDOM.createRoot 사용)
-        const root = ReactDOM.createRoot(document.getElementById("calendar"));
-        root.render(<Calendar />);
+        });
     </script>
 
 </body>
