@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
-    <!-- ✅ React & ReactDOM -->
+    <!-- ✅ React & ReactDOM (React 18 지원) -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
@@ -154,8 +154,9 @@
             );
         }
 
-        // ✅ React 캘린더를 #calendar에 렌더링
-        ReactDOM.render(<Calendar />, document.getElementById("calendar"));
+        // ✅ React 18 방식으로 렌더링 (ReactDOM.createRoot 사용)
+        const root = ReactDOM.createRoot(document.getElementById("calendar"));
+        root.render(<Calendar />);
     </script>
 
 </body>
