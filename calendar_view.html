@@ -80,26 +80,24 @@
         height: 1000px; /* ✅ 정상적으로 높이 설정 */
     }
 
-/* ✅ 일정 박스 크기 조정 */
-/* ✅ 일정 텍스트 크기 자동 조정 + 줄바꿈 허용 */
-/* ✅ 일정 박스를 없애고 글씨 색상만 변경 */
-.fc-event {
-    background: none !important; /* ✅ 배경 제거 */
-    border: none !important; /* ✅ 테두리 제거 */
-    padding: 0 !important; /* ✅ 내부 여백 제거 */
-    box-shadow: none !important; /* ✅ 그림자 제거 */
-    display: inline; /* ✅ 블록 요소가 아니라 텍스트처럼 표시 */
-}
+    /* ✅ 일정 박스 없애고 글씨만 표시 */
+    .fc-event {
+        background: none !important; /* ✅ 배경 제거 */
+        border: none !important; /* ✅ 테두리 제거 */
+        box-shadow: none !important; /* ✅ 그림자 제거 */
+        padding: 0 !important; /* ✅ 내부 여백 제거 */
+        display: inline; /* ✅ 블록 요소가 아니라 텍스트처럼 표시 */
+    }
 
-/* ✅ 일정 텍스트 스타일 */
-.fc-event-title {
-    font-size: min(3vw, 10px);  /* ✅ 화면 크기에 따라 자동 조정 */
-    white-space: normal !important;  /* ✅ 줄바꿈 허용 */
-    word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
-    text-align: center; /* ✅ 텍스트 중앙 정렬 */
-    display: inline; /* ✅ 블록 요소가 아니라 일반 텍스트처럼 표시 */
-}
-</style>
+    /* ✅ 일정 텍스트 크기 자동 조정 + 줄바꿈 허용 */
+    .fc-event-title {
+        font-size: min(3.5vw, 10px);  /* ✅ 화면 크기에 따라 자동 조정 */
+        white-space: normal !important;  /* ✅ 줄바꿈 허용 */
+        word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
+        text-align: center; /* ✅ 텍스트 중앙 정렬 */
+        display: inline; /* ✅ 블록 요소가 아니라 일반 텍스트처럼 표시 */
+    }
+    </style>
 </head>
 <body>
 
@@ -166,16 +164,6 @@
                 selectable: true,
                 contentHeight: "auto",
 
-                datesSet: function(info) {
-                    let newMonth = info.view.currentStart.getMonth() + 1;
-                    if (newMonth !== selectedMonth) {
-                        selectedMonth = newMonth;
-                        localStorage.setItem("selectedMonth", selectedMonth);
-                        updateMonthTitle(selectedMonth);
-                        loadEvents(calendar, selectedMonth);
-                    }
-                },
-
                 eventClick: function(info) {
                     if (confirm("일정을 삭제하시겠습니까?")) {
                         deleteEvent(calendar, info.event);
@@ -185,47 +173,6 @@
 
             calendar.render();
             loadEvents(calendar, selectedMonth);
-
-            let clickTimeout = null;
-
-            calendar.on("dateClick", function(info) {
-                if (clickTimeout !== null) {
-                    clearTimeout(clickTimeout);
-                    clickTimeout = null;
-                    let name = prompt("일정 이름을 입력하세요:");
-                    if (name) {
-                        addEvent(calendar, info.date, name, selectedColor);
-                    }
-                } else {
-                    clickTimeout = setTimeout(() => {
-                        clickTimeout = null;
-                    }, 300);
-                }
-            });
-            document.addEventListener("DOMContentLoaded", function () {
-    function adjustEventHeight() {
-        document.querySelectorAll(".fc-event").forEach(event => {
-            let title = event.querySelector(".fc-event-title");
-            if (title) {
-                let lineCount = title.scrollHeight / parseFloat(getComputedStyle(title).lineHeight); // ✅ 줄 개수 계산
-
-                if (lineCount >= 2) {
-                    event.style.minHeight = "40px"; // ✅ 두 줄 이상이면 일정 박스 크기 증가
-                    event.style.maxHeight = "auto";
-                } else {
-                    event.style.minHeight = "18px"; // ✅ 한 줄일 경우 기본 크기 유지
-                    event.style.maxHeight = "28px";
-                }
-            }
-        });
-    }
-
-    // ✅ FullCalendar가 로드된 후 실행
-    setTimeout(adjustEventHeight, 500);
-
-    // ✅ 일정이 추가되거나 변경될 때마다 높이 재조정
-    document.addEventListener("DOMSubtreeModified", adjustEventHeight);
-});
 
             async function addEvent(calendar, date, name, color) {
                 let year = date.getFullYear();
@@ -242,34 +189,6 @@
                 let [year, month, day] = event.startStr.split("-");
                 await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
                 loadEvents(calendar, selectedMonth);
-            }
-
-            function loadEvents(calendar, month) {
-                let year = new Date().getFullYear();
-
-                db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    if (!snapshot.exists()) {
-                        calendar.removeAllEvents();
-                        return;
-                    }
-
-                    let events = [];
-                    snapshot.forEach((daySnapshot) => {
-                        const day = daySnapshot.key;
-                        daySnapshot.forEach((eventSnapshot) => {
-                            const event = eventSnapshot.val();
-                            events.push({
-                                id: eventSnapshot.key,
-                                title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                                color: event.color || "black"
-                            });
-                        });
-                    });
-
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(events);
-                });
             }
         });
     </script>
