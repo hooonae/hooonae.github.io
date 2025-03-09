@@ -211,6 +211,30 @@
                     }, 300);
                 }
             });
+            document.addEventListener("DOMContentLoaded", function () {
+    function adjustEventHeight() {
+        document.querySelectorAll(".fc-event").forEach(event => {
+            let title = event.querySelector(".fc-event-title");
+            if (title) {
+                let lineCount = title.scrollHeight / parseFloat(getComputedStyle(title).lineHeight); // ✅ 줄 개수 계산
+
+                if (lineCount >= 2) {
+                    event.style.minHeight = "40px"; // ✅ 두 줄 이상이면 일정 박스 크기 증가
+                    event.style.maxHeight = "auto";
+                } else {
+                    event.style.minHeight = "18px"; // ✅ 한 줄일 경우 기본 크기 유지
+                    event.style.maxHeight = "28px";
+                }
+            }
+        });
+    }
+
+    // ✅ FullCalendar가 로드된 후 실행
+    setTimeout(adjustEventHeight, 500);
+
+    // ✅ 일정이 추가되거나 변경될 때마다 높이 재조정
+    document.addEventListener("DOMSubtreeModified", adjustEventHeight);
+});
 
             async function addEvent(calendar, date, name, color) {
                 let year = date.getFullYear();
