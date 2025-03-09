@@ -80,22 +80,24 @@
         height: 1000px; /* ✅ 정상적으로 높이 설정 */
     }
 
-    /* ✅ 일정 박스 없애고 글씨만 표시 */
-    .fc-event {
-        background: none !important; /* ✅ 배경 제거 */
-        border: none !important; /* ✅ 테두리 제거 */
-        box-shadow: none !important; /* ✅ 그림자 제거 */
-        padding: 0 !important; /* ✅ 내부 여백 제거 */
-        display: inline; /* ✅ 블록 요소가 아니라 텍스트처럼 표시 */
-    }
-
-    /* ✅ 일정 텍스트 크기 자동 조정 + 줄바꿈 허용 */
+    /* ✅ 일정 박스 크기 자동 조정 */
     .fc-event-title {
-        font-size: min(3.5vw, 10px);  /* ✅ 화면 크기에 따라 자동 조정 */
+        font-size: min(3.5vw, 10px);  /* 화면 크기에 따라 자동 조정 */
         white-space: normal !important;  /* ✅ 줄바꿈 허용 */
         word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
-        text-align: center; /* ✅ 텍스트 중앙 정렬 */
-        display: inline; /* ✅ 블록 요소가 아니라 일반 텍스트처럼 표시 */
+        line-height: 1;  /* ✅ 줄 간격 줄이기 */
+        display: block;
+        text-align: center;
+    }
+
+    .fc-event {
+        display: flex;
+        align-items: center; /* ✅ 세로(수직) 중앙 정렬 */
+        justify-content: center; /* ✅ 가로(수평) 중앙 정렬 */
+        min-height: 10px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
+        max-height: 24px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
+        overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
+        padding: 1px 2px;
     }
     </style>
 </head>
@@ -191,7 +193,6 @@
                 loadEvents(calendar, selectedMonth);
             }
 
-            // ✅ Firebase에서 일정 불러오는 함수 추가
             function loadEvents(calendar, month) {
                 let year = new Date().getFullYear();
 
