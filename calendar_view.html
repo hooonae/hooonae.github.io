@@ -12,6 +12,7 @@
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
 
     <style>
     body {
@@ -42,33 +43,8 @@
         text-decoration: none;
         color: black;
     }
-    .color-container {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        align-items: center;
-    }
-    .color-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 12px;
-        color: #333;
-    }
-    .color-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        margin-bottom: 3px;
-    }
-    .black { background-color: black; }
-    .blue { background-color: blue; }
-    .red { background-color: red; }
-    .green { background-color: green; }
 
-    /* ✅ #calendar 높이값 정상 복구 */
+    /* ✅ 캘린더 스타일 */
     #calendar {
         width: 100%;
         max-width: 1200px;
@@ -77,33 +53,25 @@
         padding: 15px;
         border-radius: 10px;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        height: 1000px; /* ✅ 정상적으로 높이 설정 */
+        height: 1000px;
     }
 
-    /* ✅ 일정 박스 크기 자동 조정 */
-           .fc-event {
-    display: flex !important; /* ✅ 글자 크기에 맞게 자동 조정 & 플렉스 박스로 변경 */
-    justify-content: center !important; /* ✅ 일정 내용을 가로 중앙 정렬 */
-    align-items: center !important; /* ✅ 일정 내용을 세로 중앙 정렬 */
-    width: fit-content !important; /* ✅ 내용에 딱 맞게 박스 크기 조정 */
-    height: auto !important; /* ✅ 높이 자동 조정 */
-    padding: 0px 2px !important; /* ✅ 최소한의 여백 유지 */
-    white-space: normal !important; /* ✅ 일정 내에서 줄바꿈 허용 */
-    word-break: break-word !important; /* ✅ 긴 단어도 자동 줄바꿈 */
-    overflow: visible !important; /* ✅ 내용이 잘리지 않도록 설정 */
-    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
-    margin: auto !important; /* ✅ 일정 박스를 표 안에서 중앙 정렬 */
-    margin-bottom: 2px !important;
-}
-
-/* ✅ 일정 제목도 중앙 정렬되도록 수정 */
-.fc-event-title {
-    font-size: min(3.5vw, 8px) !important; /* ✅ 글자 크기 조정 */
-    line-height: 1.2 !important;  /* ✅ 줄 간격 조정 */
-    font-weight: bold !important;
-    white-space: normal !important; /* ✅ 줄바꿈 허용 */
-    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
-}
+    /* ✅ 이미지 모달 스타일 */
+    #image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+    #modal-image {
+        max-width: 90%;
+        max-height: 90%;
+    }
     </style>
 </head>
 <body>
@@ -111,31 +79,22 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div class="color-container">
-            <div class="color-item">
-                <button class="color-btn black" onclick="setColor('black')"></button>
-                <span>고정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn blue" onclick="setColor('blue')"></button>
-                <span>대휴</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn red" onclick="setColor('red')"></button>
-                <span>일정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn green" onclick="setColor('green')"></button>
-                <span>연차</span>
-            </div>
-        </div>
     </div>
 
     <div id="calendar"></div>
 
+    <!-- ✅ 이미지 업로드 입력창 (숨김) -->
+    <input type="file" id="image-upload" accept="image/*" style="display: none;">
+
+    <!-- ✅ 이미지 모달 -->
+    <div id="image-modal" onclick="closeImageModal()">
+        <img id="modal-image" src="" alt="업로드된 이미지">
+    </div>
+
     <script>
+        // ✅ Firebase 설정
         const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            apiKey: "AIzaSyAwXlQew...",
             authDomain: "museum-web-370cd.firebaseapp.com",
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
@@ -145,120 +104,93 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        let selectedColor = "black";
-
-        function setColor(color) {
-            selectedColor = color;
-            console.log("✅ 선택한 색상:", selectedColor);
-        }
+        const storage = firebase.storage();
 
         document.addEventListener("DOMContentLoaded", function () {
-    let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-    selectedMonth = parseInt(selectedMonth);
+            let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+            selectedMonth = parseInt(selectedMonth);
 
-    function updateMonthTitle(month) {
-        document.getElementById("month-title").textContent = `${month}월 일정`;
-    }
-
-    updateMonthTitle(selectedMonth);
-
-    var calendarEl = document.getElementById("calendar");
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        locale: "ko",
-        editable: true,
-        selectable: true,
-        contentHeight: "auto",
-
-        // ✅ 월 변경 시 상단 제목 업데이트
-        datesSet: function (info) {
-            let newMonth = info.view.currentStart.getMonth() + 1;
-            localStorage.setItem("selectedMonth", newMonth);
-            updateMonthTitle(newMonth);
-        },
-
-        // ✅ 일정 추가 기능 복구 (더블클릭 이벤트)
-        dateClick: function (info) {
-            let eventName = prompt("추가할 일정 내용을 입력하세요:");
-            if (eventName) {
-                addEvent(calendar, info.date, eventName, selectedColor);
+            function updateMonthTitle(month) {
+                document.getElementById("month-title").textContent = `${month}월 일정`;
             }
-        },
 
-        eventContent: function (arg) {
-            return {
-                html: `<div style="
-                    display: inline-block; 
-                    padding: 4px 0px; 
-                    white-space: normal; 
-                    word-break: break-word;
-                    font-size: 12px;
-                    text-align: center;
-                    min-width: auto; 
-                    min-height: auto;
-                ">${arg.event.title}</div>`
-            };
-        },
+            updateMonthTitle(selectedMonth);
 
-        eventClick: function (info) {
-            if (confirm("일정을 삭제하시겠습니까?")) {
-                deleteEvent(calendar, info.event);
-            }
-        }
-    });
+            var calendarEl = document.getElementById("calendar");
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                locale: "ko",
+                editable: true,
+                selectable: true,
+                contentHeight: "auto",
 
-    calendar.render();
-    loadEvents(calendar, selectedMonth);
-});
+                // ✅ 날짜 클릭 시 이미지 업로드 또는 보기
+                dateClick: function (info) {
+                    let selectedDate = info.dateStr;
+                    checkImageAndUpload(selectedDate);
+                },
 
-// ✅ 일정 추가 함수 (Firebase 저장 포함)
-async function addEvent(calendar, date, name, color) {
-    let year = date.getFullYear();
-    let month = String(date.getMonth() + 1).padStart(2, '0');
-    let day = String(date.getDate()).padStart(2, '0');
-
-    const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-    await newRef.set({ name, color });
-
-    loadEvents(calendar, month); // ✅ 일정 다시 불러오기
-}
-
-// ✅ 일정 삭제 함수 (Firebase에서 삭제)
-async function deleteEvent(calendar, event) {
-    let [year, month, day] = event.startStr.split("-");
-    await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-    loadEvents(calendar, month); // ✅ 일정 다시 불러오기
-}
-
-// ✅ 일정 불러오기 함수 (Firebase에서 데이터 가져오기)
-function loadEvents(calendar, month) {
-    let year = new Date().getFullYear();
-
-    db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-        if (!snapshot.exists()) {
-            calendar.removeAllEvents();
-            return;
-        }
-
-        let events = [];
-        snapshot.forEach((daySnapshot) => {
-            const day = daySnapshot.key;
-            daySnapshot.forEach((eventSnapshot) => {
-                const event = eventSnapshot.val();
-                events.push({
-                    id: eventSnapshot.key,
-                    title: event.name,
-                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                    color: event.color || "black"
-                });
+                datesSet: function (info) {
+                    let newMonth = info.view.currentStart.getMonth() + 1;
+                    localStorage.setItem("selectedMonth", newMonth);
+                    updateMonthTitle(newMonth);
+                }
             });
+
+            calendar.render();
         });
 
-        calendar.removeAllEvents();
-        calendar.addEventSource(events);
-    });
-}
+        // ✅ 날짜를 클릭했을 때 이미지 확인 후 업로드 또는 보기
+        function checkImageAndUpload(date) {
+            db.ref(`images/${date}`).once("value", (snapshot) => {
+                if (snapshot.exists()) {
+                    // ✅ 이미지가 이미 있는 경우 → 이미지 크게 보기
+                    showImage(snapshot.val().url);
+                } else {
+                    // ✅ 이미지가 없는 경우 → 업로드 창 열기
+                    uploadImage(date);
+                }
+            });
+        }
+
+        // ✅ 이미지 업로드 기능
+        function uploadImage(date) {
+            let imageInput = document.getElementById("image-upload");
+            imageInput.click();
+
+            imageInput.onchange = async function () {
+                let file = imageInput.files[0];
+                if (!file) return;
+
+                let storageRef = storage.ref(`images/${date}/${file.name}`);
+                let uploadTask = storageRef.put(file);
+
+                uploadTask.on(
+                    "state_changed",
+                    null,
+                    (error) => console.error("이미지 업로드 오류:", error),
+                    async () => {
+                        let url = await storageRef.getDownloadURL();
+                        await db.ref(`images/${date}`).set({ url });
+                        alert("이미지 업로드 완료!");
+                    }
+                );
+            };
+        }
+
+        // ✅ 이미지 크게 보기 기능
+        function showImage(url) {
+            let modal = document.getElementById("image-modal");
+            let modalImg = document.getElementById("modal-image");
+
+            modalImg.src = url;
+            modal.style.display = "flex";
+        }
+
+        // ✅ 이미지 클릭 시 다시 달력으로 복귀
+        function closeImageModal() {
+            document.getElementById("image-modal").style.display = "none";
+        }
     </script>
 
 </body>
