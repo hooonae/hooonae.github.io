@@ -242,17 +242,19 @@
 
         loadEvents(calendar, month); // ✅ 이벤트를 추가한 후 다시 불러오기
     }
-eventDidMount: function(info) {
+
+            eventDidMount: function(info) {
     if (info.el) {
-        let eventColor = info.event.extendedProps.color || "black"; // ✅ 저장된 색 가져오기
-        info.el.style.color = eventColor; // ✅ 글씨 색상 적용
-        info.el.style.backgroundColor = "white"; // ✅ 배경색은 흰색 유지
-        info.el.style.display = "flex";  // ✅ flex 사용
-        info.el.style.alignItems = "center"; // ✅ 세로(수직) 중앙 정렬
-        info.el.style.justifyContent = "center"; // ✅ 가로(수평) 중앙 정렬
-        info.el.style.textAlign = "center"; // ✅ 텍스트 중앙 정렬
-        info.el.style.margin = "auto"; // ✅ 일정 박스를 표 안에서 정가운데 배치
+        let eventColor = info.event.extendedProps.color || "black"; 
+        info.el.style.color = eventColor; 
+        info.el.style.backgroundColor = "white"; 
+        info.el.style.display = "flex";  
+        info.el.style.alignItems = "center"; 
+        info.el.style.justifyContent = "center"; 
+        info.el.style.textAlign = "center"; 
+        info.el.style.margin = "auto"; 
     }
+} // ✅ 불필요한 익명 함수 제거
 
             
     async function deleteEvent(calendar, event) {
