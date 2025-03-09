@@ -165,8 +165,8 @@
         selectable: true,
         contentHeight: "auto",
 
-        // ✅ FullCalendar에서 월 변경 감지하여 selectedMonth 업데이트
-        dateSet: function (info) {
+        // ✅ FullCalendar v5에서는 datesSet 사용
+        datesSet: function (info) {
             let newMonth = info.view.currentStart.getMonth() + 1; // 현재 보이는 월 가져오기
             localStorage.setItem("selectedMonth", newMonth); // 로컬스토리지에 저장
             updateMonthTitle(newMonth); // 상단 제목 업데이트
