@@ -3,130 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 지킴이 일정</title>
-
-    <!-- ✅ FullCalendar CSS & JS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <title>📅 커스텀 지킴이 일정</title>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <style>
-    body {
-        font-family: 'Noto Sans KR', sans-serif;
-        background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
-        color: #333;
-        text-align: center;
-        padding: 20px;
-        margin: 0;
-    }
-    .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        max-width: 700px;
-        margin: auto;
-    }
-    .title {
-        font-size: 22px;
-        font-weight: bold;
-        text-align: left;
-    }
-    .home-btn {
-        background: none;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        text-decoration: none;
-        color: black;
-    }
-    .color-container {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        align-items: center;
-    }
-    .color-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 12px;
-        color: #333;
-    }
-    .color-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        margin-bottom: 3px;
-    }
-    .black { background-color: black; }
-    .blue { background-color: blue; }
-    .red { background-color: red; }
-    .green { background-color: green; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .calendar {
+            width: 90%;
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .month-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .day {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            position: relative;
+        }
+        .day:hover {
+            background-color: #f5f5f5;
+        }
+        .event {
+            width: 90%;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .black { background-color: black; color: white; }
+        .blue { background-color: blue; color: white; }
+        .red { background-color: red; color: white; }
+        .green { background-color: green; color: white; }
 
-    /* ✅ #calendar 높이값 정상 복구 */
-    #calendar {
-        width: 100%;
-        max-width: 1200px;
-        margin: auto;
-        background: white;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        height: 1000px; /* ✅ 정상적으로 높이 설정 */
-    }
-
-    /* ✅ 일정 박스 크기 자동 조정 */
-    .fc-event-title {
-        font-size: min(3.5vw, 10px);  /* 화면 크기에 따라 자동 조정 */
-        white-space: normal !important;  /* ✅ 줄바꿈 허용 */
-        word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
-        line-height: 1;  /* ✅ 줄 간격 줄이기 */
-        display: block;
-        text-align: center;
-    }
-
-    .fc-event {
-        display: flex;
-        align-items: center; /* ✅ 세로(수직) 중앙 정렬 */
-        justify-content: center; /* ✅ 가로(수평) 중앙 정렬 */
-        min-height: 10px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
-        max-height: 24px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
-        overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
-        padding: 1px 2px;
-    }
+        /* 색상 선택 버튼 */
+        .color-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
-        <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div class="color-container">
-            <div class="color-item">
-                <button class="color-btn black" onclick="setColor('black')"></button>
-                <span>고정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn blue" onclick="setColor('blue')"></button>
-                <span>대휴</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn red" onclick="setColor('red')"></button>
-                <span>일정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn green" onclick="setColor('green')"></button>
-                <span>연차</span>
-            </div>
-        </div>
+    <div class="calendar">
+        <div class="month-title" id="month-title"></div>
+        <div class="days" id="calendar-days"></div>
     </div>
 
-    <div id="calendar"></div>
+    <div class="color-container">
+        <button class="color-btn black" onclick="setColor('black')"></button>
+        <button class="color-btn blue" onclick="setColor('blue')"></button>
+        <button class="color-btn red" onclick="setColor('red')"></button>
+        <button class="color-btn green" onclick="setColor('green')"></button>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -141,86 +110,71 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let selectedColor = "black";
+        let selectedColor = "black"; // 기본 색상 설정
 
         function setColor(color) {
             selectedColor = color;
-            console.log("✅ 선택한 색상:", selectedColor);
+            console.log("선택한 색상:", selectedColor);
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-            selectedMonth = parseInt(selectedMonth);
+        function createCalendar(year, month) {
+            document.getElementById("month-title").textContent = `${year}년 ${month + 1}월`;
+            const calendarDays = document.getElementById("calendar-days");
+            calendarDays.innerHTML = "";
 
-            function updateMonthTitle(month) {
-                document.getElementById("month-title").textContent = `${month}월 일정`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                let emptyDiv = document.createElement("div");
+                calendarDays.appendChild(emptyDiv);
             }
 
-            updateMonthTitle(selectedMonth);
-
-            var calendarEl = document.getElementById("calendar");
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: "dayGridMonth",
-                locale: "ko",
-                editable: true,
-                selectable: true,
-                contentHeight: "auto",
-
-                eventClick: function(info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(calendar, info.event);
-                    }
-                }
-            });
-
-            calendar.render();
-            loadEvents(calendar, selectedMonth);
-
-            async function addEvent(calendar, date, name, color) {
-                let year = date.getFullYear();
-                let month = String(date.getMonth() + 1).padStart(2, '0');
-                let day = String(date.getDate()).padStart(2, '0');
-
-                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name, color });
-
-                loadEvents(calendar, selectedMonth);
+            for (let day = 1; day <= lastDate; day++) {
+                let dayDiv = document.createElement("div");
+                dayDiv.classList.add("day");
+                dayDiv.innerHTML = day;
+                dayDiv.onclick = () => addEvent(year, month, day);
+                calendarDays.appendChild(dayDiv);
+                loadEvents(year, month, day, dayDiv);
             }
+        }
 
-            async function deleteEvent(calendar, event) {
-                let [year, month, day] = event.startStr.split("-");
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                loadEvents(calendar, selectedMonth);
-            }
+        async function addEvent(year, month, day) {
+            let eventName = prompt("일정 내용을 입력하세요:");
+            if (!eventName) return;
 
-            function loadEvents(calendar, month) {
-                let year = new Date().getFullYear();
+            const datePath = `${year}/${month + 1}/${day}`;
+            const newEventRef = db.ref(`calendar/${datePath}`).push();
+            await newEventRef.set({ name: eventName, color: selectedColor });
 
-                db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                    if (!snapshot.exists()) {
-                        calendar.removeAllEvents();
-                        return;
-                    }
+            createCalendar(year, month);
+        }
 
-                    let events = [];
-                    snapshot.forEach((daySnapshot) => {
-                        const day = daySnapshot.key;
-                        daySnapshot.forEach((eventSnapshot) => {
-                            const event = eventSnapshot.val();
-                            events.push({
-                                id: eventSnapshot.key,
-                                title: event.name,
-                                start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                                color: event.color || "black"
-                            });
-                        });
-                    });
-
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(events);
+        function loadEvents(year, month, day, dayDiv) {
+            const datePath = `${year}/${month + 1}/${day}`;
+            db.ref(`calendar/${datePath}`).once("value", (snapshot) => {
+                if (!snapshot.exists()) return;
+                
+                snapshot.forEach(eventSnapshot => {
+                    const event = eventSnapshot.val();
+                    let eventDiv = document.createElement("div");
+                    eventDiv.classList.add("event", event.color);
+                    eventDiv.textContent = event.name;
+                    eventDiv.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm("이 일정을 삭제하시겠습니까?")) {
+                            eventSnapshot.ref.remove();
+                            createCalendar(year, month);
+                        }
+                    };
+                    dayDiv.appendChild(eventDiv);
                 });
-            }
-        });
+            });
+        }
+
+        const today = new Date();
+        createCalendar(today.getFullYear(), today.getMonth());
     </script>
 
 </body>
