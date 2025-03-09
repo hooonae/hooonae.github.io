@@ -55,6 +55,13 @@
         height: 1000px;
     }
 
+    /* ✅ 날짜 숫자 스타일 */
+    .date-number {
+        cursor: pointer;
+        font-weight: bold;
+        color: black;
+    }
+
     /* ✅ 이미지 모달 스타일 */
     #image-modal {
         display: none;
@@ -138,12 +145,13 @@
                     updateMonthTitle(newMonth);
                 },
 
-                // ✅ 클릭 한 번: 이미지 업로드 or 이미지 보기
-                dateClick: function (info) {
-                    checkImageAndUpload(info.dateStr);
+                // ✅ 날짜 숫자 클릭 이벤트 추가
+                dayCellContent: function (arg) {
+                    let date = arg.date.toISOString().split("T")[0]; // YYYY-MM-DD
+                    return `<span class="date-number" onclick="checkImageAndUpload('${date}')">${arg.dayNumberText}</span>`;
                 },
 
-                // ✅ 더블클릭 시 일정 추가
+                // ✅ 더블클릭하면 일정 추가
                 select: function (info) {
                     let eventName = prompt("추가할 일정 내용을 입력하세요:");
                     if (eventName) {
@@ -161,15 +169,6 @@
             calendar.render();
             loadEvents(calendar, selectedMonth);
         });
-
-        function addEvent(calendar, date, name, color) {
-            let year = date.getFullYear();
-            let month = String(date.getMonth() + 1).padStart(2, '0');
-            let day = String(date.getDate()).padStart(2, '0');
-
-            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-            newRef.set({ name, color }).then(() => loadEvents(calendar, month));
-        }
 
         function checkImageAndUpload(date) {
             db.ref(`images/${date}`).once("value", (snapshot) => {
