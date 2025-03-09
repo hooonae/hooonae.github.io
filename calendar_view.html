@@ -86,28 +86,37 @@
 /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 줄바꿈 유지 */
 
 /* ✅ 폰트 크기에 맞게 일정 박스 크기 자동 조정 */
+
+/* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 간격 최소화 */
 .fc-event {
     display: inline-block !important; /* ✅ 글씨 크기에 맞게 박스 크기 조정 */
-    padding: 2px 5px !important; /* ✅ 내부 여백 최소화 */
-    border-radius: 4px; /* ✅ 부드러운 모서리 */
+    padding: 1px 3px !important; /* ✅ 내부 여백 최소화 */
+    margin: 1px !important; /* ✅ 박스 간격 최소화 */
+    border-radius: 3px; /* ✅ 모서리 둥글게 */
     min-width: auto !important;
     min-height: auto !important;
     max-width: 100%;
     max-height: 100%;
     white-space: normal !important; /* ✅ 줄바꿈 허용 */
     word-break: break-word !important; /* ✅ 긴 단어 자동 줄바꿈 */
-    font-size: min(3vw, 10px) !important; /* ✅ 폰트 크기 자동 조정 */
+    font-size: min(3vw, 10px) !important; /* ✅ 폰트 크기에 맞게 자동 조정 */
+    line-height: 1 !important; /* ✅ 글자 줄 간격 최소화 */
 }
 
-/* ✅ 일정 제목 크기와 박스 크기 동기화 */
+/* ✅ 일정 텍스트 스타일 */
 .fc-event-title {
-    font-size: min(3vw, 10px) !important; /* ✅ 화면 크기에 따라 자동 조정 */
-    line-height: 1 !important; /* ✅ 줄 간격 최소화 */
+    font-size: min(3vw, 10px) !important;
     text-align: center;
     display: block;
     font-weight: bold;
     white-space: normal !important;
     word-break: break-word !important;
+}
+
+/* ✅ FullCalendar 일정 간격 조정 */
+.fc-daygrid-event {
+    margin-top: 0px !important; /* ✅ 일정 위쪽 간격 최소화 */
+    margin-bottom: 0px !important; /* ✅ 일정 아래쪽 간격 최소화 */
 }
 
     </style>
@@ -186,7 +195,8 @@
         eventDidMount: function(info) {
             if (info.el) {
                 info.el.style.display = "inline-block";  // ✅ 글씨 크기에 맞춰 박스 조정
-                adjustEventSize(info.el);
+                info.el.style.margin = "1px"; // ✅ 박스 간격 최소화
+                info.el.style.padding = "1px 3px"; // ✅ 내부 여백 최소화
             }
         }
     });
@@ -254,19 +264,6 @@
             calendar.removeAllEvents();
             calendar.addEventSource(events);
         });
-    }
-
-    // ✅ 폰트 크기에 맞게 박스 크기 조정하는 함수
-    function adjustEventSize(eventEl) {
-        setTimeout(() => {
-            let title = eventEl.querySelector(".fc-event-title");
-            if (title) {
-                let fontSize = window.getComputedStyle(title).fontSize;
-                eventEl.style.minHeight = fontSize; // ✅ 폰트 크기만큼 박스 높이 조정
-                eventEl.style.minWidth = "auto";
-                eventEl.style.maxHeight = "auto";
-            }
-        }, 50);
     }
 });
     </script>
