@@ -169,6 +169,9 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+    let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+    selectedMonth = parseInt(selectedMonth);
+
     function updateMonthTitle(month, year) {
         document.getElementById("month-title").textContent = `${year}년 ${month}월 일정`;
     }
@@ -195,7 +198,6 @@
     });
 
     calendar.render();
-});
     loadEvents(calendar, selectedMonth);
 
     let clickTimeout = null;
@@ -214,8 +216,8 @@
             }, 300);
         }
     });
-});
 
+    // ✅ `addEvent()`를 `calendar.on("dateClick", ... )` 아래에 위치!
     async function addEvent(calendar, date, name, color) {
         let year = date.getFullYear();
         let month = String(date.getMonth() + 1).padStart(2, '0');
@@ -224,13 +226,13 @@
         const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
         await newRef.set({ name, color });
 
-        loadEvents(calendar, selectedMonth);
+        loadEvents(calendar, month); // ✅ 이벤트를 추가한 후 다시 불러오기
     }
 
     async function deleteEvent(calendar, event) {
         let [year, month, day] = event.startStr.split("-");
         await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-        loadEvents(calendar, selectedMonth);
+        loadEvents(calendar, month);
     }
 
     function loadEvents(calendar, month) {
@@ -260,8 +262,9 @@
             calendar.addEventSource(events);
         });
     }
-});
+}); // ✅ `document.addEventListener` 닫는 `});`가 가장 마지막에 위치해야 함
     </script>
 
 </body>
 </html>
+
