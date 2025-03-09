@@ -88,29 +88,43 @@
 /* ✅ 폰트 크기에 맞게 일정 박스 크기 자동 조정 */
 
 /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 간격 최소화 */
+
+/* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
+.fc-daygrid-day-events {
+    display: flex !important;
+    flex-direction: column !important; /* ✅ 여러 개 일정이 있을 경우 위에서 아래로 정렬 */
+    align-items: center !important; /* ✅ 세로(수직) 중앙 정렬 */
+    justify-content: center !important; /* ✅ 가로(수평) 중앙 정렬 */
+    height: 100%; /* ✅ 표(cell) 크기 맞춤 */
+}
+
+/* ✅ 일정 박스 크기 자동 조정 + 중앙 정렬 */
 .fc-event {
-    display: inline-block !important; /* ✅ 글씨 크기에 맞게 박스 크기 조정 */
-    padding: 1px 3px !important; /* ✅ 내부 여백 최소화 */
-    margin: 1px !important; /* ✅ 박스 간격 최소화 */
-    border-radius: 3px; /* ✅ 모서리 둥글게 */
+    display: flex !important;  /* ✅ flex 사용 */
+    align-items: center !important; /* ✅ 세로(수직) 중앙 정렬 */
+    justify-content: center !important; /* ✅ 가로(수평) 중앙 정렬 */
+    padding: 2px 5px !important; /* ✅ 내부 여백 최소화 */
+    border-radius: 4px; /* ✅ 부드러운 모서리 */
+    background-color: white !important; /* ✅ 배경색 유지 */
+    border: none !important; /* ✅ 테두리 제거 */
     min-width: auto !important;
-    min-height: auto !important;
+    min-height: 18px !important; /* ✅ 일정 크기 최소화 */
     max-width: 100%;
     max-height: 100%;
     white-space: normal !important; /* ✅ 줄바꿈 허용 */
     word-break: break-word !important; /* ✅ 긴 단어 자동 줄바꿈 */
-    font-size: min(3vw, 10px) !important; /* ✅ 폰트 크기에 맞게 자동 조정 */
+    font-size: min(3vw, 12px) !important; /* ✅ 폰트 크기에 맞게 자동 조정 */
     line-height: 1 !important; /* ✅ 글자 줄 간격 최소화 */
+    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
 }
 
 /* ✅ 일정 텍스트 스타일 */
 .fc-event-title {
-    font-size: min(3vw, 10px) !important;
-    text-align: center;
-    display: block;
     font-weight: bold;
+    display: block;
     white-space: normal !important;
     word-break: break-word !important;
+    text-align: center;
 }
 
 /* ✅ FullCalendar 일정 간격 조정 */
@@ -228,7 +242,19 @@
 
         loadEvents(calendar, month); // ✅ 이벤트를 추가한 후 다시 불러오기
     }
-
+eventDidMount: function(info) {
+    if (info.el) {
+        let eventColor = info.event.extendedProps.color || "black"; // ✅ 저장된 색 가져오기
+        info.el.style.color = eventColor; // ✅ 글씨 색상 적용
+        info.el.style.backgroundColor = "white"; // ✅ 배경색은 흰색 유지
+        info.el.style.display = "flex";  // ✅ flex 사용
+        info.el.style.alignItems = "center"; // ✅ 세로(수직) 중앙 정렬
+        info.el.style.justifyContent = "center"; // ✅ 가로(수평) 중앙 정렬
+        info.el.style.textAlign = "center"; // ✅ 텍스트 중앙 정렬
+        info.el.style.margin = "auto"; // ✅ 일정 박스를 표 안에서 정가운데 배치
+    }
+}
+            
     async function deleteEvent(calendar, event) {
         let [year, month, day] = event.startStr.split("-");
         await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
@@ -267,4 +293,3 @@
 
 </body>
 </html>
-
