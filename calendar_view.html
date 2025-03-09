@@ -111,6 +111,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // ✅ Cloudinary 업로드 설정
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+
         let selectedColor = "black";
 
         function setColor(color) {
@@ -150,51 +154,58 @@
                         checkImageAndUpload(date);
                     };
                     return { domNodes: [span] };
-                },
-
-                select: function (info) {
-                    let eventName = prompt("추가할 일정 내용을 입력하세요:");
-                    if (eventName) {
-                        addEvent(calendar, info.start, eventName, selectedColor);
-                    }
-                },
-
-                eventClick: function (info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(calendar, info.event);
-                    }
                 }
             });
 
             calendar.render();
-            loadEvents(calendar, selectedMonth);
         });
 
-        function loadEvents(calendar, month) {
-            let year = new Date().getFullYear();
-            db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                if (!snapshot.exists()) {
-                    calendar.removeAllEvents();
-                    return;
+        function checkImageAndUpload(date) {
+            db.ref(`images/${date}`).once("value", (snapshot) => {
+                if (snapshot.exists()) {
+                    showImage(snapshot.val().url);
+                } else {
+                    uploadImage(date);
                 }
-
-                let events = [];
-                snapshot.forEach((daySnapshot) => {
-                    const day = daySnapshot.key;
-                    daySnapshot.forEach((eventSnapshot) => {
-                        const event = eventSnapshot.val();
-                        events.push({
-                            id: eventSnapshot.key,
-                            title: event.name,
-                            start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                            color: event.color || "black"
-                        });
-                    });
-                });
-
-                calendar.removeAllEvents();
-                calendar.addEventSource(events);
             });
+        }
+
+        function uploadImage(date) {
+            let imageInput = document.getElementById("image-upload");
+            imageInput.click();
+
+            imageInput.onchange = async function () {
+                let file = imageInput.files[0];
+                if (!file) return;
+
+                let formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+                try {
+                    let response = await fetch(CLOUDINARY_URL, {
+                        method: "POST",
+                        body: formData
+                    });
+                    let data = await response.json();
+
+                    if (data.secure_url) {
+                        await db.ref(`images/${date}`).set({ url: data.secure_url });
+                        alert("이미지 업로드 완료!");
+                    }
+                } catch (error) {
+                    console.error("이미지 업로드 오류:", error);
+                }
+            };
+        }
+
+        function showImage(url) {
+            document.getElementById("modal-image").src = url;
+            document.getElementById("image-modal").style.display = "flex";
+        }
+
+        function closeImageModal() {
+            document.getElementById("image-modal").style.display = "none";
         }
     </script>
 
