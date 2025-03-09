@@ -88,39 +88,35 @@
 /* ✅ 폰트 크기에 맞게 일정 박스 크기 자동 조정 */
 
 /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 간격 최소화 */
-
-/* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
-
-/* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
-
-/* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
-.fc-daygrid-day-events {
-    display: flex !important;
-    flex-direction: column !important; /* ✅ 여러 개 일정이 있을 경우 위에서 아래로 정렬 */
-    align-items: center !important; /* ✅ 세로(수직) 중앙 정렬 */
-    justify-content: center !important; /* ✅ 가로(수평) 중앙 정렬 */
+.fc-event {
+    display: inline-block !important; /* ✅ 글씨 크기에 맞게 박스 크기 조정 */
+    padding: 1px 3px !important; /* ✅ 내부 여백 최소화 */
+    margin: 1px !important; /* ✅ 박스 간격 최소화 */
+    border-radius: 3px; /* ✅ 모서리 둥글게 */
+    min-width: auto !important;
+    min-height: auto !important;
+    max-width: 100%;
+    max-height: 100%;
+    white-space: normal !important; /* ✅ 줄바꿈 허용 */
+    word-break: break-word !important; /* ✅ 긴 단어 자동 줄바꿈 */
+    font-size: min(3vw, 10px) !important; /* ✅ 폰트 크기에 맞게 자동 조정 */
+    line-height: 1 !important; /* ✅ 글자 줄 간격 최소화 */
 }
 
-/* ✅ 일정 박스 크기 자동 조정 + 중앙 정렬 */
-
-/* ✅ FullCalendar 일정 텍스트 스타일 */
+/* ✅ 일정 텍스트 스타일 */
 .fc-event-title {
-    font-weight: bold;
+    font-size: min(3vw, 10px) !important;
+    text-align: center;
     display: block;
+    font-weight: bold;
     white-space: normal !important;
     word-break: break-word !important;
-    text-align: center;
 }
 
-/* ✅ FullCalendar 일정 박스 스타일 */
-.fc-event {
-    display: inline-block !important;
-    padding: 2px 5px !important;
-    border-radius: 4px;
-    background-color: white !important;  /* ✅ 배경색은 흰색 유지 */
-    border: none !important;
-    min-width: auto !important;
-    color: inherit !important;  /* ✅ 글씨 색상을 유지하도록 변경 */
+/* ✅ FullCalendar 일정 간격 조정 */
+.fc-daygrid-event {
+    margin-top: 0px !important; /* ✅ 일정 위쪽 간격 최소화 */
+    margin-bottom: 0px !important; /* ✅ 일정 아래쪽 간격 최소화 */
 }
 
     </style>
@@ -198,12 +194,9 @@
 
         eventDidMount: function(info) {
             if (info.el) {
-                let eventColor = info.event.extendedProps.color || "black"; // ✅ 저장된 색 가져오기
-                info.el.style.color = eventColor; // ✅ 글씨 색상을 Firebase에서 설정한 값으로 적용
-                info.el.style.backgroundColor = "white"; // ✅ 배경색은 흰색 유지
-                info.el.style.display = "inline-block";  // ✅ 일정이 글씨 크기에 맞게 조정됨
-                info.el.style.textAlign = "center"; // ✅ 텍스트 중앙 정렬
-                info.el.style.margin = "auto"; // ✅ 중앙 정렬 유지
+                info.el.style.display = "inline-block";  // ✅ 글씨 크기에 맞춰 박스 조정
+                info.el.style.margin = "1px"; // ✅ 박스 간격 최소화
+                info.el.style.padding = "1px 3px"; // ✅ 내부 여백 최소화
             }
         }
     });
@@ -263,9 +256,7 @@
                         id: eventSnapshot.key,
                         title: event.name,
                         start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                        extendedProps: {
-                            color: event.color || "black" // ✅ 저장된 색을 반영
-                        }
+                        color: event.color || "black"
                     });
                 });
             });
