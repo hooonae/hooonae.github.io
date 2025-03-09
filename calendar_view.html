@@ -84,25 +84,29 @@
    /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 */
 
 /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 줄바꿈 유지 */
+
+/* ✅ 폰트 크기에 맞게 일정 박스 크기 자동 조정 */
 .fc-event {
     display: inline-block !important; /* ✅ 글씨 크기에 맞게 박스 크기 조정 */
     padding: 2px 5px !important; /* ✅ 내부 여백 최소화 */
     border-radius: 4px; /* ✅ 부드러운 모서리 */
-    min-width: auto !important; /* ✅ 너무 작아지지 않도록 자동 조정 */
+    min-width: auto !important;
     min-height: auto !important;
-    max-width: 100%; /* ✅ 박스가 너무 커지지 않도록 제한 */
+    max-width: 100%;
     max-height: 100%;
     white-space: normal !important; /* ✅ 줄바꿈 허용 */
     word-break: break-word !important; /* ✅ 긴 단어 자동 줄바꿈 */
+    font-size: min(3vw, 10px) !important; /* ✅ 폰트 크기 자동 조정 */
 }
 
-/* ✅ 일정 텍스트 크기 조정 */
+/* ✅ 일정 제목 크기와 박스 크기 동기화 */
 .fc-event-title {
-    font-size: min(3vw, 12px) !important;  /* ✅ 화면 크기에 따라 자동 조정 */
+    font-size: min(3vw, 10px) !important; /* ✅ 화면 크기에 따라 자동 조정 */
+    line-height: 1 !important; /* ✅ 줄 간격 최소화 */
     text-align: center;
     display: block;
     font-weight: bold;
-    white-space: normal !important; /* ✅ 줄바꿈 허용 */
+    white-space: normal !important;
     word-break: break-word !important;
 }
 
@@ -182,6 +186,7 @@
         eventDidMount: function(info) {
             if (info.el) {
                 info.el.style.display = "inline-block";  // ✅ 글씨 크기에 맞춰 박스 조정
+                adjustEventSize(info.el);
             }
         }
     });
@@ -191,7 +196,6 @@
 
     let clickTimeout = null;
 
-    // ✅ 더블클릭 시 일정 추가 복구
     calendar.on("dateClick", function(info) {
         if (clickTimeout !== null) {
             clearTimeout(clickTimeout);
@@ -240,9 +244,9 @@
                     const event = eventSnapshot.val();
                     events.push({
                         id: eventSnapshot.key,
-                        title: event.name, // ✅ 기본 title 사용
+                        title: event.name,
                         start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                        color: event.color || "black" // ✅ 글자 색상 적용
+                        color: event.color || "black"
                     });
                 });
             });
@@ -250,6 +254,19 @@
             calendar.removeAllEvents();
             calendar.addEventSource(events);
         });
+    }
+
+    // ✅ 폰트 크기에 맞게 박스 크기 조정하는 함수
+    function adjustEventSize(eventEl) {
+        setTimeout(() => {
+            let title = eventEl.querySelector(".fc-event-title");
+            if (title) {
+                let fontSize = window.getComputedStyle(title).fontSize;
+                eventEl.style.minHeight = fontSize; // ✅ 폰트 크기만큼 박스 높이 조정
+                eventEl.style.minWidth = "auto";
+                eventEl.style.maxHeight = "auto";
+            }
+        }, 50);
     }
 });
     </script>
