@@ -82,21 +82,26 @@
 
     /* ✅ 일정 박스 크기 자동 조정 */
            .fc-event {
-    display: inline-block !important; /* ✅ 글자 크기에 맞게 자동 조정 */
-    width: auto !important; /* ✅ 기본 너비 제한 해제 */
-    height: auto !important; /* ✅ 기본 높이 제한 해제 */
-    padding: 0px 0px !important; /* ✅ 최소한의 여백 */
+    display: flex !important; /* ✅ 글자 크기에 맞게 자동 조정 & 플렉스 박스로 변경 */
+    justify-content: center !important; /* ✅ 일정 내용을 가로 중앙 정렬 */
+    align-items: center !important; /* ✅ 일정 내용을 세로 중앙 정렬 */
+    width: fit-content !important; /* ✅ 내용에 딱 맞게 박스 크기 조정 */
+    height: auto !important; /* ✅ 높이 자동 조정 */
+    padding: 0px 2px !important; /* ✅ 최소한의 여백 유지 */
     white-space: normal !important; /* ✅ 일정 내에서 줄바꿈 허용 */
     word-break: break-word !important; /* ✅ 긴 단어도 자동 줄바꿈 */
     overflow: visible !important; /* ✅ 내용이 잘리지 않도록 설정 */
-    text-align: center;
+    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
+    margin: auto !important; /* ✅ 일정 박스를 표 안에서 중앙 정렬 */
 }
 
+/* ✅ 일정 제목도 중앙 정렬되도록 수정 */
 .fc-event-title {
     font-size: min(3.5vw, 8px) !important; /* ✅ 글자 크기 조정 */
     line-height: 1.2 !important;  /* ✅ 줄 간격 조정 */
     font-weight: bold !important;
     white-space: normal !important; /* ✅ 줄바꿈 허용 */
+    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
 }
     </style>
 </head>
