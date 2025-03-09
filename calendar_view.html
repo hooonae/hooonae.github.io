@@ -92,22 +92,24 @@
 /* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
 
 /* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
-.fc-daygrid-day-frame {
+
+/* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
+.fc-daygrid-day-events {
     display: flex !important;
+    flex-direction: column !important; /* ✅ 여러 개 일정이 있을 경우 위에서 아래로 정렬 */
     align-items: center !important; /* ✅ 세로(수직) 중앙 정렬 */
     justify-content: center !important; /* ✅ 가로(수평) 중앙 정렬 */
-    flex-direction: column; /* ✅ 일정이 여러 개일 경우 위아래 정렬 */
 }
 
 /* ✅ 일정 박스 크기 자동 조정 + 중앙 정렬 */
 .fc-event {
-    display: block !important; /* ✅ 블록 요소로 변경 (표 크기 유지) */
+    display: inline-block !important; /* ✅ 일정이 글씨 크기에 맞게 조정됨 */
     padding: 2px 5px !important; /* ✅ 내부 여백 최소화 */
     border-radius: 4px; /* ✅ 부드러운 모서리 */
     background-color: white !important; /* ✅ 배경색 항상 흰색 유지 */
     border: none !important; /* ✅ 테두리 제거 */
     min-width: auto !important;
-    min-height: auto !important;
+    min-height: 18px !important; /* ✅ 일정 크기 최소화 */
     max-width: 100%;
     max-height: 100%;
     white-space: normal !important; /* ✅ 줄바꿈 허용 */
@@ -124,12 +126,6 @@
     white-space: normal !important;
     word-break: break-word !important;
     text-align: center;
-}
-
-/* ✅ FullCalendar 일정 간격 조정 */
-.fc-daygrid-event {
-    margin-top: 0px !important; /* ✅ 일정 위쪽 간격 최소화 */
-    margin-bottom: 0px !important; /* ✅ 일정 아래쪽 간격 최소화 */
 }
 
     </style>
@@ -210,7 +206,7 @@
                 let eventColor = info.event.extendedProps.color || "black"; // ✅ 글씨 색상 적용
                 info.el.style.color = eventColor; // ✅ 배경색은 white 유지, 글씨 색만 변경
                 info.el.style.backgroundColor = "white"; // ✅ 배경색 항상 흰색 유지
-                info.el.style.display = "block";  // ✅ 블록 요소로 설정하여 표 크기 유지
+                info.el.style.display = "inline-block";  // ✅ 일정이 글씨 크기에 맞게 조정됨
                 info.el.style.textAlign = "center"; // ✅ 텍스트 중앙 정렬
                 info.el.style.margin = "auto"; // ✅ 중앙 정렬 유지
             }
