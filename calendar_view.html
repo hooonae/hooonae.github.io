@@ -169,9 +169,6 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-    let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-    selectedMonth = parseInt(selectedMonth);
-
     function updateMonthTitle(month, year) {
         document.getElementById("month-title").textContent = `${year}년 ${month}월 일정`;
     }
@@ -187,7 +184,7 @@
         datesSet: function(info) { // ✅ 월이 변경될 때 실행
             let newMonth = info.view.currentStart.getMonth() + 1;
             let year = info.view.currentStart.getFullYear();
-            updateMonthTitle(newMonth, year);
+            updateMonthTitle(newMonth, year); // ✅ 월 변경 시 상단 제목 업데이트
         },
 
         eventClick: function(info) {
@@ -198,6 +195,7 @@
     });
 
     calendar.render();
+});
     loadEvents(calendar, selectedMonth);
 
     let clickTimeout = null;
