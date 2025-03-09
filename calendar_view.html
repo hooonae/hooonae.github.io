@@ -12,7 +12,6 @@
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
 
     <style>
     body {
@@ -43,31 +42,6 @@
         text-decoration: none;
         color: black;
     }
-    .color-container {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        align-items: center;
-    }
-    .color-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 12px;
-        color: #333;
-    }
-    .color-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        margin-bottom: 3px;
-    }
-    .black { background-color: black; }
-    .blue { background-color: blue; }
-    .red { background-color: red; }
-    .green { background-color: green; }
 
     /* ✅ 캘린더 스타일 */
     #calendar {
@@ -120,24 +94,6 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div class="color-container">
-            <div class="color-item">
-                <button class="color-btn black" onclick="setColor('black')"></button>
-                <span>고정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn blue" onclick="setColor('blue')"></button>
-                <span>대휴</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn red" onclick="setColor('red')"></button>
-                <span>일정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn green" onclick="setColor('green')"></button>
-                <span>연차</span>
-            </div>
-        </div>
     </div>
 
     <div id="calendar"></div>
@@ -151,11 +107,22 @@
     </div>
 
     <script>
-        // ✅ Firebase 설정
-        const firebaseConfig = { /* 네 Firebase 설정 그대로 유지 */ };
+        // ✅ Firebase 설정 (네 기존 설정 유지)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQew...",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const storage = firebase.storage();
+
+        // ✅ Cloudinary 업로드 설정
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
 
         let selectedColor = "black";
 
@@ -181,18 +148,19 @@
                 selectable: true,
                 contentHeight: "auto",
 
-                dateClick: function (info) {
-                    checkImageAndUpload(info.dateStr);
+                datesSet: function (info) {
+                    let newMonth = info.view.currentStart.getMonth() + 1;
+                    localStorage.setItem("selectedMonth", newMonth);
+                    updateMonthTitle(newMonth);
                 },
 
-                eventClick: function (info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(calendar, info.event);
-                    }
+                dateClick: function (info) {
+                    checkImageAndUpload(info.dateStr);
                 }
             });
 
             calendar.render();
+            loadEvents(calendar, selectedMonth);
         });
 
         function checkImageAndUpload(date) {
@@ -213,14 +181,24 @@
                 let file = imageInput.files[0];
                 if (!file) return;
 
-                let storageRef = storage.ref(`images/${date}/${file.name}`);
-                let uploadTask = storageRef.put(file);
+                let formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-                uploadTask.on("state_changed", null, console.error, async () => {
-                    let url = await storageRef.getDownloadURL();
-                    await db.ref(`images/${date}`).set({ url });
-                    alert("이미지 업로드 완료!");
-                });
+                try {
+                    let response = await fetch(CLOUDINARY_URL, {
+                        method: "POST",
+                        body: formData
+                    });
+                    let data = await response.json();
+
+                    if (data.secure_url) {
+                        await db.ref(`images/${date}`).set({ url: data.secure_url });
+                        alert("이미지 업로드 완료!");
+                    }
+                } catch (error) {
+                    console.error("이미지 업로드 오류:", error);
+                }
             };
         }
 
