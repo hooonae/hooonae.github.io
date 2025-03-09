@@ -82,6 +82,8 @@
 
     /* ✅ 일정 박스 크기 자동 조정 */
    /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 */
+
+/* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 줄바꿈 유지 */
 .fc-event {
     display: inline-block !important; /* ✅ 글씨 크기에 맞게 박스 크기 조정 */
     padding: 2px 5px !important; /* ✅ 내부 여백 최소화 */
@@ -90,16 +92,20 @@
     min-height: auto !important;
     max-width: 100%; /* ✅ 박스가 너무 커지지 않도록 제한 */
     max-height: 100%;
-    white-space: nowrap; /* ✅ 글자가 너무 길면 줄바꿈 방지 */
+    white-space: normal !important; /* ✅ 줄바꿈 허용 */
+    word-break: break-word !important; /* ✅ 긴 단어 자동 줄바꿈 */
 }
 
 /* ✅ 일정 텍스트 크기 조정 */
 .fc-event-title {
     font-size: min(3vw, 12px) !important;  /* ✅ 화면 크기에 따라 자동 조정 */
     text-align: center;
-    display: inline;
+    display: block;
     font-weight: bold;
+    white-space: normal !important; /* ✅ 줄바꿈 허용 */
+    word-break: break-word !important;
 }
+
     </style>
 </head>
 <body>
@@ -182,6 +188,24 @@
 
     calendar.render();
     loadEvents(calendar, selectedMonth);
+
+    let clickTimeout = null;
+
+    // ✅ 더블클릭 시 일정 추가 복구
+    calendar.on("dateClick", function(info) {
+        if (clickTimeout !== null) {
+            clearTimeout(clickTimeout);
+            clickTimeout = null;
+            let name = prompt("일정 이름을 입력하세요:");
+            if (name) {
+                addEvent(calendar, info.date, name, selectedColor);
+            }
+        } else {
+            clickTimeout = setTimeout(() => {
+                clickTimeout = null;
+            }, 300);
+        }
+    });
 
     async function addEvent(calendar, date, name, color) {
         let year = date.getFullYear();
