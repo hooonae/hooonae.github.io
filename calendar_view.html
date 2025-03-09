@@ -55,22 +55,6 @@
         height: 1000px;
     }
 
-    /* ✅ 일정 스타일 */
-    .fc-event {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        width: fit-content !important;
-        height: auto !important;
-        padding: 0px 2px !important;
-        white-space: normal !important;
-        word-break: break-word !important;
-        overflow: visible !important;
-        text-align: center !important;
-        margin: auto !important;
-        margin-bottom: 2px !important;
-    }
-
     /* ✅ 이미지 모달 스타일 */
     #image-modal {
         display: none;
@@ -107,7 +91,7 @@
     </div>
 
     <script>
-        // ✅ Firebase 설정 (네 기존 설정 유지)
+        // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQew...",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -154,8 +138,17 @@
                     updateMonthTitle(newMonth);
                 },
 
+                // ✅ 클릭 한 번: 이미지 업로드 or 이미지 보기
                 dateClick: function (info) {
                     checkImageAndUpload(info.dateStr);
+                },
+
+                // ✅ 더블클릭 시 일정 추가
+                select: function (info) {
+                    let eventName = prompt("추가할 일정 내용을 입력하세요:");
+                    if (eventName) {
+                        addEvent(calendar, info.start, eventName, selectedColor);
+                    }
                 },
 
                 eventClick: function (info) {
@@ -169,38 +162,13 @@
             loadEvents(calendar, selectedMonth);
         });
 
-        function loadEvents(calendar, month) {
-            let year = new Date().getFullYear();
+        function addEvent(calendar, date, name, color) {
+            let year = date.getFullYear();
+            let month = String(date.getMonth() + 1).padStart(2, '0');
+            let day = String(date.getDate()).padStart(2, '0');
 
-            db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-                if (!snapshot.exists()) {
-                    calendar.removeAllEvents();
-                    return;
-                }
-
-                let events = [];
-                snapshot.forEach((daySnapshot) => {
-                    const day = daySnapshot.key;
-                    daySnapshot.forEach((eventSnapshot) => {
-                        const event = eventSnapshot.val();
-                        events.push({
-                            id: eventSnapshot.key,
-                            title: event.name,
-                            start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                            color: event.color || "black"
-                        });
-                    });
-                });
-
-                calendar.removeAllEvents();
-                calendar.addEventSource(events);
-            });
-        }
-
-        function deleteEvent(calendar, event) {
-            let [year, month, day] = event.startStr.split("-");
-            db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove()
-                .then(() => loadEvents(calendar, month));
+            const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+            newRef.set({ name, color }).then(() => loadEvents(calendar, month));
         }
 
         function checkImageAndUpload(date) {
