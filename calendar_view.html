@@ -82,31 +82,22 @@
 
 /* ✅ 일정 박스 크기 조정 */
 /* ✅ 일정 텍스트 크기 자동 조정 + 줄바꿈 허용 */
+/* ✅ 일정 박스를 없애고 글씨 색상만 변경 */
+.fc-event {
+    background: none !important; /* ✅ 배경 제거 */
+    border: none !important; /* ✅ 테두리 제거 */
+    padding: 0 !important; /* ✅ 내부 여백 제거 */
+    box-shadow: none !important; /* ✅ 그림자 제거 */
+    display: inline; /* ✅ 블록 요소가 아니라 텍스트처럼 표시 */
+}
+
+/* ✅ 일정 텍스트 스타일 */
 .fc-event-title {
-    font-size: min(3.5vw, 10px);  /* 화면 크기에 따라 자동 조정 (최대 14px) */
+    font-size: min(3vw, 10px);  /* ✅ 화면 크기에 따라 자동 조정 */
     white-space: normal !important;  /* ✅ 줄바꿈 허용 */
     word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
-    line-height: 1;  /* ✅ 줄 간격 줄이기 */
-    display: block;
-    text-align: center;
-}
-
-/* ✅ 일정 박스 크기 자동 조절 */
-.fc-event {
-    display: flex;
-    align-items: center; /* ✅ 세로(수직) 중앙 정렬 */
-    justify-content: center; /* ✅ 가로(수평) 중앙 정렬 */
-    min-height: 10px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
-    max-height: 24px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
-    overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
-    padding: 1px 2px;
-}
-
-/* ✅ 모바일 화면에서 더 작은 폰트 적용 */
-@media screen and (max-width: 600px) {
-    .fc-event-title {
-        font-size: min(4vw, 10px); /* ✅ 더 작은 화면에서는 최대 12px */
-    }
+    text-align: center; /* ✅ 텍스트 중앙 정렬 */
+    display: inline; /* ✅ 블록 요소가 아니라 일반 텍스트처럼 표시 */
 }
 </style>
 </head>
