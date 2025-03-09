@@ -156,12 +156,52 @@
 
                 dateClick: function (info) {
                     checkImageAndUpload(info.dateStr);
+                },
+
+                eventClick: function (info) {
+                    if (confirm("일정을 삭제하시겠습니까?")) {
+                        deleteEvent(calendar, info.event);
+                    }
                 }
             });
 
             calendar.render();
             loadEvents(calendar, selectedMonth);
         });
+
+        function loadEvents(calendar, month) {
+            let year = new Date().getFullYear();
+
+            db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
+                if (!snapshot.exists()) {
+                    calendar.removeAllEvents();
+                    return;
+                }
+
+                let events = [];
+                snapshot.forEach((daySnapshot) => {
+                    const day = daySnapshot.key;
+                    daySnapshot.forEach((eventSnapshot) => {
+                        const event = eventSnapshot.val();
+                        events.push({
+                            id: eventSnapshot.key,
+                            title: event.name,
+                            start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                            color: event.color || "black"
+                        });
+                    });
+                });
+
+                calendar.removeAllEvents();
+                calendar.addEventSource(events);
+            });
+        }
+
+        function deleteEvent(calendar, event) {
+            let [year, month, day] = event.startStr.split("-");
+            db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove()
+                .then(() => loadEvents(calendar, month));
+        }
 
         function checkImageAndUpload(date) {
             db.ref(`images/${date}`).once("value", (snapshot) => {
