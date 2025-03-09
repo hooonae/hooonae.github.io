@@ -81,22 +81,24 @@
     }
 
     /* ✅ 일정 박스 크기 자동 조정 */
-    /* ✅ 일정 박스를 제거하고 글자 색상만 유지 */
+   /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 */
 .fc-event {
-    background: none !important; /* ✅ 배경 제거 */
-    border: none !important; /* ✅ 테두리 제거 */
-    box-shadow: none !important; /* ✅ 그림자 제거 */
-    padding: 0 !important; /* ✅ 내부 여백 제거 */
-    display: inline-block; /* ✅ 블록 대신 인라인 요소처럼 표시 */
+    display: inline-block !important; /* ✅ 글씨 크기에 맞게 박스 크기 조정 */
+    padding: 2px 5px !important; /* ✅ 내부 여백 최소화 */
+    border-radius: 4px; /* ✅ 부드러운 모서리 */
+    min-width: auto !important; /* ✅ 너무 작아지지 않도록 자동 조정 */
+    min-height: auto !important;
+    max-width: 100%; /* ✅ 박스가 너무 커지지 않도록 제한 */
+    max-height: 100%;
+    white-space: nowrap; /* ✅ 글자가 너무 길면 줄바꿈 방지 */
 }
 
-/* ✅ 일정 제목(텍스트) 스타일 */
+/* ✅ 일정 텍스트 크기 조정 */
 .fc-event-title {
-    font-size: min(3.5vw, 12px);  /* ✅ 화면 크기에 따라 자동 조정 */
-    white-space: normal !important;  /* ✅ 줄바꿈 허용 */
-    word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
-    text-align: center; /* ✅ 텍스트 중앙 정렬 */
-    display: inline; /* ✅ 블록 요소가 아니라 일반 텍스트처럼 표시 */
+    font-size: min(3vw, 12px) !important;  /* ✅ 화면 크기에 따라 자동 조정 */
+    text-align: center;
+    display: inline;
+    font-weight: bold;
 }
     </style>
 </head>
@@ -148,77 +150,84 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-            selectedMonth = parseInt(selectedMonth);
+    let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+    selectedMonth = parseInt(selectedMonth);
 
-            function updateMonthTitle(month) {
-                document.getElementById("month-title").textContent = `${month}월 일정`;
+    function updateMonthTitle(month) {
+        document.getElementById("month-title").textContent = `${month}월 일정`;
+    }
+
+    updateMonthTitle(selectedMonth);
+
+    var calendarEl = document.getElementById("calendar");
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "ko",
+        editable: true,
+        selectable: true,
+        contentHeight: "auto",
+
+        eventClick: function(info) {
+            if (confirm("일정을 삭제하시겠습니까?")) {
+                deleteEvent(calendar, info.event);
             }
+        },
 
-            updateMonthTitle(selectedMonth);
-
-            var calendarEl = document.getElementById("calendar");
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: "dayGridMonth",
-                locale: "ko",
-                editable: true,
-                selectable: true,
-                contentHeight: "auto",
-
-                eventClick: function(info) {
-                    if (confirm("일정을 삭제하시겠습니까?")) {
-                        deleteEvent(calendar, info.event);
-                    }
-                }
-            });
-
-            calendar.render();
-            loadEvents(calendar, selectedMonth);
-
-            async function addEvent(calendar, date, name, color) {
-                let year = date.getFullYear();
-                let month = String(date.getMonth() + 1).padStart(2, '0');
-                let day = String(date.getDate()).padStart(2, '0');
-
-                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-                await newRef.set({ name, color });
-
-                loadEvents(calendar, selectedMonth);
+        eventDidMount: function(info) {
+            if (info.el) {
+                info.el.style.display = "inline-block";  // ✅ 글씨 크기에 맞춰 박스 조정
             }
-
-            async function deleteEvent(calendar, event) {
-                let [year, month, day] = event.startStr.split("-");
-                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-                loadEvents(calendar, selectedMonth);
-            }
-
-            function loadEvents(calendar, month) {
-    let year = new Date().getFullYear();
-
-    db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-        if (!snapshot.exists()) {
-            calendar.removeAllEvents();
-            return;
         }
+    });
 
-        let events = [];
-        snapshot.forEach((daySnapshot) => {
-            const day = daySnapshot.key;
-            daySnapshot.forEach((eventSnapshot) => {
-                const event = eventSnapshot.val();
-                events.push({
-                    id: eventSnapshot.key,
-                    title: `<span style="color:${event.color || 'black'}">${event.name}</span>`, // ✅ 글자 색상 적용
-                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    calendar.render();
+    loadEvents(calendar, selectedMonth);
+
+    async function addEvent(calendar, date, name, color) {
+        let year = date.getFullYear();
+        let month = String(date.getMonth() + 1).padStart(2, '0');
+        let day = String(date.getDate()).padStart(2, '0');
+
+        const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+        await newRef.set({ name, color });
+
+        loadEvents(calendar, selectedMonth);
+    }
+
+    async function deleteEvent(calendar, event) {
+        let [year, month, day] = event.startStr.split("-");
+        await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+        loadEvents(calendar, selectedMonth);
+    }
+
+    function loadEvents(calendar, month) {
+        let year = new Date().getFullYear();
+
+        db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
+            if (!snapshot.exists()) {
+                calendar.removeAllEvents();
+                return;
+            }
+
+            let events = [];
+            snapshot.forEach((daySnapshot) => {
+                const day = daySnapshot.key;
+                daySnapshot.forEach((eventSnapshot) => {
+                    const event = eventSnapshot.val();
+                    events.push({
+                        id: eventSnapshot.key,
+                        title: event.name, // ✅ 기본 title 사용
+                        start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                        color: event.color || "black" // ✅ 글자 색상 적용
+                    });
                 });
             });
-        });
 
-        calendar.removeAllEvents();
-        calendar.addEventSource(events);
-    });
-}
+            calendar.removeAllEvents();
+            calendar.addEventSource(events);
         });
+    }
+});
     </script>
 
 </body>
