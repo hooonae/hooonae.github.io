@@ -85,7 +85,7 @@
     display: inline-block !important; /* ✅ 글자 크기에 맞게 자동 조정 */
     width: auto !important; /* ✅ 기본 너비 제한 해제 */
     height: auto !important; /* ✅ 기본 높이 제한 해제 */
-    padding: 2px 4px !important; /* ✅ 최소한의 여백 */
+    padding: 0px 1px !important; /* ✅ 최소한의 여백 */
     white-space: normal !important; /* ✅ 일정 내에서 줄바꿈 허용 */
     word-break: break-word !important; /* ✅ 긴 단어도 자동 줄바꿈 */
     overflow: visible !important; /* ✅ 내용이 잘리지 않도록 설정 */
@@ -165,11 +165,19 @@
         selectable: true,
         contentHeight: "auto",
 
-        // ✅ FullCalendar v5에서는 datesSet 사용
+        // ✅ 월 변경 시 상단 제목 업데이트
         datesSet: function (info) {
-            let newMonth = info.view.currentStart.getMonth() + 1; // 현재 보이는 월 가져오기
-            localStorage.setItem("selectedMonth", newMonth); // 로컬스토리지에 저장
-            updateMonthTitle(newMonth); // 상단 제목 업데이트
+            let newMonth = info.view.currentStart.getMonth() + 1;
+            localStorage.setItem("selectedMonth", newMonth);
+            updateMonthTitle(newMonth);
+        },
+
+        // ✅ 일정 추가 기능 복구 (더블클릭 이벤트)
+        dateClick: function (info) {
+            let eventName = prompt("추가할 일정 내용을 입력하세요:");
+            if (eventName) {
+                addEvent(calendar, info.date, eventName, selectedColor);
+            }
         },
 
         eventContent: function (arg) {
@@ -195,11 +203,29 @@
     });
 
     calendar.render();
-    loadEvents(calendar, selectedMonth); // ✅ 여기서 loadEvents 호출
-
+    loadEvents(calendar, selectedMonth);
 });
 
-// ✅ loadEvents를 document.addEventListener 바깥으로 이동
+// ✅ 일정 추가 함수 (Firebase 저장 포함)
+async function addEvent(calendar, date, name, color) {
+    let year = date.getFullYear();
+    let month = String(date.getMonth() + 1).padStart(2, '0');
+    let day = String(date.getDate()).padStart(2, '0');
+
+    const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+    await newRef.set({ name, color });
+
+    loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+}
+
+// ✅ 일정 삭제 함수 (Firebase에서 삭제)
+async function deleteEvent(calendar, event) {
+    let [year, month, day] = event.startStr.split("-");
+    await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+    loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+}
+
+// ✅ 일정 불러오기 함수 (Firebase에서 데이터 가져오기)
 function loadEvents(calendar, month) {
     let year = new Date().getFullYear();
 
