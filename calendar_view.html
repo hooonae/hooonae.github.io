@@ -195,8 +195,38 @@
     });
 
     calendar.render();
-    loadEvents(calendar, selectedMonth);
+    loadEvents(calendar, selectedMonth); // ✅ 여기서 loadEvents 호출
+
 });
+
+// ✅ loadEvents를 document.addEventListener 바깥으로 이동
+function loadEvents(calendar, month) {
+    let year = new Date().getFullYear();
+
+    db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
+        if (!snapshot.exists()) {
+            calendar.removeAllEvents();
+            return;
+        }
+
+        let events = [];
+        snapshot.forEach((daySnapshot) => {
+            const day = daySnapshot.key;
+            daySnapshot.forEach((eventSnapshot) => {
+                const event = eventSnapshot.val();
+                events.push({
+                    id: eventSnapshot.key,
+                    title: event.name,
+                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                    color: event.color || "black"
+                });
+            });
+        });
+
+        calendar.removeAllEvents();
+        calendar.addEventSource(events);
+    });
+}
     </script>
 
 </body>
