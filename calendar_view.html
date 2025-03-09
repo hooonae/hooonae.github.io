@@ -208,6 +208,19 @@
             if (confirm("일정을 삭제하시겠습니까?")) {
                 deleteEvent(calendar, info.event);
             }
+        },
+
+        eventDidMount: function(info) {  // ✅ 이제 FullCalendar 설정 안으로 이동함!
+            if (info.el) {
+                let eventColor = info.event.extendedProps.color || "black"; 
+                info.el.style.color = eventColor; 
+                info.el.style.backgroundColor = "white"; 
+                info.el.style.display = "flex";  
+                info.el.style.alignItems = "center"; 
+                info.el.style.justifyContent = "center"; 
+                info.el.style.textAlign = "center"; 
+                info.el.style.margin = "auto"; 
+            }
         }
     });
 
@@ -231,7 +244,6 @@
         }
     });
 
-    // ✅ `addEvent()`를 `calendar.on("dateClick", ... )` 아래에 위치!
     async function addEvent(calendar, date, name, color) {
         let year = date.getFullYear();
         let month = String(date.getMonth() + 1).padStart(2, '0');
@@ -243,20 +255,6 @@
         loadEvents(calendar, month); // ✅ 이벤트를 추가한 후 다시 불러오기
     }
 
-            eventDidMount: function(info) {
-    if (info.el) {
-        let eventColor = info.event.extendedProps.color || "black"; 
-        info.el.style.color = eventColor; 
-        info.el.style.backgroundColor = "white"; 
-        info.el.style.display = "flex";  
-        info.el.style.alignItems = "center"; 
-        info.el.style.justifyContent = "center"; 
-        info.el.style.textAlign = "center"; 
-        info.el.style.margin = "auto"; 
-    }
-} // ✅ 불필요한 익명 함수 제거
-
-            
     async function deleteEvent(calendar, event) {
         let [year, month, day] = event.startStr.split("-");
         await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
