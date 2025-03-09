@@ -81,23 +81,22 @@
     }
 
     /* ✅ 일정 박스 크기 자동 조정 */
-    .fc-event-title {
-        font-size: min(3.5vw, 10px);  /* 화면 크기에 따라 자동 조정 */
-        white-space: normal !important;  /* ✅ 줄바꿈 허용 */
-        word-break: break-word;  /* ✅ 긴 단어 자동 줄바꿈 */
-        line-height: 1;  /* ✅ 줄 간격 줄이기 */
-        display: block;
-        text-align: center;
+        .fc-event {
+        display: flex;
+        align-items: center; /* ✅ 수직 중앙 정렬 */
+        justify-content: center; /* ✅ 수평 중앙 정렬 */
+        padding: 0 3px; /* ✅ 텍스트 크기에 딱 맞게 조정 */
+        min-height: auto !important; /* ✅ 자동 크기 조정 */
+        max-height: none !important; /* ✅ 최대 높이 제한 해제 */
+        overflow: hidden; /* ✅ 넘치는 텍스트 숨김 */
+        white-space: nowrap; /* ✅ 텍스트가 줄바꿈되지 않도록 설정 */
     }
 
-    .fc-event {
-        display: flex;
-        align-items: center; /* ✅ 세로(수직) 중앙 정렬 */
-        justify-content: center; /* ✅ 가로(수평) 중앙 정렬 */
-        min-height: 10px !important; /* 일정이 너무 작아지지 않도록 최소 높이 지정 */
-        max-height: 24px !important; /* 일정이 너무 커지지 않도록 최대 높이 지정 */
-        overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
-        padding: 1px 2px;
+    .fc-event-title {
+        font-size: min(3.5vw, 12px);  /* ✅ 글자 크기 조정 */
+        line-height: 1.2;  /* ✅ 텍스트 가독성을 위해 줄 간격 조정 */
+        font-weight: bold;
+        text-align: center;
     }
     </style>
 </head>
