@@ -172,11 +172,9 @@
     let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
     selectedMonth = parseInt(selectedMonth);
 
-    function updateMonthTitle(month) {
-        document.getElementById("month-title").textContent = `${month}월 일정`;
+    function updateMonthTitle(month, year) {
+        document.getElementById("month-title").textContent = `${year}년 ${month}월 일정`;
     }
-
-    updateMonthTitle(selectedMonth);
 
     var calendarEl = document.getElementById("calendar");
     var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -186,17 +184,15 @@
         selectable: true,
         contentHeight: "auto",
 
+        datesSet: function(info) { // ✅ 월이 변경될 때 실행
+            let newMonth = info.view.currentStart.getMonth() + 1;
+            let year = info.view.currentStart.getFullYear();
+            updateMonthTitle(newMonth, year);
+        },
+
         eventClick: function(info) {
             if (confirm("일정을 삭제하시겠습니까?")) {
                 deleteEvent(calendar, info.event);
-            }
-        },
-
-        eventDidMount: function(info) {
-            if (info.el) {
-                info.el.style.display = "inline-block";  // ✅ 글씨 크기에 맞춰 박스 조정
-                info.el.style.margin = "1px"; // ✅ 박스 간격 최소화
-                info.el.style.padding = "1px 3px"; // ✅ 내부 여백 최소화
             }
         }
     });
@@ -220,6 +216,7 @@
             }, 300);
         }
     });
+});
 
     async function addEvent(calendar, date, name, color) {
         let year = date.getFullYear();
