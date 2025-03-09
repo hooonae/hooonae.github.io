@@ -14,119 +14,68 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <style>
-    body {
-        font-family: 'Noto Sans KR', sans-serif;
-        background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
-        color: #333;
-        text-align: center;
-        padding: 20px;
-        margin: 0;
-    }
-    .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        max-width: 700px;
-        margin: auto;
-    }
-    .title {
-        font-size: 22px;
-        font-weight: bold;
-        text-align: left;
-    }
-    .home-btn {
-        background: none;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        text-decoration: none;
-        color: black;
-    }
-    .color-container {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        align-items: center;
-    }
-    .color-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 12px;
-        color: #333;
-    }
-    .color-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        margin-bottom: 3px;
-    }
-    .black { background-color: black; }
-    .blue { background-color: blue; }
-    .red { background-color: red; }
-    .green { background-color: green; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 700px;
+            margin: auto;
+        }
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: left;
+        }
+        .home-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
 
-    /* ✅ #calendar 높이값 정상 복구 */
-    #calendar {
-        width: 100%;
-        max-width: 1200px;
-        margin: auto;
-        background: white;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        height: 1000px; /* ✅ 정상적으로 높이 설정 */
-    }
+        /* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
+        .fc-daygrid-day-frame {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 100%;
+        }
 
-    /* ✅ 일정 박스 크기 자동 조정 */
-   /* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 */
+        /* ✅ 일정 박스 크기 자동 조정 + 중앙 정렬 */
+        .fc-event {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 3px 6px !important;
+            border-radius: 4px;
+            background-color: white !important;
+            border: none !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            font-size: min(3vw, 12px) !important;
+            line-height: 1.2 !important;
+            text-align: center !important;
+        }
 
-/* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 줄바꿈 유지 */
-
-/* ✅ 폰트 크기에 맞게 일정 박스 크기 자동 조정 */
-
-/* ✅ 일정 박스를 글씨 크기에 맞게 자동 조정 + 간격 최소화 */
-
-/* ✅ FullCalendar 표(cell) 안에서 일정 중앙 정렬 */
-.fc-daygrid-day-events {
-    display: flex !important;
-    flex-direction: column !important; /* ✅ 여러 개 일정이 있을 경우 위에서 아래로 정렬 */
-    align-items: center !important; /* ✅ 세로(수직) 중앙 정렬 */
-    justify-content: center !important; /* ✅ 가로(수평) 중앙 정렬 */
-    height: 100%; /* ✅ 표(cell) 크기 맞춤 */
-}
-
-/* ✅ 일정 박스 크기 자동 조정 + 중앙 정렬 */
-.fc-event {
-    display: flex !important;  /* ✅ flex 사용 */
-    align-items: center !important; /* ✅ 세로(수직) 중앙 정렬 */
-    justify-content: center !important; /* ✅ 가로(수평) 중앙 정렬 */
-    padding: 2px 5px !important; /* ✅ 내부 여백 최소화 */
-    border-radius: 4px; /* ✅ 부드러운 모서리 */
-    background-color: white !important; /* ✅ 배경색 유지 */
-    border: none !important; /* ✅ 테두리 제거 */
-    min-width: auto !important;
-    min-height: 18px !important; /* ✅ 일정 크기 최소화 */
-    max-width: 100%;
-    max-height: 100%;
-    white-space: normal !important; /* ✅ 줄바꿈 허용 */
-    word-break: break-word !important; /* ✅ 긴 단어 자동 줄바꿈 */
-    font-size: min(3vw, 12px) !important; /* ✅ 폰트 크기에 맞게 자동 조정 */
-    line-height: 1 !important; /* ✅ 글자 줄 간격 최소화 */
-    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
-}
-
-/* ✅ 일정 텍스트 스타일 */
-.fc-event-title {
-    font-weight: bold;
-    display: block;
-    white-space: normal !important;
-    word-break: break-word !important;
-    text-align: center;
-}
-
+        /* ✅ 일정 텍스트 스타일 */
+        .fc-event-title {
+            font-weight: bold;
+            display: block;
+            white-space: normal !important;
+            word-break: break-word !important;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -134,24 +83,6 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
-        <div class="color-container">
-            <div class="color-item">
-                <button class="color-btn black" onclick="setColor('black')"></button>
-                <span>고정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn blue" onclick="setColor('blue')"></button>
-                <span>대휴</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn red" onclick="setColor('red')"></button>
-                <span>일정</span>
-            </div>
-            <div class="color-item">
-                <button class="color-btn green" onclick="setColor('green')"></button>
-                <span>연차</span>
-            </div>
-        </div>
     </div>
 
     <div id="calendar"></div>
@@ -177,112 +108,95 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-    let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-    selectedMonth = parseInt(selectedMonth);
+            let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+            selectedMonth = parseInt(selectedMonth);
 
-    function updateMonthTitle(month, year) {
-        document.getElementById("month-title").textContent = `${year}년 ${month}월 일정`;
-    }
-
-    var calendarEl = document.getElementById("calendar");
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        locale: "ko",
-        editable: true,
-        selectable: true,
-        contentHeight: "auto",
-
-        datesSet: function(info) { // ✅ 월이 변경될 때 실행
-            let newMonth = info.view.currentStart.getMonth() + 1;
-            let year = info.view.currentStart.getFullYear();
-            updateMonthTitle(newMonth, year); // ✅ 월 변경 시 상단 제목 업데이트
-        },
-
-        eventClick: function(info) {
-            if (confirm("일정을 삭제하시겠습니까?")) {
-                deleteEvent(calendar, info.event);
-            }
-        },
-
-        eventDidMount: function(info) {  // ✅ 이제 FullCalendar 설정 안으로 이동함!
-            if (info.el) {
-                let eventColor = info.event.extendedProps.color || "black"; 
-                info.el.style.color = eventColor; 
-                info.el.style.backgroundColor = "white"; 
-                info.el.style.display = "flex";  
-                info.el.style.alignItems = "center"; 
-                info.el.style.justifyContent = "center"; 
-                info.el.style.textAlign = "center"; 
-                info.el.style.margin = "auto"; 
-            }
-        }
-    });
-
-    calendar.render();
-    loadEvents(calendar, selectedMonth);
-
-    let clickTimeout = null;
-
-    calendar.on("dateClick", function(info) {
-        if (clickTimeout !== null) {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
-            let name = prompt("일정 이름을 입력하세요:");
-            if (name) {
-                addEvent(calendar, info.date, name, selectedColor);
-            }
-        } else {
-            clickTimeout = setTimeout(() => {
-                clickTimeout = null;
-            }, 300);
-        }
-    });
-
-    async function addEvent(calendar, date, name, color) {
-        let year = date.getFullYear();
-        let month = String(date.getMonth() + 1).padStart(2, '0');
-        let day = String(date.getDate()).padStart(2, '0');
-
-        const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
-        await newRef.set({ name, color });
-
-        loadEvents(calendar, month); // ✅ 이벤트를 추가한 후 다시 불러오기
-    }
-
-    async function deleteEvent(calendar, event) {
-        let [year, month, day] = event.startStr.split("-");
-        await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-        loadEvents(calendar, month);
-    }
-
-    function loadEvents(calendar, month) {
-        let year = new Date().getFullYear();
-
-        db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
-            if (!snapshot.exists()) {
-                calendar.removeAllEvents();
-                return;
+            function updateMonthTitle(month, year) {
+                document.getElementById("month-title").textContent = `${year}년 ${month}월 일정`;
             }
 
-            let events = [];
-            snapshot.forEach((daySnapshot) => {
-                const day = daySnapshot.key;
-                daySnapshot.forEach((eventSnapshot) => {
-                    const event = eventSnapshot.val();
-                    events.push({
-                        id: eventSnapshot.key,
-                        title: event.name,
-                        start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-                        color: event.color || "black"
-                    });
-                });
+            var calendarEl = document.getElementById("calendar");
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                locale: "ko",
+                editable: true,
+                selectable: true,
+                contentHeight: "auto",
+
+                datesSet: function(info) {
+                    let newMonth = info.view.currentStart.getMonth() + 1;
+                    let year = info.view.currentStart.getFullYear();
+                    updateMonthTitle(newMonth, year);
+                },
+
+                eventClick: function(info) {
+                    if (confirm("일정을 삭제하시겠습니까?")) {
+                        deleteEvent(calendar, info.event);
+                    }
+                },
+
+                eventDidMount: function(info) {
+                    if (info.el) {
+                        let eventColor = info.event.color || "black";
+                        info.el.style.color = eventColor;
+                        info.el.style.backgroundColor = "white";
+                    }
+                }
             });
 
-            calendar.removeAllEvents();
-            calendar.addEventSource(events);
+            calendar.render();
+            loadEvents(calendar, selectedMonth);
+
+            calendar.on("dateClick", function(info) {
+                let name = prompt("일정 이름을 입력하세요:");
+                if (name) {
+                    addEvent(calendar, info.date, name, selectedColor);
+                }
+            });
+
+            async function addEvent(calendar, date, name, color) {
+                let year = date.getFullYear();
+                let month = String(date.getMonth() + 1).padStart(2, '0');
+                let day = String(date.getDate()).padStart(2, '0');
+
+                const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+                await newRef.set({ name, color });
+
+                loadEvents(calendar, month);
+            }
+
+            async function deleteEvent(calendar, event) {
+                let [year, month, day] = event.startStr.split("-");
+                await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+                calendar.removeAllEvents();
+                loadEvents(calendar, month);
+            }
+
+            function loadEvents(calendar, month) {
+                let year = new Date().getFullYear();
+
+                db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
+                    if (!snapshot.exists()) {
+                        calendar.removeAllEvents();
+                        return;
+                    }
+                    let events = [];
+                    snapshot.forEach(daySnapshot => {
+                        daySnapshot.forEach(eventSnapshot => {
+                            let event = eventSnapshot.val();
+                            events.push({
+                                id: eventSnapshot.key,
+                                title: event.name,
+                                start: `${year}-${month}-${daySnapshot.key}`,
+                                color: event.color || "black"
+                            });
+                        });
+                    });
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(events);
+                });
+            }
         });
-    }
-});
     </script>
 
 </body>
