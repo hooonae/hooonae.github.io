@@ -81,29 +81,29 @@
     }
 
     /* ✅ 일정 박스 크기 자동 조정 */
-    .fc-event {
-        display: flex !important; /* ✅ 글자 크기에 맞게 자동 조정 & 플렉스 박스로 변경 */
-        justify-content: center !important; /* ✅ 일정 내용을 가로 중앙 정렬 */
-        align-items: center !important; /* ✅ 일정 내용을 세로 중앙 정렬 */
-        width: fit-content !important; /* ✅ 내용에 딱 맞게 박스 크기 조정 */
-        height: auto !important; /* ✅ 높이 자동 조정 */
-        padding: 0px 2px !important; /* ✅ 최소한의 여백 유지 */
-        white-space: normal !important; /* ✅ 일정 내에서 줄바꿈 허용 */
-        word-break: break-word !important; /* ✅ 긴 단어도 자동 줄바꿈 */
-        overflow: visible !important; /* ✅ 내용이 잘리지 않도록 설정 */
-        text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
-        margin: auto !important; /* ✅ 일정 박스를 표 안에서 중앙 정렬 */
-        margin-bottom: 2px !important;
-    }
+           .fc-event {
+    display: flex !important; /* ✅ 글자 크기에 맞게 자동 조정 & 플렉스 박스로 변경 */
+    justify-content: center !important; /* ✅ 일정 내용을 가로 중앙 정렬 */
+    align-items: center !important; /* ✅ 일정 내용을 세로 중앙 정렬 */
+    width: fit-content !important; /* ✅ 내용에 딱 맞게 박스 크기 조정 */
+    height: auto !important; /* ✅ 높이 자동 조정 */
+    padding: 0px 2px !important; /* ✅ 최소한의 여백 유지 */
+    white-space: normal !important; /* ✅ 일정 내에서 줄바꿈 허용 */
+    word-break: break-word !important; /* ✅ 긴 단어도 자동 줄바꿈 */
+    overflow: visible !important; /* ✅ 내용이 잘리지 않도록 설정 */
+    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
+    margin: auto !important; /* ✅ 일정 박스를 표 안에서 중앙 정렬 */
+    margin-bottom: 2px !important;
+}
 
-    /* ✅ 일정 제목도 중앙 정렬되도록 수정 */
-    .fc-event-title {
-        font-size: min(3.5vw, 8px) !important; /* ✅ 글자 크기 조정 */
-        line-height: 1.2 !important;  /* ✅ 줄 간격 조정 */
-        font-weight: bold !important;
-        white-space: normal !important; /* ✅ 줄바꿈 허용 */
-        text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
-    }
+/* ✅ 일정 제목도 중앙 정렬되도록 수정 */
+.fc-event-title {
+    font-size: min(3.5vw, 8px) !important; /* ✅ 글자 크기 조정 */
+    line-height: 1.2 !important;  /* ✅ 줄 간격 조정 */
+    font-weight: bold !important;
+    white-space: normal !important; /* ✅ 줄바꿈 허용 */
+    text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
+}
     </style>
 </head>
 <body>
@@ -135,7 +135,7 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAwXlQew...",
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
             databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
             projectId: "museum-web-370cd",
@@ -154,40 +154,112 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
-            selectedMonth = parseInt(selectedMonth);
+    let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+    selectedMonth = parseInt(selectedMonth);
 
-            function updateMonthTitle(month) {
-                document.getElementById("month-title").textContent = `${month}월 일정`;
+    function updateMonthTitle(month) {
+        document.getElementById("month-title").textContent = `${month}월 일정`;
+    }
+
+    updateMonthTitle(selectedMonth);
+
+    var calendarEl = document.getElementById("calendar");
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "ko",
+        editable: true,
+        selectable: true,
+        contentHeight: "auto",
+
+        // ✅ 월 변경 시 상단 제목 업데이트
+        datesSet: function (info) {
+            let newMonth = info.view.currentStart.getMonth() + 1;
+            localStorage.setItem("selectedMonth", newMonth);
+            updateMonthTitle(newMonth);
+        },
+
+        // ✅ 일정 추가 기능 복구 (더블클릭 이벤트)
+        dateClick: function (info) {
+            let eventName = prompt("추가할 일정 내용을 입력하세요:");
+            if (eventName) {
+                addEvent(calendar, info.date, eventName, selectedColor);
             }
+        },
 
-            updateMonthTitle(selectedMonth);
+        eventContent: function (arg) {
+            return {
+                html: `<div style="
+                    display: inline-block; 
+                    padding: 4px 0px; 
+                    white-space: normal; 
+                    word-break: break-word;
+                    font-size: 12px;
+                    text-align: center;
+                    min-width: auto; 
+                    min-height: auto;
+                ">${arg.event.title}</div>`
+            };
+        },
 
-            var calendarEl = document.getElementById("calendar");
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: "dayGridMonth",
-                locale: "ko",
-                editable: true,
-                selectable: true,
-                contentHeight: "auto",
+        eventClick: function (info) {
+            if (confirm("일정을 삭제하시겠습니까?")) {
+                deleteEvent(calendar, info.event);
+            }
+        }
+    });
 
-                datesSet: function (info) {
-                    let newMonth = info.view.currentStart.getMonth() + 1;
-                    localStorage.setItem("selectedMonth", newMonth);
-                    updateMonthTitle(newMonth);
-                },
+    calendar.render();
+    loadEvents(calendar, selectedMonth);
+});
 
-                dateClick: function (info) {
-                    let eventName = prompt("추가할 일정 내용을 입력하세요:");
-                    if (eventName) {
-                        addEvent(calendar, info.date, eventName, selectedColor);
-                    }
-                }
+// ✅ 일정 추가 함수 (Firebase 저장 포함)
+async function addEvent(calendar, date, name, color) {
+    let year = date.getFullYear();
+    let month = String(date.getMonth() + 1).padStart(2, '0');
+    let day = String(date.getDate()).padStart(2, '0');
+
+    const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+    await newRef.set({ name, color });
+
+    loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+}
+
+// ✅ 일정 삭제 함수 (Firebase에서 삭제)
+async function deleteEvent(calendar, event) {
+    let [year, month, day] = event.startStr.split("-");
+    await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+    loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+}
+
+// ✅ 일정 불러오기 함수 (Firebase에서 데이터 가져오기)
+function loadEvents(calendar, month) {
+    let year = new Date().getFullYear();
+
+    db.ref(`calendar/${year}/${String(month).padStart(2, '0')}`).once("value", (snapshot) => {
+        if (!snapshot.exists()) {
+            calendar.removeAllEvents();
+            return;
+        }
+
+        let events = [];
+        snapshot.forEach((daySnapshot) => {
+            const day = daySnapshot.key;
+            daySnapshot.forEach((eventSnapshot) => {
+                const event = eventSnapshot.val();
+                events.push({
+                    id: eventSnapshot.key,
+                    title: event.name,
+                    start: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                    color: event.color || "black"
+                });
             });
-
-            calendar.render();
-            loadEvents(calendar, selectedMonth);
         });
+
+        calendar.removeAllEvents();
+        calendar.addEventSource(events);
+    });
+}
     </script>
+
 </body>
 </html>
