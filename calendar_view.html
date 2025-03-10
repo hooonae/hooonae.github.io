@@ -266,6 +266,7 @@
 
     // ✅ 이미지 업로드 또는 보기 기능
     // ✅ 날짜 클릭 시 이미지 업로드 또는 보기 기능 실행
+// ✅ 날짜 클릭 시 이미지 업로드 또는 보기 기능 실행
 function checkImageAndUpload(date) {
     console.log("📌 날짜 클릭됨:", date);
 
@@ -274,13 +275,17 @@ function checkImageAndUpload(date) {
 
         if (snapshot.exists() && snapshot.val().url) {
             console.log("✅ 업로드된 이미지 있음:", snapshot.val().url);
-            showImage(snapshot.val().url);
+            showImage(snapshot.val().url); // ✅ 이미지 보기
         } else {
             console.log("🚨 업로드된 이미지 없음, 업로드 창 열기");
-            uploadImage(date);
+            uploadImage(date); // ✅ 이미지 업로드 실행
         }
     });
-}    console.log("📌 uploadImage 실행됨!", date);  // ✅ 실행 확인 로그
+}
+
+// ✅ 이미지 업로드 기능 (Cloudinary 사용)
+function uploadImage(date) {
+    console.log("📌 uploadImage 실행됨!", date);  // ✅ 실행 확인 로그
 
     let imageInput = document.createElement("input");
     imageInput.type = "file";
@@ -325,6 +330,34 @@ function checkImageAndUpload(date) {
         }
 
         document.body.removeChild(imageInput);
+    };
+}
+
+// ✅ 이미지 보기 기능 (이미지가 있는 경우)
+function showImage(url) {
+    let modal = document.createElement("div");
+    modal.style.position = "fixed";
+    modal.style.top = "0";
+    modal.style.left = "0";
+    modal.style.width = "100%";
+    modal.style.height = "100%";
+    modal.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+    modal.style.display = "flex";
+    modal.style.justifyContent = "center";
+    modal.style.alignItems = "center";
+
+    let img = document.createElement("img");
+    img.src = url;
+    img.style.maxWidth = "90%";
+    img.style.maxHeight = "90%";
+    img.style.cursor = "pointer";
+
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+
+    // ✅ 이미지를 클릭하면 모달 닫기
+    modal.onclick = function () {
+        document.body.removeChild(modal);
     };
 }
 
