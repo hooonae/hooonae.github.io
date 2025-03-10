@@ -178,22 +178,25 @@
                 loadEvents(calendar, newMonth);
             },
 
-            dateClick: function (info) {
+            // ✅ 일정 추가 기능 → 한 번 클릭이 아니라 더블클릭으로 변경
+            eventDblClick: function (info) {
                 let eventName = prompt("추가할 일정 내용을 입력하세요:");
                 if (eventName) {
-                    addEvent(calendar, info.date, eventName, selectedColor);
+                    addEvent(calendar, info.event.start, eventName, selectedColor);
                 }
             },
 
-            dayCellContent: function (arg) {
+            // ✅ 날짜 숫자 클릭 시 이미지 업로드/보기 가능하게 수정
+            dayCellDidMount: function (arg) {
                 let date = arg.date.toISOString().split("T")[0];
-                let span = document.createElement("span");
-                span.className = "date-number";
-                span.innerText = arg.dayNumberText;
-                span.onclick = function () {
-                    checkImageAndUpload(date);
-                };
-                return { domNodes: [span] };
+                let dayNumber = arg.el.querySelector(".fc-daygrid-day-number");
+                
+                if (dayNumber) {
+                    dayNumber.style.cursor = "pointer";
+                    dayNumber.onclick = function () {
+                        checkImageAndUpload(date);
+                    };
+                }
             }
         });
 
@@ -303,6 +306,7 @@
             document.body.removeChild(modal);
         };
     }
+
 
 
     </script>
