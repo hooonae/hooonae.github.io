@@ -191,6 +191,13 @@
                 lastClickTime = now;
             },
 
+            // ✅ 일정 클릭 시 삭제 기능 추가
+            eventClick: function (info) {
+                if (confirm("이 일정을 삭제하시겠습니까?")) {
+                    deleteEvent(calendar, info.event);
+                }
+            },
+
             // ✅ 날짜 숫자(`1일`, `2일`) 클릭 가능하게 설정
             dayCellDidMount: function (arg) {
                 let date = arg.date.toISOString().split("T")[0];
@@ -218,6 +225,13 @@
         const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
         await newRef.set({ name, color });
 
+        loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+    }
+
+    // ✅ 일정 삭제 함수
+    async function deleteEvent(calendar, event) {
+        let [year, month, day] = event.startStr.split("-");
+        await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
         loadEvents(calendar, month); // ✅ 일정 다시 불러오기
     }
 
@@ -278,7 +292,6 @@
             let formData = new FormData();
             formData.append("file", file);
             formData.append("upload_preset", "실제_CLOUDINARY_UPLOAD_PRESET");
-            formData.append("cloud_name", "실제_CLOUDINARY_NAME");
 
             try {
                 let response = await fetch("https://api.cloudinary.com/v1_1/실제_CLOUDINARY_NAME/image/upload", {
@@ -326,6 +339,7 @@
             document.body.removeChild(modal);
         };
     }
+
 
 
 
