@@ -42,8 +42,33 @@
         text-decoration: none;
         color: black;
     }
+    .color-container {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .color-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+    }
+    .color-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 3px;
+    }
+    .black { background-color: black; }
+    .blue { background-color: blue; }
+    .red { background-color: red; }
+    .green { background-color: green; }
 
-    /* ✅ 캘린더 스타일 */
+    /* ✅ #calendar 높이값 정상 복구 */
     #calendar {
         width: 100%;
         max-width: 1200px;
@@ -52,31 +77,32 @@
         padding: 15px;
         border-radius: 10px;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        height: 1000px;
+        height: 1000px; /* ✅ 정상적으로 높이 설정 */
     }
 
-    /* ✅ 날짜 숫자 스타일 */
-    .date-number {
-        cursor: pointer;
-        font-weight: bold;
-        color: black;
+    /* ✅ 일정 박스 크기 자동 조정 */
+    .fc-event {
+        display: flex !important; /* ✅ 글자 크기에 맞게 자동 조정 & 플렉스 박스로 변경 */
+        justify-content: center !important; /* ✅ 일정 내용을 가로 중앙 정렬 */
+        align-items: center !important; /* ✅ 일정 내용을 세로 중앙 정렬 */
+        width: fit-content !important; /* ✅ 내용에 딱 맞게 박스 크기 조정 */
+        height: auto !important; /* ✅ 높이 자동 조정 */
+        padding: 0px 2px !important; /* ✅ 최소한의 여백 유지 */
+        white-space: normal !important; /* ✅ 일정 내에서 줄바꿈 허용 */
+        word-break: break-word !important; /* ✅ 긴 단어도 자동 줄바꿈 */
+        overflow: visible !important; /* ✅ 내용이 잘리지 않도록 설정 */
+        text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
+        margin: auto !important; /* ✅ 일정 박스를 표 안에서 중앙 정렬 */
+        margin-bottom: 2px !important;
     }
 
-    /* ✅ 이미지 모달 스타일 */
-    #image-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        justify-content: center;
-        align-items: center;
-    }
-    #modal-image {
-        max-width: 90%;
-        max-height: 90%;
+    /* ✅ 일정 제목도 중앙 정렬되도록 수정 */
+    .fc-event-title {
+        font-size: min(3.5vw, 8px) !important; /* ✅ 글자 크기 조정 */
+        line-height: 1.2 !important;  /* ✅ 줄 간격 조정 */
+        font-weight: bold !important;
+        white-space: normal !important; /* ✅ 줄바꿈 허용 */
+        text-align: center !important; /* ✅ 텍스트 중앙 정렬 */
     }
     </style>
 </head>
@@ -85,20 +111,29 @@
     <div class="header">
         <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
         <div class="title" id="month-title">📅 지킴이 일정</div>
+        <div class="color-container">
+            <div class="color-item">
+                <button class="color-btn black" onclick="setColor('black')"></button>
+                <span>고정</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn blue" onclick="setColor('blue')"></button>
+                <span>대휴</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn red" onclick="setColor('red')"></button>
+                <span>일정</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn green" onclick="setColor('green')"></button>
+                <span>연차</span>
+            </div>
+        </div>
     </div>
 
     <div id="calendar"></div>
 
-    <!-- ✅ 이미지 업로드 입력창 (숨김) -->
-    <input type="file" id="image-upload" accept="image/*" style="display: none;">
-
-    <!-- ✅ 이미지 모달 -->
-    <div id="image-modal" onclick="closeImageModal()">
-        <img id="modal-image" src="" alt="업로드된 이미지">
-    </div>
-
     <script>
-        // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQew...",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -115,6 +150,7 @@
 
         function setColor(color) {
             selectedColor = color;
+            console.log("✅ 선택한 색상:", selectedColor);
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -132,31 +168,19 @@
                 initialView: "dayGridMonth",
                 locale: "ko",
                 editable: true,
-                selectable: true,  // ✅ 일정 추가 기능 활성화
+                selectable: true,
                 contentHeight: "auto",
 
                 datesSet: function (info) {
                     let newMonth = info.view.currentStart.getMonth() + 1;
                     localStorage.setItem("selectedMonth", newMonth);
                     updateMonthTitle(newMonth);
-                    loadEvents(calendar, newMonth);
                 },
 
-                dayCellContent: function (arg) {
-                    let date = arg.date.toISOString().split("T")[0];
-                    let span = document.createElement("span");
-                    span.className = "date-number";
-                    span.innerText = arg.dayNumberText;
-                    span.onclick = function () {
-                        checkImageAndUpload(date);
-                    };
-                    return { domNodes: [span] };
-                },
-
-                select: function (info) {
+                dateClick: function (info) {
                     let eventName = prompt("추가할 일정 내용을 입력하세요:");
                     if (eventName) {
-                        addEvent(calendar, info.start, eventName, selectedColor);
+                        addEvent(calendar, info.date, eventName, selectedColor);
                     }
                 }
             });
@@ -164,31 +188,6 @@
             calendar.render();
             loadEvents(calendar, selectedMonth);
         });
-
-        function checkImageAndUpload(date) {
-            db.ref(`images/${date}`).once("value", (snapshot) => {
-                if (snapshot.exists()) {
-                    showImage(snapshot.val().url);
-                } else {
-                    uploadImage(date);
-                }
-            });
-        }
-
-        function uploadImage(date) {
-            let imageInput = document.getElementById("image-upload");
-            imageInput.click();
-        }
-
-        function showImage(url) {
-            document.getElementById("modal-image").src = url;
-            document.getElementById("image-modal").style.display = "flex";
-        }
-
-        function closeImageModal() {
-            document.getElementById("image-modal").style.display = "none";
-        }
     </script>
-
 </body>
 </html>
