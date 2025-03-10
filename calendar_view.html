@@ -209,6 +209,18 @@
         loadEvents(calendar, selectedMonth);
     });
 
+    // ✅ 일정 추가 함수 (Firebase 저장 포함)
+    async function addEvent(calendar, date, name, color) {
+        let year = date.getFullYear();
+        let month = String(date.getMonth() + 1).padStart(2, '0');
+        let day = String(date.getDate()).padStart(2, '0');
+
+        const newRef = db.ref(`calendar/${year}/${month}/${day}`).push();
+        await newRef.set({ name, color });
+
+        loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+    }
+
     // ✅ 일정 불러오기 함수 (Firebase에서 데이터 가져오기)
     function loadEvents(calendar, month) {
         let year = new Date().getFullYear();
@@ -240,10 +252,13 @@
 
     // ✅ 이미지 업로드 또는 보기 기능
     function checkImageAndUpload(date) {
+        console.log("📌 날짜 클릭됨:", date);
         db.ref(`images/${date}`).once("value", (snapshot) => {
             if (snapshot.exists()) {
+                console.log("✅ 업로드된 이미지 있음:", snapshot.val().url);
                 showImage(snapshot.val().url);
             } else {
+                console.log("🚨 업로드된 이미지 없음, 업로드 창 열기");
                 uploadImage(date);
             }
         });
@@ -311,6 +326,7 @@
             document.body.removeChild(modal);
         };
     }
+
 
 
 
