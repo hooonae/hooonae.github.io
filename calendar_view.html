@@ -265,18 +265,54 @@
     }
 
     // ✅ 이미지 업로드 또는 보기 기능
-    function checkImageAndUpload(date) {
-        console.log("📌 날짜 클릭됨:", date);
-        db.ref(`images/${date}`).once("value", (snapshot) => {
-            if (snapshot.exists()) {
-                console.log("✅ 업로드된 이미지 있음:", snapshot.val().url);
-                showImage(snapshot.val().url);
-            } else {
-                console.log("🚨 업로드된 이미지 없음, 업로드 창 열기");
-                uploadImage(date);
+    function uploadImage(date) {
+    console.log("📌 uploadImage 실행됨!", date);  // ✅ 실행 확인 로그
+
+    let imageInput = document.createElement("input");
+    imageInput.type = "file";
+    imageInput.accept = "image/*";
+    imageInput.style.display = "none";
+    document.body.appendChild(imageInput);
+
+    // ✅ 파일 선택 창 강제 실행 (setTimeout 사용)
+    setTimeout(() => {
+        imageInput.click();
+    }, 100);
+
+    imageInput.onchange = async function () {
+        let file = imageInput.files[0];
+        if (!file) {
+            console.log("🚨 파일이 선택되지 않음");
+            return;
+        }
+
+        console.log("✅ 파일 선택됨:", file);
+
+        let formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "firebase_uploads");
+
+        try {
+            console.log("⏳ Cloudinary 업로드 시작...");
+            let response = await fetch("https://api.cloudinary.com/v1_1/dddmgnzlu/image/upload", {
+                method: "POST",
+                body: formData
+            });
+            let data = await response.json();
+            console.log("✅ Cloudinary 업로드 성공:", data.secure_url);
+
+            if (data.secure_url) {
+                await db.ref(`images/${date}`).set({ url: data.secure_url });
+                alert("이미지 업로드 완료!");
+                console.log("✅ Firebase 저장 완료!");
             }
-        });
-    }
+        } catch (error) {
+            console.error("🚨 이미지 업로드 오류:", error);
+        }
+
+        document.body.removeChild(imageInput);
+    };
+}
 
     function uploadImage(date) {
         let imageInput = document.createElement("input");
