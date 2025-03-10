@@ -153,7 +153,9 @@
             console.log("✅ 선택한 색상:", selectedColor);
         }
 
-        nth = parseInt(selectedMonth);
+        document.addEventListener("DOMContentLoaded", function () {
+        let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
+        selectedMonth = parseInt(selectedMonth);
 
         function updateMonthTitle(month) {
             document.getElementById("month-title").textContent = `${month}월 일정`;
@@ -223,10 +225,11 @@
 
             let formData = new FormData();
             formData.append("file", file);
-            formData.append("upload_preset", "YOUR_CLOUDINARY_UPLOAD_PRESET");
+            formData.append("upload_preset", "실제_CLOUDINARY_UPLOAD_PRESET");  // ✅ 여기에 실제 값 입력
+            formData.append("cloud_name", "실제_CLOUDINARY_NAME");  // ✅ 여기에 실제 값 입력
 
             try {
-                let response = await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload", {
+                let response = await fetch("https://api.cloudinary.com/v1_1/실제_CLOUDINARY_NAME/image/upload", {
                     method: "POST",
                     body: formData
                 });
