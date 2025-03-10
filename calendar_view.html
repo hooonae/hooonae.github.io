@@ -265,8 +265,22 @@
     }
 
     // ✅ 이미지 업로드 또는 보기 기능
-    function uploadImage(date) {
-    console.log("📌 uploadImage 실행됨!", date);  // ✅ 실행 확인 로그
+    // ✅ 날짜 클릭 시 이미지 업로드 또는 보기 기능 실행
+function checkImageAndUpload(date) {
+    console.log("📌 날짜 클릭됨:", date);
+
+    db.ref(`images/${date}`).once("value", (snapshot) => {
+        console.log("📌 Firebase 데이터 확인:", snapshot.val());
+
+        if (snapshot.exists() && snapshot.val().url) {
+            console.log("✅ 업로드된 이미지 있음:", snapshot.val().url);
+            showImage(snapshot.val().url);
+        } else {
+            console.log("🚨 업로드된 이미지 없음, 업로드 창 열기");
+            uploadImage(date);
+        }
+    });
+}    console.log("📌 uploadImage 실행됨!", date);  // ✅ 실행 확인 로그
 
     let imageInput = document.createElement("input");
     imageInput.type = "file";
