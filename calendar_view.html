@@ -156,6 +156,7 @@
         document.addEventListener("DOMContentLoaded", function () {
         let selectedMonth = localStorage.getItem("selectedMonth") || new Date().getMonth() + 1;
         selectedMonth = parseInt(selectedMonth);
+        let lastClickTime = 0; // ✅ 더블클릭 감지용 변수
 
         function updateMonthTitle(month) {
             document.getElementById("month-title").textContent = `${month}월 일정`;
@@ -178,15 +179,19 @@
                 loadEvents(calendar, newMonth);
             },
 
-            // ✅ 일정 추가 기능 → 한 번 클릭이 아니라 더블클릭으로 변경
-            eventDblClick: function (info) {
-                let eventName = prompt("추가할 일정 내용을 입력하세요:");
-                if (eventName) {
-                    addEvent(calendar, info.event.start, eventName, selectedColor);
+            // ✅ 더블클릭 감지해서 일정 추가 (한 번 클릭 방지)
+            dateClick: function (info) {
+                let now = new Date().getTime();
+                if (now - lastClickTime < 300) {  // 300ms 이내 두 번 클릭하면 일정 추가
+                    let eventName = prompt("추가할 일정 내용을 입력하세요:");
+                    if (eventName) {
+                        addEvent(calendar, info.date, eventName, selectedColor);
+                    }
                 }
+                lastClickTime = now;
             },
 
-            // ✅ 날짜 숫자 클릭 시 이미지 업로드/보기 가능하게 수정
+            // ✅ 날짜 숫자(`1일`, `2일`) 클릭 가능하게 설정
             dayCellDidMount: function (arg) {
                 let date = arg.date.toISOString().split("T")[0];
                 let dayNumber = arg.el.querySelector(".fc-daygrid-day-number");
@@ -306,6 +311,7 @@
             document.body.removeChild(modal);
         };
     }
+
 
 
 
