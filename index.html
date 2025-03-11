@@ -184,6 +184,17 @@
         <ul id="noticeList"></ul>
     </div>
 
+    <div class="cards">
+        <div class="card" onclick="location.href='events.html'"><h3>📅 전시 일정</h3></div>
+        <div class="card" onclick="location.href='calendar_view.html'"><h3>📌 지킴이 일정</h3></div>
+        <div class="card" onclick="location.href='exhibition.html'"><h3>🗃️ 전시 업데이트</h3></div>
+        <div class="card" onclick="location.href='supplies.html'"><h3>📦 필요 비품</h3></div>
+        <div class="card" onclick="location.href='suggestions.html'"><h3>🗣 건의 사항</h3></div>
+        <div class="card" onclick="location.href='places.html'"><h3>🍽 맛집 추천</h3></div>
+    </div>
+
+    <div class="footer"></div>
+
     <script>
         function toggleMenu() {
             const menu = document.getElementById("mobileMenu");
@@ -194,6 +205,12 @@
             document.body.classList.toggle("dark");
             localStorage.setItem("darkMode", document.body.classList.contains("dark"));
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem("darkMode") === "true") {
+                document.body.classList.add("dark");
+            }
+        });
     </script>
 
 </body>
