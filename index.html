@@ -95,14 +95,23 @@
             flex-direction: column;
             background: rgba(139, 94, 60, 0.95);
             width: 100%;
+            position: absolute;
             top: 60px;
             left: 0;
             text-align: center;
-            position: absolute;
+            z-index: 1000;
         }
 
-        .menu.open {
+        #mobileMenu.open {
             display: flex;
+        }
+
+        .menu a {
+            display: block;
+            padding: 12px;
+            color: white;
+            font-size: 1.2em;
+            text-decoration: none;
         }
 
         .notice {
@@ -164,17 +173,27 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        .footer {
+            height: 60px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
     <div class="banner">
-        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <button id="menuToggle" class="menu-toggle">☰</button>
     </div>
 
     <div id="mobileMenu" class="menu">
         <a href="events.html">📅 전시 일정</a>
         <a href="calendar_view.html">📌 지킴이 일정</a>
+        <a href="exhibition.html">🗃️ 전시 업데이트</a>
+        <a href="supplies.html">📦 필요 비품</a>
+        <a href="suggestions.html">🗣 건의 사항</a>
+        <a href="notices.html">🗣 공지 사항</a>
+        <a href="places.html">🍽 맛집 추천</a>
     </div>
 
     <button onclick="toggleDarkMode()" class="dark-mode-btn">🌙 다크모드</button>
@@ -196,21 +215,20 @@
     <div class="footer"></div>
 
     <script>
-        function toggleMenu() {
-            const menu = document.getElementById("mobileMenu");
-            menu.classList.toggle("open");
-        }
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("menuToggle").addEventListener("click", function () {
+                document.getElementById("mobileMenu").classList.toggle("open");
+            });
+
+            if (localStorage.getItem("darkMode") === "true") {
+                document.body.classList.add("dark");
+            }
+        });
 
         function toggleDarkMode() {
             document.body.classList.toggle("dark");
             localStorage.setItem("darkMode", document.body.classList.contains("dark"));
         }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            if (localStorage.getItem("darkMode") === "true") {
-                document.body.classList.add("dark");
-            }
-        });
     </script>
 
 </body>
