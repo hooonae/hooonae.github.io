@@ -265,6 +265,7 @@
     }
 
         // ✅ 이미지 보기 기능 (이미지가 있는 경우)
+// ✅ 이미지 보기 기능 (이미지가 있는 경우)
 function showImage(url) {
     console.log("📌 showImage 실행됨, 이미지 URL:", url);
 
@@ -280,15 +281,18 @@ function showImage(url) {
     modal.style.left = "0";
     modal.style.width = "100%";
     modal.style.height = "100%";
-    modal.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+    modal.style.backgroundColor = "rgba(0, 0, 0, 0.9)"; // ✅ 배경을 더 어둡게 변경
     modal.style.display = "flex";
     modal.style.justifyContent = "center";
     modal.style.alignItems = "center";
+    modal.style.zIndex = "9999"; // ✅ 캘린더보다 위로 오도록 설정
 
     let img = document.createElement("img");
     img.src = url;
-    img.style.maxWidth = "90%";
-    img.style.maxHeight = "90%";
+    img.style.maxWidth = "95%"; // ✅ 크기 확대
+    img.style.maxHeight = "95%"; // ✅ 크기 확대
+    img.style.borderRadius = "10px"; // ✅ 모서리를 부드럽게 (옵션)
+    img.style.boxShadow = "0px 0px 15px rgba(255, 255, 255, 0.7)"; // ✅ 이미지 강조 효과
     img.style.cursor = "pointer";
 
     modal.appendChild(img);
