@@ -286,19 +286,34 @@ function checkImageAndUpload(date) {
 
 // ✅ 이미지 업로드 기능 (Cloudinary 사용)
 function uploadImage(date) {
-    console.log("📌 uploadImage 실행됨!", date);  // ✅ 실행 확인 로그
+    console.log("📌 uploadImage 실행됨! 날짜:", date);
 
     let imageInput = document.createElement("input");
     imageInput.type = "file";
     imageInput.accept = "image/*";
     imageInput.style.display = "none";
+
     document.body.appendChild(imageInput);
 
-    // ✅ 파일 선택 창 강제 실행 (setTimeout 사용)
-    setTimeout(() => {
-        console.log("📤 파일 선택 창 열림!");
+    // ✅ 현재 클릭된 날짜와 일치하는지 확인
+    console.log("📌 업로드할 날짜 (Firebase 저장용):", date);
+
+    // ✅ 버튼을 사용해 파일 선택 창을 강제로 열도록 수정
+    let uploadButton = document.createElement("button");
+    uploadButton.innerText = "파일 업로드";
+    uploadButton.style.position = "fixed";
+    uploadButton.style.top = "50%";
+    uploadButton.style.left = "50%";
+    uploadButton.style.transform = "translate(-50%, -50%)";
+    uploadButton.style.padding = "10px 20px";
+    uploadButton.style.fontSize = "16px";
+    uploadButton.style.zIndex = "1000";
+
+    document.body.appendChild(uploadButton);
+
+    uploadButton.onclick = function () {
         imageInput.click();
-    }, 100);
+    };
 
     imageInput.onchange = async function () {
         let file = imageInput.files[0];
@@ -326,6 +341,9 @@ function uploadImage(date) {
                 await db.ref(`images/${date}`).set({ url: data.secure_url });
                 alert("이미지 업로드 완료!");
                 console.log("✅ Firebase 저장 완료!");
+
+                // ✅ 업로드 버튼 제거
+                document.body.removeChild(uploadButton);
             }
         } catch (error) {
             console.error("🚨 이미지 업로드 오류:", error);
