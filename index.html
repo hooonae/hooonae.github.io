@@ -25,17 +25,14 @@
 
         function loadLatestNotices() {
             const noticeList = document.getElementById("noticeList");
-            if (!noticeList) {
-                console.error("❌ 'noticeList' 요소를 찾을 수 없습니다.");
-                return;
-            }
+            if (!noticeList) return;
 
             noticeList.innerHTML = "<p>📡 로딩 중...</p>";
 
             const noticesQuery = query(ref(db, "notices"), limitToLast(3));
 
             onValue(noticesQuery, (snapshot) => {
-                noticeList.innerHTML = ""; 
+                noticeList.innerHTML = "";
 
                 if (!snapshot.exists()) {
                     noticeList.innerHTML = "<p>📭 등록된 공지사항이 없습니다.</p>";
@@ -64,7 +61,40 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", loadLatestNotices);
+        function loadUpcomingSchedules() {
+            const scheduleList = document.getElementById("scheduleList");
+            if (!scheduleList) return;
+
+            scheduleList.innerHTML = "<p>📡 로딩 중...</p>";
+
+            const schedulesQuery = query(ref(db, "schedules"), limitToLast(3));
+
+            onValue(schedulesQuery, (snapshot) => {
+                scheduleList.innerHTML = "";
+
+                if (!snapshot.exists()) {
+                    scheduleList.innerHTML = "<p>📭 등록된 일정이 없습니다.</p>";
+                    return;
+                }
+
+                let schedules = [];
+                snapshot.forEach((childSnapshot) => {
+                    let data = childSnapshot.val();
+                    schedules.push(data);
+                });
+
+                schedules.reverse().forEach((schedule) => {
+                    let li = document.createElement("li");
+                    li.innerHTML = `<strong>${schedule.title}</strong> - ${schedule.date}`;
+                    scheduleList.appendChild(li);
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadLatestNotices();
+            loadUpcomingSchedules();
+        });
     </script>
 
     <style>
@@ -74,7 +104,7 @@
             padding: 0;
             background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
             color: #333;
-            padding-bottom: 60px; /* 🔥 하단 여백 추가 */
+            padding-bottom: 60px;
         }
 
         .banner {
@@ -116,93 +146,48 @@
             text-decoration: none;
         }
 
-        .menu a:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
         .menu.open {
             display: flex;
         }
 
-        /* ✅ 공지사항 */
         .notice {
             background: #ffeb99;
             padding: 15px;
             border-radius: 10px;
             max-width: 800px;
             margin: auto;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
             text-align: center;
         }
 
-        .notice h2 {
-            color: #8B5E3C;
-            cursor: pointer;
-        }
-
-        .notice h2:hover {
-            text-decoration: underline;
-        }
-
-        .notice ul { 
-            list-style-type: none; 
-            padding: 0; 
-        }
-        .notice li { 
-            padding: 10px 0; 
-            font-size: 1em; 
-            border-bottom: 1px solid #ddd; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            text-align: center;
-        }
+        .notice ul { list-style-type: none; padding: 0; }
+        .notice li { padding: 10px 0; border-bottom: 1px solid #ddd; }
         .notice li:last-child { border-bottom: none; }
 
-        /* ✅ 공지사항 이미지 크기 조정 */
-        .notice-image {
-            width: 100px;  
-            height: auto;  
-            border-radius: 5px;
-            margin-top: 5px;
+        .dark {
+            background: #333;
+            color: white;
         }
 
-        /* ✅ 카드 섹션 크기 조정 */
-        .cards {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            max-width: 500px;
-            margin: auto;
-            margin-top: 15px;
+        .dark .notice {
+            background: #555;
+            color: white;
         }
 
-        .card {
-            background: white;
-            padding: 12px;
-            width: 100%;
-            border-radius: 8px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            transition: transform 0.2s ease-in-out;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .card h3 {
-            font-size: 16px;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-        }
-
-        /* ✅ 하단 여백을 위한 푸터 추가 */
         .footer {
-            height: 60px; /* 🔥 여백 확보 */
+            height: 60px;
             width: 100%;
+        }
+
+        .dark-mode-btn {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -222,18 +207,16 @@
         <a href="places.html">🍽 맛집 추천</a>
     </div>
 
+    <button onclick="toggleDarkMode()" class="dark-mode-btn">🌙 다크모드</button>
+
     <div class="notice">
         <h2 onclick="location.href='notices.html'">📢 공지사항</h2>
         <ul id="noticeList"></ul>
     </div>
 
-    <div class="cards">
-        <div class="card" onclick="location.href='events.html'"><h3>📅 전시 일정</h3></div>
-        <div class="card" onclick="location.href='calendar_view.html'"><h3>📌 지킴이 일정</h3></div>
-        <div class="card" onclick="location.href='exhibition.html'"><h3>🗃️ 전시 업데이트</h3></div>
-        <div class="card" onclick="location.href='supplies.html'"><h3>📦 필요 비품</h3></div>
-        <div class="card" onclick="location.href='suggestions.html'"><h3>🗣 건의 사항</h3></div>
-        <div class="card" onclick="location.href='places.html'"><h3>🍽 맛집 추천</h3></div>
+    <div class="notice">
+        <h2 onclick="location.href='calendar_view.html'">📌 다가오는 일정</h2>
+        <ul id="scheduleList"></ul>
     </div>
 
     <div class="footer"></div>
@@ -242,6 +225,17 @@
         function toggleMenu() {
             document.querySelector('.menu').classList.toggle('open');
         }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem("darkMode") === "true") {
+                document.body.classList.add("dark");
+            }
+        });
     </script>
 
 </body>
