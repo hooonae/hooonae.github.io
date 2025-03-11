@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>서울공예박물관 지킴이</title>
 
-    <!-- ✅ Firebase SDK 추가 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, query, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
@@ -61,47 +60,12 @@
             });
         }
 
-        function loadUpcomingSchedules() {
-            const scheduleList = document.getElementById("scheduleList");
-            if (!scheduleList) return;
-
-            scheduleList.innerHTML = "<p>📡 로딩 중...</p>";
-
-            const schedulesQuery = query(ref(db, "schedules"), limitToLast(3));
-
-            onValue(schedulesQuery, (snapshot) => {
-                scheduleList.innerHTML = "";
-
-                if (!snapshot.exists()) {
-                    scheduleList.innerHTML = "<p>📭 등록된 일정이 없습니다.</p>";
-                    return;
-                }
-
-                let schedules = [];
-                snapshot.forEach((childSnapshot) => {
-                    let data = childSnapshot.val();
-                    schedules.push(data);
-                });
-
-                schedules.reverse().forEach((schedule) => {
-                    let li = document.createElement("li");
-                    li.innerHTML = `<strong>${schedule.title}</strong> - ${schedule.date}`;
-                    scheduleList.appendChild(li);
-                });
-            });
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            loadLatestNotices();
-            loadUpcomingSchedules();
-        });
+        document.addEventListener("DOMContentLoaded", loadLatestNotices);
     </script>
 
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            margin: 0;
-            padding: 0;
             background: linear-gradient(135deg, #F8F1E9, #e0c3fc);
             color: #333;
             padding-bottom: 60px;
@@ -126,16 +90,15 @@
             z-index: 2000;
         }
 
-        .menu {
+        #mobileMenu {
             display: none;
             flex-direction: column;
-            position: absolute;
             background: rgba(139, 94, 60, 0.95);
             width: 100%;
             top: 60px;
             left: 0;
             text-align: center;
-            z-index: 1000;
+            position: absolute;
         }
 
         .menu.open {
@@ -148,8 +111,12 @@
             border-radius: 10px;
             max-width: 800px;
             margin: auto;
-            margin-bottom: 20px;
             text-align: center;
+        }
+
+        .notice ul {
+            list-style-type: none;
+            padding: 0;
         }
 
         .dark {
@@ -158,8 +125,9 @@
         }
 
         .dark .notice {
-            background: #555;
-            color: white;
+            background: #444;
+            color: #f0f0f0;
+            border: 1px solid #666;
         }
 
         .cards {
@@ -169,7 +137,6 @@
             gap: 12px;
             max-width: 500px;
             margin: auto;
-            margin-top: 15px;
         }
 
         .card {
@@ -179,18 +146,12 @@
             border-radius: 8px;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
             text-align: center;
-            transition: transform 0.2s ease-in-out;
-            cursor: pointer;
-            font-size: 14px;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-        }
-
-        .footer {
-            height: 60px;
-            width: 100%;
+        .dark .card {
+            background: #555;
+            color: white;
+            border: 1px solid #777;
         }
 
         .dark-mode-btn {
@@ -211,32 +172,22 @@
         <button class="menu-toggle" onclick="toggleMenu()">☰</button>
     </div>
 
+    <div id="mobileMenu" class="menu">
+        <a href="events.html">📅 전시 일정</a>
+        <a href="calendar_view.html">📌 지킴이 일정</a>
+    </div>
+
     <button onclick="toggleDarkMode()" class="dark-mode-btn">🌙 다크모드</button>
 
     <div class="notice">
-        <h2 onclick="location.href='notices.html'">📢 공지사항</h2>
+        <h2>📢 공지사항</h2>
         <ul id="noticeList"></ul>
     </div>
 
-    <div class="notice">
-        <h2 onclick="location.href='calendar_view.html'">📌 다가오는 일정</h2>
-        <ul id="scheduleList"></ul>
-    </div>
-
-    <div class="cards">
-        <div class="card" onclick="location.href='events.html'"><h3>📅 전시 일정</h3></div>
-        <div class="card" onclick="location.href='calendar_view.html'"><h3>📌 지킴이 일정</h3></div>
-        <div class="card" onclick="location.href='exhibition.html'"><h3>🗃️ 전시 업데이트</h3></div>
-        <div class="card" onclick="location.href='supplies.html'"><h3>📦 필요 비품</h3></div>
-        <div class="card" onclick="location.href='suggestions.html'"><h3>🗣 건의 사항</h3></div>
-        <div class="card" onclick="location.href='places.html'"><h3>🍽 맛집 추천</h3></div>
-    </div>
-
-    <div class="footer"></div>
-
     <script>
         function toggleMenu() {
-            document.querySelector('.menu').classList.toggle('open');
+            const menu = document.getElementById("mobileMenu");
+            menu.classList.toggle("open");
         }
 
         function toggleDarkMode() {
