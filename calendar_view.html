@@ -22,56 +22,6 @@
         padding: 20px;
         margin: 0;
     }
-        /* ✅ 기존 CSS */
-
-/* ✅ 다크모드 스타일 추가 (맨 아래에 삽입) */
-.dark-mode {
-    background: #121212;
-    color: #ffffff;
-}
-
-.dark-mode #calendar {
-    background: #1e1e1e;
-    color: #ffffff;
-    box-shadow: 0px 4px 6px rgba(255, 255, 255, 0.2);
-}
-
-.dark-mode .fc-event {
-    background-color: inherit !important; /* ✅ 배경색 원래 값 유지 */
-    color: inherit !important; /* ✅ 글자 색상 원래 값 유지 */
-    border-color: inherit !important; /* ✅ 테두리 색상 유지 */
-}
-
-.dark-mode .fc-daygrid-day-number {
-    color: #ddd !important;
-}
-
-.dark-mode .home-btn,
-.dark-mode-btn {
-    font-size: 8px; /* ✅ 글자 크기 고정 */
-    padding: 4px 8px; /* ✅ 내부 여백 고정 */
-    width: 45px; /* ✅ 버튼 크기 자동 조정 (고정 크기로 두고 싶다면 width 값 지정) */
-    height: 35px; /* ✅ 버튼 높이 고정 */
-    line-height: 1.2; /* ✅ 텍스트 줄 높이 고정 */
-    border: 1px solid #ccc; /* ✅ 테두리 유지 */
-    background: #444; /* ✅ 배경색 유지 */
-    color: white;
-    cursor: pointer;
-    border-radius: 5px; /* ✅ 둥근 모서리 유지 */
-}
-
-/* ✅ 다크모드에서도 버튼 크기 유지 */
-.dark-mode .dark-mode-btn {
-    font-size: 10px !important; /* ✅ 글자 크기 변하지 않게 강제 */
-    padding: 5px 10px !important; /* ✅ 내부 여백 변하지 않게 강제 */
-    width: 60px !important;
-    height: 35px !important; /* ✅ 버튼 높이 고정 */
-    line-height: 1.2 !important;
-    border: 1px solid #ccc !important;
-    background: #444 !important;
-    color: white !important;
-    border-radius: 5px !important;
-}    
     .header {
         display: flex;
         align-items: center;
@@ -159,29 +109,27 @@
 <body>
 
     <div class="header">
-    <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
-    <div class="title" id="month-title">📅 지킴이 일정</div>
-    <div class="color-container">
-        <div class="color-item">
-            <button class="color-btn black" onclick="setColor('black')"></button>
-            <span>고정</span>
-        </div>
-        <div class="color-item">
-            <button class="color-btn blue" onclick="setColor('blue')"></button>
-            <span>대휴</span>
-        </div>
-        <div class="color-item">
-            <button class="color-btn red" onclick="setColor('red')"></button>
-            <span>일정</span>
-        </div>
-        <div class="color-item">
-            <button class="color-btn green" onclick="setColor('green')"></button>
-            <span>연차</span>
+        <button class="home-btn" onclick="location.href='index.html'">🏠 홈</button>
+        <div class="title" id="month-title">📅 지킴이 일정</div>
+        <div class="color-container">
+            <div class="color-item">
+                <button class="color-btn black" onclick="setColor('black')"></button>
+                <span>고정</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn blue" onclick="setColor('blue')"></button>
+                <span>대휴</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn red" onclick="setColor('red')"></button>
+                <span>일정</span>
+            </div>
+            <div class="color-item">
+                <button class="color-btn green" onclick="setColor('green')"></button>
+                <span>연차</span>
+            </div>
         </div>
     </div>
-    <!-- ✅ 다크모드 버튼 추가 -->
-    <button class="dark-mode-btn" onclick="toggleDarkMode()">🌙 다크모드</button>
-</div>
 
     <div id="calendar"></div>
 
@@ -316,23 +264,6 @@
         });
     }
 
-        function toggleDarkMode() {
-    document.body.classList.toggle("dark-mode");
-
-    // ✅ 다크모드 상태 저장
-    if (document.body.classList.contains("dark-mode")) {
-        localStorage.setItem("darkMode", "enabled");
-    } else {
-        localStorage.setItem("darkMode", "disabled");
-    }
-}
-
-// ✅ 페이지 로드 시 다크모드 적용 여부 확인
-document.addEventListener("DOMContentLoaded", function () {
-    if (localStorage.getItem("darkMode") === "enabled") {
-        document.body.classList.add("dark-mode");
-    }
-});
         // ✅ 이미지 보기 기능 (이미지가 있는 경우)
 // ✅ 이미지 보기 기능 (이미지가 있는 경우)
 function showImage(url) {
