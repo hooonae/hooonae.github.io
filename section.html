@@ -92,10 +92,20 @@
                 const post = childSnapshot.val();
                 const postId = childSnapshot.key;
 
+                // ✅ 대표 이미지 선택 (imageUrl 또는 imageUrls[0])
+                let thumbnail = "";
+                if (post.imageUrl) {
+                    thumbnail = `<img src="${post.imageUrl}" class="post-image">`;
+                } else if (post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+                    thumbnail = `<img src="${post.imageUrls[0]}" class="post-image">`; // 첫 번째 이미지를 썸네일로 사용
+                } else {
+                    thumbnail = `<div class="post-image"></div>`; // 기본 빈 이미지 스타일
+                }
+
                 const postCard = document.createElement("div");
                 postCard.className = "post-card";
                 postCard.innerHTML = `
-                    ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : `<div class="post-image"></div>`}
+                    ${thumbnail}
                     <div class="post-content">
                         <div class="post-title">${post.title}</div>
                         <div class="post-preview">${getPreview(post.content)}</div>
