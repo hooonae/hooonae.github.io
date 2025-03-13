@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>자유게시판</title>
+
+    <!-- ✅ Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <!-- ✅ Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; }
+        body { background: #f8f9fa; text-align: center; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; color: #333; margin-bottom: 20px; }
+        .write-btn { background: #28a745; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; }
+        .search-bar input { padding: 8px; width: 80%; margin: 15px 0; border-radius: 5px; border: 1px solid #ddd; }
+        .post-list { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+        .post-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .post-card:hover { transform: translateY(-5px); }
+        .post-image { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px; background: #eee; }
+        .post-content { text-align: left; flex-grow: 1; }
+        .post-title { font-weight: bold; color: #007bff; margin-bottom: 4px; }
+        .post-preview { font-size: 14px; color: #555; margin-bottom: 6px; }
+        .post-meta { font-size: 13px; color: #777; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📌 자유게시판</h1>
+    <a class="write-btn" href="write.html?name=free">✏ 글 작성</a>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 제목 검색">
+    </div>
+
+    <div class="post-list" id="post-list"></div>
+</div>
+
+<script>
+    // ✅ Firebase 설정
+    const firebaseConfig = {
+        apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+        authDomain: "museum-web-370cd.firebaseapp.com",
+        databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+        projectId: "museum-web-370cd",
+        storageBucket: "museum-web-370cd.appspot.com",
+        messagingSenderId: "154810876093",
+        appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function getPreview(content, length = 30) {
+        return content.length > length ? content.substring(0, length) + "..." : content;
+    }
+
+    function loadPosts() {
+        const postList = document.getElementById("post-list");
+        postList.innerHTML = "📡 게시글을 불러오는 중...";
+
+        db.ref("posts/free").once("value", snapshot => {
+            postList.innerHTML = "";
+            if (!snapshot.exists()) {
+                postList.innerHTML = "📝 게시글이 없습니다.";
+                return;
+            }
+
+            snapshot.forEach(childSnapshot => {
+                const post = childSnapshot.val();
+                const postId = childSnapshot.key;
+
+                // ✅ 대표 이미지 선택 (imageUrl 또는 imageUrls[0])
+                let thumbnail = "";
+                if (post.imageUrl) {
+                    thumbnail = `<img src="${post.imageUrl}" class="post-image">`;
+                } else if (post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+                    thumbnail = `<img src="${post.imageUrls[0]}" class="post-image">`; 
+                } else {
+                    thumbnail = `<div class="post-image"></div>`;
+                }
+
+                const postCard = document.createElement("div");
+                postCard.className = "post-card";
+                postCard.innerHTML = `
+                    ${thumbnail}
+                    <div class="post-content">
+                        <div class="post-title">${post.title}</div>
+                        <div class="post-preview">${getPreview(post.content)}</div>
+                        <div class="post-meta">👤 ${post.author} | 📅 ${formatDate(post.date)}</div>
+                    </div>
+                `;
+
+                postCard.onclick = () => {
+                    window.location.href = `post.html?id=${postId}&name=free`;
+                };
+                postList.appendChild(postCard);
+            });
+        });
+    }
+
+    document.getElementById("searchInput").addEventListener("keyup", function () {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll(".post-card").forEach(card => {
+            const title = card.querySelector(".post-title").textContent.toLowerCase();
+            card.style.display = title.includes(filter) ? "flex" : "none";
+        });
+    });
+
+    window.onload = loadPosts;
+</script>
+
+</body>
+</html>
