@@ -18,7 +18,7 @@
         h1 { margin-bottom: 10px; }
         .post-meta { color: #777; font-size: 14px; margin-bottom:20px; }
         .post-content { white-space: pre-line; text-align:left; margin-bottom:20px; }
-        .post-image { max-width:100%; border-radius:10px; margin-bottom:20px; display:none; }
+        .post-images img { max-width:100%; border-radius:10px; margin-bottom:10px; display:block; }
         button { padding:8px 15px; border:none; border-radius:5px; cursor:pointer; }
         .btn-edit { background:#007bff;color:#fff; }
         .btn-delete { background:#dc3545; color:white; }
@@ -36,7 +36,10 @@
         👤 <span id="post-author"></span> |
         📅 <span id="post-date"></span>
     </p>
-    <img id="post-image" class="post-image">
+    
+    <!-- ✅ 여러 개의 이미지 표시할 영역 추가 -->
+    <div id="post-images" class="post-images"></div>
+
     <p class="post-content" id="post-content"></p>
 
     <button onclick="location.href=`write.html?name=${sectionName}&id=${postId}`">✏ 수정</button>
@@ -71,7 +74,7 @@ const params = new URLSearchParams(window.location.search);
 const sectionName = params.get("name");
 const postId = params.get("id");
 
-// 게시글 로드 함수
+// ✅ 게시글 불러오기 (한 장, 여러 장 모두 지원)
 function loadPost() {
     db.ref(`posts/${sectionName}/${postId}`).once("value", snap => {
         if (!snap.exists()) {
@@ -85,17 +88,30 @@ function loadPost() {
         document.getElementById("post-date").innerText=new Date(post.date).toLocaleString();
         document.getElementById("post-content").innerText=post.content;
 
-        if(post.imageUrl){
-            const img=document.getElementById("post-image");
-            img.src=post.imageUrl;
-            img.style.display="block";
+        const imageContainer = document.getElementById("post-images");
+        imageContainer.innerHTML = ""; // 기존 이미지 초기화
+
+        // ✅ 단일 이미지 URL 처리 (기존 데이터 호환)
+        if (post.imageUrl) {
+            const img = document.createElement("img");
+            img.src = post.imageUrl;
+            imageContainer.appendChild(img);
+        }
+
+        // ✅ 여러 개의 이미지 URL 처리
+        if (post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+            post.imageUrls.forEach(url => {
+                const img = document.createElement("img");
+                img.src = url;
+                imageContainer.appendChild(img);
+            });
         }
 
         loadComments();
     });
 }
 
-// 댓글 로드 함수
+// 댓글 불러오기
 function loadComments(){
     db.ref(`comments/${postId}`).on("value",snap=>{
         commentList.innerHTML="";
@@ -127,7 +143,7 @@ function deleteComment(commentId){
     }
 }
 
-// 게시글 삭제 함수
+// 게시글 삭제
 function deletePost(){
     if(confirm("정말 삭제하시겠습니까?")){
         db.ref(`posts/${sectionName}/${postId}`).remove().then(()=>{
