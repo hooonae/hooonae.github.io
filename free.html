@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>자유게시판</title>
 
-    <!-- ✅ Google Fonts -->
+    <!-- ✅ Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -15,35 +16,44 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; }
         body { background: #f8f9fa; text-align: center; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
         h1 { font-size: 24px; color: #333; margin-bottom: 20px; }
-        .write-btn { background: #28a745; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; }
-        .search-bar input { padding: 8px; width: 80%; margin: 15px 0; border-radius: 5px; border: 1px solid #ddd; }
-        .post-list { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
-        .post-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
-        .post-card:hover { transform: translateY(-5px); }
-        .post-image { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px; background: #eee; }
+        .post-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .post-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); cursor: pointer; display: flex; align-items: center; }
+        .post-image { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px; background: #eee; }
         .post-content { text-align: left; flex-grow: 1; }
         .post-title { font-weight: bold; color: #007bff; margin-bottom: 4px; }
         .post-preview { font-size: 14px; color: #555; margin-bottom: 6px; }
         .post-meta { font-size: 13px; color: #777; }
+        .write-form { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f8f9fa; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-submit { background: #28a745; color: white; }
+        .btn-reset { background: #dc3545; color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📌 자유게시판</h1>
-    <a class="write-btn" href="write.html?name=free">✏ 글 작성</a>
-
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="🔍 제목 검색">
+    <a href="index.html" class="home-btn">🏠 홈으로</a>
+    <h1>자유게시판</h1>
+    
+    <!-- 글 작성 폼 -->
+    <div class="write-form">
+        <input type="text" id="title" placeholder="제목">
+        <input type="text" id="author" placeholder="작성자">
+        <textarea id="content" placeholder="내용"></textarea>
+        
+        <input type="file" id="imageUpload" accept="image/*">
+        <button class="btn-submit" onclick="submitPost()">✅ 등록</button>
+        <button class="btn-reset" onclick="resetForm()">🗑 초기화</button>
     </div>
 
     <div class="post-list" id="post-list"></div>
 </div>
 
 <script>
-    // ✅ Firebase 설정
+    // ✅ Firebase & Spring Boot API 연동
     const firebaseConfig = {
         apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
         authDomain: "museum-web-370cd.firebaseapp.com",
@@ -57,66 +67,83 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function formatDate(dateStr) {
-        const d = new Date(dateStr);
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const sectionName = "자유게시판";  // 변경된 게시판 이름
+
+    // ✅ Cloudinary 이미지 업로드 함수
+    async function uploadToCloudinary(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "firebase_uploads");
+
+        const res = await fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+        return data.secure_url;
     }
 
-    function getPreview(content, length = 30) {
-        return content.length > length ? content.substring(0, length) + "..." : content;
+    // ✅ 글 작성 (Spring Boot로 전송)
+    async function submitPost() {
+        const title = document.getElementById("title").value.trim();
+        const author = document.getElementById("author").value.trim();
+        const content = document.getElementById("content").value.trim();
+        const file = document.getElementById("imageUpload").files[0];
+
+        if (!title || !author || !content) return alert("모든 필드를 입력해주세요.");
+
+        let imageUrl = "";
+        if (file) {
+            imageUrl = await uploadToCloudinary(file);
+        }
+
+        const postData = { title, author, content, imageUrl };
+        
+        fetch("/api/자유게시판", {  // 변경된 엔드포인트
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(postData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("✅ 게시글이 등록되었습니다.");
+            loadPosts();
+            resetForm();
+        });
     }
 
+    // ✅ 게시글 목록 불러오기 (Spring Boot API)
     function loadPosts() {
-        const postList = document.getElementById("post-list");
-        postList.innerHTML = "📡 게시글을 불러오는 중...";
+        fetch("/api/자유게시판")  // 변경된 엔드포인트
+            .then(response => response.json())
+            .then(posts => {
+                const postList = document.getElementById("post-list");
+                postList.innerHTML = "";
 
-        db.ref("posts/free").once("value", snapshot => {
-            postList.innerHTML = "";
-            if (!snapshot.exists()) {
-                postList.innerHTML = "📝 게시글이 없습니다.";
-                return;
-            }
-
-            snapshot.forEach(childSnapshot => {
-                const post = childSnapshot.val();
-                const postId = childSnapshot.key;
-
-                // ✅ 대표 이미지 선택 (imageUrl 또는 imageUrls[0])
-                let thumbnail = "";
-                if (post.imageUrl) {
-                    thumbnail = `<img src="${post.imageUrl}" class="post-image">`;
-                } else if (post.imageUrls && Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
-                    thumbnail = `<img src="${post.imageUrls[0]}" class="post-image">`; 
-                } else {
-                    thumbnail = `<div class="post-image"></div>`;
-                }
-
-                const postCard = document.createElement("div");
-                postCard.className = "post-card";
-                postCard.innerHTML = `
-                    ${thumbnail}
-                    <div class="post-content">
-                        <div class="post-title">${post.title}</div>
-                        <div class="post-preview">${getPreview(post.content)}</div>
-                        <div class="post-meta">👤 ${post.author} | 📅 ${formatDate(post.date)}</div>
-                    </div>
-                `;
-
-                postCard.onclick = () => {
-                    window.location.href = `post.html?id=${postId}&name=free`;
-                };
-                postList.appendChild(postCard);
+                posts.forEach(post => {
+                    const postCard = document.createElement("div");
+                    postCard.className = "post-card";
+                    postCard.innerHTML = `
+                        ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : `<div class="post-image"></div>`}
+                        <div class="post-content">
+                            <div class="post-title">${post.title}</div>
+                            <div class="post-preview">${post.content.substring(0, 30)}...</div>
+                            <div class="post-meta">👤 ${post.author} | 📅 ${new Date(post.date).toLocaleString()}</div>
+                        </div>
+                    `;
+                    postList.appendChild(postCard);
+                });
             });
-        });
     }
 
-    document.getElementById("searchInput").addEventListener("keyup", function () {
-        const filter = this.value.toLowerCase();
-        document.querySelectorAll(".post-card").forEach(card => {
-            const title = card.querySelector(".post-title").textContent.toLowerCase();
-            card.style.display = title.includes(filter) ? "flex" : "none";
-        });
-    });
+    // ✅ 입력 폼 초기화
+    function resetForm() {
+        document.getElementById("title").value = "";
+        document.getElementById("author").value = "";
+        document.getElementById("content").value = "";
+        document.getElementById("imageUpload").value = "";
+    }
 
     window.onload = loadPosts;
 </script>
