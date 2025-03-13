@@ -9,7 +9,7 @@
         .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
         input, textarea { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
         button { padding: 8px 12px; cursor: pointer; border-radius: 5px; margin: 5px; }
-        img { max-width: 100%; margin-top: 10px; border-radius: 10px; display: none; }
+        img { max-width: 100px; margin: 5px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -19,9 +19,11 @@
     <input type="text" id="title" placeholder="제목">
     <input type="text" id="author" placeholder="작성자">
     <textarea id="content" placeholder="내용"></textarea>
-    <input type="file" id="imageUpload" accept="image/*">
-    <img id="existingImage" src="" alt="기존 이미지" style="display:none;">
-    <button id="removeImageBtn" onclick="removeImage()" style="display:none; background:#dc3545; color:white;">🗑 이미지 삭제</button>
+    
+    <input type="file" id="imageUpload" accept="image/*" multiple>
+    <div id="imagePreviewContainer"></div>
+    <button id="removeImagesBtn" onclick="removeImages()" style="display:none; background:#dc3545; color:white;">🗑 이미지 삭제</button>
+
     <p id="loading" style="display:none;">⏳ 업로드 중...</p>
     <button id="submitBtn">✅ 저장하기</button>
     <button id="backBtn">⬅ 목록으로</button>
@@ -47,7 +49,7 @@
     const params = new URLSearchParams(window.location.search);
     const sectionName = params.get("name");
     const postId = params.get("id");
-    let existingImageUrl = "";
+    let existingImageUrls = [];
 
     if (postId) {
         document.getElementById("form-title").innerText = "✏ 글 수정";
@@ -57,30 +59,90 @@
             document.getElementById("author").value = post.author;
             document.getElementById("content").value = post.content;
 
-            if (post.imageUrl) {
-                existingImageUrl = post.imageUrl;
-                document.getElementById("existingImage").src = existingImageUrl;
-                document.getElementById("existingImage").style.display = "block";
-                document.getElementById("removeImageBtn").style.display = "inline-block";
+            if (post.imageUrls && post.imageUrls.length > 0) {
+                existingImageUrls = post.imageUrls;
+                displayExistingImages(existingImageUrls);
             }
         });
+    }
+
+    // 이미지 미리 보기 기능
+    document.getElementById("imageUpload").addEventListener("change", previewImages);
+
+    function previewImages() {
+        const files = document.getElementById("imageUpload").files;
+        const previewContainer = document.getElementById("imagePreviewContainer");
+        previewContainer.innerHTML = ""; 
+
+        if (files.length > 0) {
+            document.getElementById("removeImagesBtn").style.display = "inline-block";
+        }
+
+        for (let file of files) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement("img");
+                img.src = e.target.result;
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 기존 업로드된 이미지 미리 보기
+    function displayExistingImages(urls) {
+        const previewContainer = document.getElementById("imagePreviewContainer");
+        previewContainer.innerHTML = ""; 
+
+        urls.forEach(url => {
+            const img = document.createElement("img");
+            img.src = url;
+            previewContainer.appendChild(img);
+        });
+
+        document.getElementById("removeImagesBtn").style.display = "inline-block";
+    }
+
+    // 여러 장의 이미지 업로드
+    async function uploadToCloudinary(files) {
+        const imageUrls = [];
+        for (let file of files) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", "firebase_uploads");
+            
+            const res = await fetch(`https://api.cloudinary.com/v1_1/dddmgnzlu/image/upload`, {
+                method: "POST",
+                body: formData
+            });
+            
+            const data = await res.json();
+            imageUrls.push(data.secure_url);
+        }
+        return imageUrls;
     }
 
     async function submitPost() {
         const title = document.getElementById("title").value.trim();
         const author = document.getElementById("author").value.trim();
         const content = document.getElementById("content").value.trim();
-        const file = document.getElementById("imageUpload").files[0];
+        const files = document.getElementById("imageUpload").files;
 
         if (!title || !author || !content) return alert("모든 필드를 입력해주세요.");
         document.getElementById("loading").style.display = "block";
 
-        let imageUrl = existingImageUrl;
-        if (file) {
-            imageUrl = await uploadToCloudinary(file);
+        let imageUrls = existingImageUrls;
+        if (files.length > 0) {
+            imageUrls = await uploadToCloudinary(files);
         }
 
-        const postData = { title, author, content, date: new Date().toISOString(), imageUrl };
+        const postData = {
+            title,
+            author,
+            content,
+            date: new Date().toISOString(),
+            imageUrls
+        };
 
         if (postId) {
             await db.ref(`posts/${sectionName}/${postId}`).update(postData);
@@ -93,21 +155,14 @@
         location.href = `section.html?name=${sectionName}`;
     }
 
-    async function uploadToCloudinary(file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "firebase_uploads");
-        const res = await fetch(`https://api.cloudinary.com/v1_1/dddmgnzlu/image/upload`, { method: "POST", body: formData });
-        const data = await res.json();
-        return data.secure_url;
+    // 이미지 삭제 기능
+    function removeImages() {
+        existingImageUrls = [];
+        document.getElementById("imagePreviewContainer").innerHTML = "";
+        document.getElementById("removeImagesBtn").style.display = "none";
     }
 
-    function removeImage() {
-        existingImageUrl = "";
-        document.getElementById("existingImage").style.display = "none";
-        document.getElementById("removeImageBtn").style.display = "none";
-    }
-
+    // 이벤트 리스너 추가
     document.getElementById("submitBtn").onclick = submitPost;
     document.getElementById("backBtn").onclick = () => location.href = `section.html?name=${sectionName}`;
 </script>
