@@ -264,11 +264,23 @@ async function addEvent(calendar, date, name, color) {
 }
 
     // ✅ 일정 삭제 함수
-    async function deleteEvent(calendar, event) {
-        let [year, month, day] = event.startStr.split("-");
-        await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
-        loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+    // ✅ 일정 삭제 함수 (비밀번호 인증 추가)
+async function deleteEvent(calendar, event) {
+    console.log("📌 일정 삭제 요청됨 - isAuthenticated 상태:", isAuthenticated);
+
+    if (!isAuthenticated) {
+        alert("⛔ 일정 삭제 권한이 없습니다. 비밀번호를 입력하세요.");
+        return;
     }
+
+    if (!confirm("정말 이 일정을 삭제하시겠습니까?")) return;
+
+    let [year, month, day] = event.startStr.split("-");
+    
+    await db.ref(`calendar/${year}/${month}/${day}/${event.id}`).remove();
+    alert("✅ 일정이 삭제되었습니다.");
+    loadEvents(calendar, month); // ✅ 일정 다시 불러오기
+}
 
     // ✅ 일정 불러오기 함수 (Firebase에서 데이터 가져오기)
     function loadEvents(calendar, month) {
