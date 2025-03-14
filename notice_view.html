@@ -8,18 +8,49 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Noto Sans KR'; background: #F8F1E9; padding: 20px; }
-        .container {
-            max-width: 600px; margin: auto; padding: 20px; background: white; border-radius: 10px; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            text-align: left;
-        }
-        img { max-width: 100%; display: none; margin: 10px 0; border-radius: 10px; }
-        button { padding: 10px; border-radius: 5px; color: white; cursor: pointer; }
-        .delete-btn { background: #dc3545; }
-        .edit-btn { background: #007bff; }
-        .back-btn { background: #555; }
-    </style>
+    body { font-family: 'Noto Sans KR'; background: #F8F1E9; padding: 20px; }
+    .container {
+        max-width: 600px; margin: auto; padding: 20px; background: white; border-radius: 10px; 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        text-align: left;
+    }
+    img { max-width: 100%; display: none; margin: 10px 0; border-radius: 10px; }
+    button { padding: 10px; border-radius: 5px; color: white; cursor: pointer; }
+    .delete-btn { background: #dc3545; }
+    .edit-btn { background: #007bff; }
+    .back-btn { background: #555; }
+
+    /* ✅ 버튼 정렬 */
+    .button-group {
+        display: flex;
+        justify-content: center; /* 가운데 정렬 */
+        gap: 10px; /* 버튼 간격 */
+        position: fixed; /* 화면 하단 고정 */
+        bottom: 20px; /* 화면 하단에서 20px 위 */
+        left: 50%;
+        transform: translateX(-50%); /* 가운데 정렬 */
+        width: 100%;
+        max-width: 600px; /* 버튼 정렬 최대 폭 제한 */
+        background: #F8F1E9; /* 배경색 (갈색 영역과 조화) */
+        padding: 10px 0;
+        border-radius: 10px;
+    }
+
+    /* ✅ 버튼 스타일 유지 */
+    button {
+        padding: 10px;
+        border-radius: 5px;
+        color: white;
+        cursor: pointer;
+        flex: 1; /* 버튼 크기 동일하게 설정 */
+        max-width: 120px; /* 버튼 최대 크기 */
+    }
+
+    /* ✅ 버튼 색상 */
+    .delete-btn { background: #dc3545; }
+    .edit-btn { background: #007bff; }
+    .back-btn { background: #555; }
+</style>
 </head>
 <body>
 
@@ -31,10 +62,14 @@
 
     <!-- ✅ 비밀번호 입력창 추가 -->
 <!-- ✅ 비밀번호 입력창 추가 -->
+<!-- ✅ 비밀번호 입력칸 -->
 <input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 8px; margin-top: 10px;">
-<button class="edit-btn" onclick="editNotice()">✏ 수정</button>
-<button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
-<button class="delete-btn" onclick="deleteNotice()">🗑 삭제</button>
+
+<!-- ✅ 버튼을 하나의 div로 묶어서 정렬 -->
+<div class="button-group">
+    <button class="edit-btn" onclick="editNotice()">✏ 수정</button>
+    <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
+    <button class="delete-btn" onclick="deleteNotice()">🗑 삭제</button>
 </div>
 
 <script>
