@@ -266,7 +266,8 @@
 
         // ✅ 이미지 보기 기능 (이미지가 있는 경우)
 // ✅ 이미지 보기 기능 (이미지가 있는 경우)
-function showImage(url) {
+// ✅ 이미지 보기 기능 (삭제 버튼 추가)
+function showImage(url, date) {
     console.log("📌 showImage 실행됨, 이미지 URL:", url);
 
     if (!url) {
@@ -281,33 +282,64 @@ function showImage(url) {
     modal.style.left = "0";
     modal.style.width = "100%";
     modal.style.height = "100%";
-    modal.style.backgroundColor = "rgba(0, 0, 0, 0.9)"; // ✅ 배경을 더 어둡게 변경
+    modal.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
     modal.style.display = "flex";
+    modal.style.flexDirection = "column";
     modal.style.justifyContent = "center";
     modal.style.alignItems = "center";
-    modal.style.zIndex = "9999"; // ✅ 캘린더보다 위로 오도록 설정
+    modal.style.zIndex = "9999";
 
     let img = document.createElement("img");
     img.src = url;
-    img.style.maxWidth = "95%"; // ✅ 크기 확대
-    img.style.maxHeight = "95%"; // ✅ 크기 확대
-    img.style.borderRadius = "10px"; // ✅ 모서리를 부드럽게 (옵션)
-    img.style.boxShadow = "0px 0px 15px rgba(255, 255, 255, 0.7)"; // ✅ 이미지 강조 효과
+    img.style.maxWidth = "95%";
+    img.style.maxHeight = "80%";
+    img.style.borderRadius = "10px";
+    img.style.boxShadow = "0px 0px 15px rgba(255, 255, 255, 0.7)";
     img.style.cursor = "pointer";
 
+    let deleteBtn = document.createElement("button");
+    deleteBtn.innerText = "🗑 이미지 삭제";
+    deleteBtn.style.marginTop = "10px";
+    deleteBtn.style.padding = "10px 15px";
+    deleteBtn.style.fontSize = "14px";
+    deleteBtn.style.backgroundColor = "#dc3545";
+    deleteBtn.style.color = "white";
+    deleteBtn.style.border = "none";
+    deleteBtn.style.borderRadius = "5px";
+    deleteBtn.style.cursor = "pointer";
+
+    deleteBtn.onclick = function () {
+        deleteImage(date, modal);
+    };
+
     modal.appendChild(img);
+    modal.appendChild(deleteBtn);
     document.body.appendChild(modal);
 
-    // ✅ 이미지를 클릭하면 모달 닫기
     modal.onclick = function () {
         document.body.removeChild(modal);
     };
+}
+// ✅ 이미지 삭제 기능
+function deleteImage(date, modal) {
+    if (!confirm("정말 이 이미지를 삭제하시겠습니까?")) return;
+
+    db.ref(`images/${date}`).remove()
+    .then(() => {
+        alert("✅ 이미지가 삭제되었습니다.");
+        document.body.removeChild(modal);  // 모달 창 닫기
+    })
+    .catch(error => {
+        console.error("🚨 Firebase 이미지 삭제 오류:", error);
+        alert("⚠️ 이미지 삭제 중 오류가 발생했습니다.");
+    });
 }
     // ✅ 이미지 업로드 또는 보기 기능
     // ✅ 날짜 클릭 시 이미지 업로드 또는 보기 기능 실행
 // ✅ 날짜 클릭 시 이미지 업로드 또는 보기 기능 실행
 // ✅ 날짜 클릭 시 이미지 업로드 또는 보기 기능 실행
 // ✅ 날짜 클릭 시 이미지 업로드 또는 보기 기능 실행
+// ✅ 날짜 클릭 시 이미지 체크 & 업로드/삭제 처리
 function checkImageAndUpload(date) {
     console.log("📌 날짜 클릭됨:", date);
 
@@ -317,10 +349,10 @@ function checkImageAndUpload(date) {
 
         if (snapshot.exists() && snapshot.val() && snapshot.val().url) {
             console.log("✅ 업로드된 이미지 있음:", snapshot.val().url);
-            showImage(snapshot.val().url); // ✅ 이미지 보기
+            showImage(snapshot.val().url, date);  // ✅ 이미지 보기 (삭제 가능)
         } else {
             console.log("🚨 업로드된 이미지 없음, 업로드 창 열기");
-            uploadImage(date); // ✅ 이미지 업로드 실행
+            uploadImage(date);  // ✅ 이미지 업로드 실행
         }
     })
     .catch(error => {
