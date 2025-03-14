@@ -133,14 +133,13 @@
 
     <div id="calendar"></div>
 
-<!-- ✅ 비밀번호 입력창 추가 -->
+<!-- ✅ 비밀번호 입력창 추가 (이곳에 넣기) -->
 <div id="password-container" style="margin-top: 20px;">
     <input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 8px;">
     <button onclick="checkPassword()" style="padding: 8px 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
         확인
     </button>
 </div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
@@ -154,6 +153,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         // ✅ 올바른 비밀번호 설정
+// ✅ 올바른 비밀번호 설정
 const correctPassword = "9999";
 let isAuthenticated = false;  // ✅ 일정 추가 가능 여부
 
@@ -164,6 +164,7 @@ function checkPassword() {
     if (inputPassword === correctPassword) {
         alert("✅ 관리자 인증 완료! 일정 추가가 활성화됩니다.");
         isAuthenticated = true; // ✅ 인증 성공
+        console.log("🚀 isAuthenticated 상태:", isAuthenticated);
     } else {
         alert("⛔ 비밀번호가 틀렸습니다. 다시 시도하세요.");
         isAuthenticated = false; // ✅ 인증 실패
@@ -242,7 +243,10 @@ function checkPassword() {
 
     // ✅ 일정 추가 함수 (Firebase 저장 포함)
     // ✅ 일정 추가 함수 (비밀번호 인증 확인)
+// ✅ 일정 추가 함수 (비밀번호 인증 확인)
 async function addEvent(calendar, date, name, color) {
+    console.log("📌 일정 추가 요청됨 - isAuthenticated 상태:", isAuthenticated);
+
     if (!isAuthenticated) {
         alert("⛔ 일정 추가 권한이 없습니다. 비밀번호를 입력하세요.");
         return;
