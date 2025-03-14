@@ -68,6 +68,27 @@
                 });
             });
         }
+// ✅ 공지사항 작성 버튼 클릭 시 비밀번호 확인
+function checkPassword() {
+    const inputPassword = document.getElementById("admin-password").value;
+    const correctPassword = "9999"; // ✅ 설정된 관리자 비밀번호
+
+    if (!inputPassword) {
+        alert("⚠️ 비밀번호를 입력하세요.");
+        return;
+    }
+
+    if (inputPassword !== correctPassword) {
+        alert("⛔ 비밀번호가 틀렸습니다. 다시 입력하세요.");
+        return;
+    }
+
+    alert("✅ 관리자 인증 완료! 공지사항 작성 페이지로 이동합니다.");
+    location.href = "notice_form.html";
+}
+
+// ✅ 전역 등록 (HTML에서 사용 가능하도록 설정)
+window.checkPassword = checkPassword;
 
         // ✅ 특정 공지사항 보기
         function viewNotice(id) {
@@ -148,7 +169,15 @@
 
     <div class="container">
         <div id="noticesList"></div>
-        <button onclick="location.href='notice_form.html'">➕ 공지사항 작성</button>
+        
+        <!-- ✅ 공지사항 작성 버튼 -->
+        <button onclick="checkPassword()">➕ 공지사항 작성</button>
+        
+        <!-- ✅ 비밀번호 입력칸 추가 -->
+        <div class="password-container">
+            <input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 8px; margin-top: 10px;">
+        </div>
+
         <button class="btn-secondary" onclick="location.href='index.html'">🏠 홈으로</button>
     </div>
 </body>
