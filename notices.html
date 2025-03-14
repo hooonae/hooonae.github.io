@@ -148,15 +148,37 @@ window.checkPassword = checkPassword;
             border-radius: 8px;
         }
 
-        button {
-            padding: 10px;
-            margin-top: 15px;
-            color: white;
-            background: #8B5E3C;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+        /* ✅ 버튼과 입력칸을 가로 정렬 */
+.button-group {
+    display: flex;
+    justify-content: center; /* 가운데 정렬 */
+    align-items: center; /* 세로 정렬 중앙 정렬 */
+    gap: 10px; /* 요소 간격 */
+    margin-top: 15px;
+}
+
+/* ✅ 입력칸 크기 조정 */
+#admin-password {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 150px; /* 입력칸 크기 조정 */
+    text-align: center;
+}
+
+/* ✅ 버튼 스타일 */
+button {
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+/* ✅ 버튼 색상 */
+.delete-btn { background: #dc3545; }
+.edit-btn { background: #007bff; }
+.btn-secondary { background: #555; }
 
         .btn-secondary {
             background: #555;
