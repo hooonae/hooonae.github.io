@@ -21,35 +21,38 @@
     .back-btn { background: #555; }
 
     /* ✅ 버튼 정렬 */
-    .button-group {
-        display: flex;
-        justify-content: center; /* 가운데 정렬 */
-        gap: 10px; /* 버튼 간격 */
-        position: fixed; /* 화면 하단 고정 */
-        bottom: 20px; /* 화면 하단에서 20px 위 */
-        left: 50%;
-        transform: translateX(-50%); /* 가운데 정렬 */
-        width: 100%;
-        max-width: 600px; /* 버튼 정렬 최대 폭 제한 */
-        background: #F8F1E9; /* 배경색 (갈색 영역과 조화) */
-        padding: 10px 0;
-        border-radius: 10px;
-    }
+    /* ✅ 버튼 정렬 */
+.button-group {
+    display: flex;
+    justify-content: center; /* 가운데 정렬 */
+    gap: 8px; /* 버튼 간격 */
+    position: fixed; /* 화면 하단 고정 */
+    bottom: 20px; /* 화면 하단에서 20px 위 */
+    left: 50%;
+    transform: translateX(-50%); /* 가운데 정렬 */
+    width: 100%;
+    max-width: 400px; /* 버튼 크기를 줄이기 위해 max-width 축소 */
+    background: #F8F1E9; /* 배경색 (갈색 영역과 조화) */
+    padding: 5px 0; /* 위아래 패딩 조정 */
+    border-radius: 10px;
+}
 
-    /* ✅ 버튼 스타일 유지 */
-    button {
-        padding: 10px;
-        border-radius: 5px;
-        color: white;
-        cursor: pointer;
-        flex: 1; /* 버튼 크기 동일하게 설정 */
-        max-width: 120px; /* 버튼 최대 크기 */
-    }
+/* ✅ 버튼 크기 줄이기 */
+button {
+    padding: 8px 12px; /* 내부 여백 줄이기 */
+    border-radius: 5px;
+    font-size: 14px; /* 글자 크기 줄이기 */
+    color: white;
+    cursor: pointer;
+    flex: none; /* 버튼 크기를 자동 조정하지 않도록 설정 */
+    width: 100px; /* 버튼 폭 고정 */
+    max-width: 100px; /* 최대 크기 제한 */
+}
 
-    /* ✅ 버튼 색상 */
-    .delete-btn { background: #dc3545; }
-    .edit-btn { background: #007bff; }
-    .back-btn { background: #555; }
+/* ✅ 버튼 색상 */
+.delete-btn { background: #dc3545; }
+.edit-btn { background: #007bff; }
+.back-btn { background: #555; }
 </style>
 </head>
 <body>
