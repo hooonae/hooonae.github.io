@@ -171,15 +171,12 @@ window.checkPassword = checkPassword;
         <div id="noticesList"></div>
         
         <!-- ✅ 공지사항 작성 버튼 -->
-        <button onclick="checkPassword()">➕ 공지사항 작성</button>
-        
-        <!-- ✅ 비밀번호 입력칸 추가 -->
-        <div class="password-container">
-            <input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 8px; margin-top: 10px;">
-        </div>
-
-        <button class="btn-secondary" onclick="location.href='index.html'">🏠 홈으로</button>
-    </div>
+        <!-- ✅ 공지사항 작성 버튼, 비밀번호 입력칸, 홈으로 버튼을 감싸는 div 추가 -->
+<div class="button-group">
+    <button onclick="checkPassword()">➕ 공지사항 작성</button>
+    <input type="password" id="admin-password" placeholder="비밀번호 입력">
+    <button class="btn-secondary" onclick="location.href='index.html'">🏠 홈으로</button>
+</div>
 </body>
 
 </html>
