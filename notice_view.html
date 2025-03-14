@@ -31,7 +31,9 @@
 
     <button class="edit-btn" onclick="editNotice()">✏ 수정</button>
     <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
-    <button class="delete-btn" onclick="deleteNotice()">🗑 삭제</button>
+    <!-- ✅ 비밀번호 입력창 추가 -->
+<input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 8px; margin-top: 10px;">
+<button class="delete-btn" onclick="deleteNotice()">🗑 삭제</button>
 </div>
 
 <script>
@@ -77,10 +79,19 @@ function loadNotice() {
     });
 }
 
+// ✅ 공지사항 삭제 함수 (비밀번호 확인 추가)
 function deleteNotice() {
+    const inputPassword = document.getElementById("admin-password").value;
+    const correctPassword = "9999";  // ✅ 올바른 비밀번호 설정
+
+    if (inputPassword !== correctPassword) {
+        alert("⛔ 비밀번호가 틀렸습니다. 다시 입력하세요.");
+        return;
+    }
+
     if (confirm("정말 삭제하시겠습니까?")) {
         db.ref("notices/" + noticeId).remove().then(() => {
-            alert("삭제되었습니다.");
+            alert("✅ 공지사항이 삭제되었습니다.");
             location.href = "notices.html";
         });
     }
