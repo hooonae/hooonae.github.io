@@ -32,7 +32,10 @@
     <button class="edit-btn" onclick="editNotice()">✏ 수정</button>
     <button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
     <!-- ✅ 비밀번호 입력창 추가 -->
+<!-- ✅ 비밀번호 입력창 추가 -->
 <input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 8px; margin-top: 10px;">
+<button class="edit-btn" onclick="editNotice()">✏ 수정</button>
+<button class="back-btn" onclick="window.location.href='notices.html'">⬅ 목록으로</button>
 <button class="delete-btn" onclick="deleteNotice()">🗑 삭제</button>
 </div>
 
@@ -98,20 +101,30 @@ function deleteNotice() {
 }
 
 // ✅ 공지사항 수정 함수 (비밀번호 확인 추가)
+// ✅ 공지사항 수정 함수 (비밀번호 확인 추가)
 function editNotice() {
     const inputPassword = document.getElementById("admin-password").value;
     const correctPassword = "9999";  // ✅ 올바른 비밀번호 설정
+
+    console.log("🚀 입력된 비밀번호:", inputPassword); // 디버깅용 로그 추가
+
+    if (!inputPassword) {
+        alert("⚠️ 비밀번호를 입력하세요.");
+        return;
+    }
 
     if (inputPassword !== correctPassword) {
         alert("⛔ 비밀번호가 틀렸습니다. 다시 입력하세요.");
         return;
     }
 
+    alert("✅ 관리자 인증 완료! 수정 페이지로 이동합니다.");
     location.href = `notice_form.html?id=${noticeId}`;
 }
 
-document.querySelector(".edit-btn").onclick = () => {
-    location.href = `notice_form.html?id=${noticeId}`;
+// ✅ 불필요한 이벤트 리스너 제거 (중복 문제 해결)
+document.querySelector(".back-btn").onclick = () => {
+    location.href = "notices.html";
 };
 
 document.querySelector(".back-btn").onclick = () => {
