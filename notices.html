@@ -150,37 +150,44 @@ window.checkPassword = checkPassword;
 
         /* ✅ 버튼과 입력칸을 가로 정렬 */
 /* ✅ 버튼과 입력칸을 가로 정렬 */
+/* ✅ 버튼 그룹 (가로 정렬) */
 .button-group {
     display: flex;
     justify-content: center; /* 가운데 정렬 */
-    align-items: center; /* 세로 정렬 중앙 정렬 */
-    gap: 10px; /* 요소 간격 */
+    align-items: center;
+    gap: 10px; /* 버튼 간격 */
     margin-top: 15px;
 }
 
-/* ✅ 버튼 스타일 조정 */
+/* ✅ 버튼 스타일 */
 button {
-    padding: 10px 15px; /* 내부 여백 조정 */
+    padding: 10px 15px;
     border-radius: 5px;
-    font-size: 16px; /* 글자 크기 유지 */
+    font-size: 16px;
     color: white;
     border: none;
     cursor: pointer;
-    width: 150px; /* 버튼 크기 동일하게 유지 */
+    width: 150px;
     text-align: center;
-    white-space: nowrap; /* ✅ 버튼 내 텍스트 줄바꿈 방지 */
+    white-space: nowrap;
 }
 
 /* ✅ 버튼 색상 */
-.edit-btn { background: #8B5E3C; } /* 공지사항 작성 버튼 (갈색) */
-.btn-secondary { background: #555; } /* 홈으로 버튼 (회색) */
+.edit-btn { background: #8B5E3C; } /* 공지사항 작성 버튼 */
+.btn-secondary { background: #555; } /* 홈으로 버튼 */
 
-/* ✅ 입력칸 크기 조정 */
+/* ✅ 비밀번호 입력칸 (버튼 아래로 배치) */
+.password-container {
+    margin-top: 10px; /* 버튼과 간격 조정 */
+    text-align: center; /* 가운데 정렬 */
+}
+
+/* ✅ 입력칸 스타일 */
 #admin-password {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    width: 150px; /* 입력칸 크기 조정 */
+    width: 150px; /* 적절한 크기로 조정 */
     text-align: center;
 }
 
@@ -200,10 +207,15 @@ button {
         <!-- ✅ 공지사항 작성 버튼 -->
         <!-- ✅ 공지사항 작성 버튼, 비밀번호 입력칸, 홈으로 버튼을 감싸는 div 추가 -->
 <!-- ✅ 버튼 그룹을 가로로 정렬 -->
+<!-- ✅ 버튼 그룹 (가로 정렬) -->
 <div class="button-group">
     <button class="edit-btn" onclick="checkPassword()">➕ 공지사항 작성</button>
-    <input type="password" id="admin-password" placeholder="비밀번호 입력">
     <button class="btn-secondary" onclick="location.href='index.html'">🏠 홈으로</button>
+</div>
+
+<!-- ✅ 비밀번호 입력칸 (버튼 아래로 이동) -->
+<div class="password-container">
+    <input type="password" id="admin-password" placeholder="비밀번호 입력">
 </div>
 </body>
 
