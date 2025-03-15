@@ -32,7 +32,6 @@
                 return;
             }
 
-            // 사용자 데이터 불러오기
             const userRef = ref(db, 'users/' + username);
             get(userRef).then(snapshot => {
                 if (snapshot.exists()) {
@@ -46,7 +45,6 @@
                 }
             });
 
-            // 최근 가입자 목록
             const recentUsersRef = ref(db, 'users');
             onValue(recentUsersRef, (snapshot) => {
                 const recentList = document.getElementById('recent-users');
@@ -59,7 +57,6 @@
                 });
             });
 
-            // 아이템 로딩
             function loadItems(items) {
                 const room = document.getElementById('room');
                 room.innerHTML = '';
@@ -73,6 +70,8 @@
                     const img = document.createElement('img');
                     img.src = item.url;
                     img.draggable = true;
+                    img.style.width = "32px";
+                    img.style.height = "32px";
                     img.ondragend = (e) => {
                         const rect = room.getBoundingClientRect();
                         const x = e.clientX - rect.left;
@@ -91,12 +90,14 @@
 
                     wrapper.appendChild(img);
                     wrapper.appendChild(btn);
-                    document.getElementById('room').appendChild(wrapper);
-                    img.src = item.url;
+                    room.appendChild(wrapper);
                 }
-            });
+            }
 
-            // 픽셀 편집기 열기
+            function loadRoom(url) {
+                document.getElementById('room').style.backgroundImage = `url(${url || 'assets/images/default_room.png'})`;
+            }
+
             document.getElementById('open-piskel').onclick = () => {
                 document.getElementById('piskel-frame').style.display = "block";
             };
@@ -104,100 +105,17 @@
     </script>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            width: 850px;
-            height: 600px;
-            display: flex;
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar {
-            width: 200px;
-            padding: 15px;
-            background-color: #f0f4f8;
-            overflow-y: auto;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            position: relative;
-            padding: 15px;
-        }
-
-        #room {
-            width: 100%;
-            height: 100%;
-            background: url('assets/images/default_room.png') no-repeat center;
-            background-size: contain;
-            position: relative;
-        }
-
-        .item-wrapper {
-            position: absolute;
-            cursor: move;
-        }
-
-        .item-wrapper img {
-            width: 32px; /* 이미지 크기 제한 */
-            height: 32px;
-        }
-
-        .item-wrapper button {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: red;
-            border: none;
-            border-radius: 50%;
-            color: #fff;
-            cursor: pointer;
-            font-size: 10px;
-        }
-
-        #recent-users {
-            list-style: none;
-            padding: 0;
-        }
-
-        #recent-users li {
-            margin-bottom: 5px;
-        }
-
-        #open-piskel {
-            padding: 10px;
-            background-color: #667eea;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        #piskel-frame {
-            display: none;
-            position: absolute;
-            top: 10%;
-            left: 5%;
-            width: 90%;
-            height: 80%;
-            border: none;
-            background-color: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 100;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f9fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { width: 850px; height: 600px; display: flex; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .sidebar { width: 200px; padding: 15px; background-color: #f0f4f8; overflow-y: auto; }
+        .main-content { flex-grow: 1; position: relative; padding: 15px; }
+        #room { width: 100%; height: 100%; background: url('assets/images/default_room.png') no-repeat center; background-size: contain; position: relative; }
+        .item-wrapper { position: absolute; cursor: move; }
+        .item-wrapper button { position: absolute; top: -10px; right: -10px; background-color: red; border: none; border-radius: 50%; color: #fff; cursor: pointer; font-size: 10px; }
+        #recent-users { list-style: none; padding: 0; }
+        #recent-users li { margin-bottom: 5px; }
+        #open-piskel { padding: 10px; background-color: #667eea; color: #fff; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
+        #piskel-frame { display: none; position: absolute; top: 10%; left: 5%; width: 90%; height: 80%; border: none; background-color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 100; }
     </style>
 </head>
 <body>
@@ -209,7 +127,7 @@
         </div>
         <div class="main-content">
             <div id="room"></div>
-            <iframe id="piskel-frame" src="https://www.piskelapp.com/p/create/sprite" style="display:none;"></iframe>
+            <iframe id="piskel-frame" src="https://www.piskelapp.com/p/create/sprite"></iframe>
         </div>
     </div>
 </body>
