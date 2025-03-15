@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛏️ 채광하기</title>
+
+    <!-- ✅ Firebase 및 스크립트 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script src="mine.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            padding: 20px;
+        }
+        .mine-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⛏️ 채광하기</h1>
+
+    <div class="mine-container">
+        <h2>💰 내 포인트: <span id="user-points">0</span>P</h2>
+        <button onclick="minePoints()">⛏️ 채광하기</button>
+    </div>
+
+    <br>
+    <button onclick="location.href='home.html'">🏠 미니홈피로</button>
+
+</body>
+</html>
