@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 아이템 판매</title>
+
+    <!-- ✅ Firebase 및 스크립트 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .inventory-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+        .item-info {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 10px;
+        }
+        .sell-btn {
+            padding: 5px 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>💰 아이템 판매</h1>
+    <p>💰 내 포인트: <strong id="userPoints">0</strong></p>
+
+    <div class="container">
+        <h3>🎒 판매 가능한 아이템</h3>
+        <div id="inventory"></div>
+    </div>
+
+    <br>
+    <button onclick="location.href='home.html'">🏠 미니홈피로</button>
+
+    <script>
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ✅ 현재 로그인된 사용자 ID 가져오기
+        function getCurrentUser() {
+            return localStorage.getItem("user");
+        }
+        const userId = getCurrentUser();
+
+        // ✅ 유저 인벤토리 불러오기 (판매 가능 아이템 목록)
+        function loadInventory() {
+            const inventoryContainer = document.getElementById("inventory");
+
+            db.ref(`users/${userId}/inventory`).once("value", snapshot => {
+                inventoryContainer.innerHTML = "";
+
+                if (!snapshot.exists()) {
+                    inventoryContainer.innerHTML = "<p>🎒 판매할 아이템이 없습니다.</p>";
+                    return;
+                }
+
+                snapshot.forEach(child => {
+                    let item = child.val();
+                    let itemDiv = document.createElement("div");
+                    itemDiv.classList.add("inventory-item");
+                    itemDiv.innerHTML = `
+                        <img src="${item.src}" alt="${item.name}">
+                        <div class="item-info">
+                            <p>${item.name}</p>
+                            <p>💰 ${item.price} 포인트</p>
+                        </div>
+                        <button class="sell-btn" onclick="sellItem('${child.key}', ${item.price})">💰 판매</button>
+                    `;
+                    inventoryContainer.appendChild(itemDiv);
+                });
+            });
+        }
+
+        // ✅ 아이템 판매 함수
+        function sellItem(itemId, price) {
+            db.ref(`users/${userId}/points`).once("value", snapshot => {
+                let currentPoints = snapshot.val() || 0;
+
+                // ✅ 포인트 추가 및 인벤토리에서 삭제
+                db.ref(`users/${userId}/points`).set(currentPoints + price);
+                db.ref(`users/${userId}/inventory/${itemId}`).remove();
+
+                alert("✅ 아이템을 판매했습니다!");
+                loadInventory();
+                loadUserPoints();
+            });
+        }
+
+        // ✅ 유저의 포인트 불러오기
+        function loadUserPoints() {
+            db.ref(`users/${userId}/points`).once("value", snapshot => {
+                document.getElementById("userPoints").innerText = snapshot.val() || 0;
+            });
+        }
+
+        // ✅ 페이지 로드 시 실행
+        document.addEventListener("DOMContentLoaded", () => {
+            loadInventory();
+            loadUserPoints();
+        });
+    </script>
+
+</body>
+</html>
