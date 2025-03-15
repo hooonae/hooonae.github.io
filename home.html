@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 미니홈피</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- 📌 사이드바 메뉴 -->
+    <div class="sidebar">
+        <h3>📂 메뉴</h3>
+        <ul>
+            <li><a href="mine.html">⛏ 채광하기</a></li>
+            <li><a href="store.html">🛍 상점</a></li>
+        </ul>
+    </div>
+
+    <!-- 📌 미니홈피 본체 -->
+    <div class="main-content">
+        <!-- 🔹 프로필 박스 -->
+        <div class="profile-box">
+            <img src="profile.jpg" alt="프로필" class="profile-pic">
+            <h2 id="username">닉네임</h2>
+            <p>오늘의 상태 메시지 🌸</p>
+            <p>💰 포인트: <span id="points">0</span>P</p>
+        </div>
+
+        <!-- 🔹 미니룸 -->
+        <div class="miniroom">
+            <h3>내 미니룸</h3>
+            <div class="room" id="room">
+                <!-- 가구 & 아이템 배치될 곳 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
