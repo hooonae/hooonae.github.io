@@ -3,15 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>미니홈피 로그인</title>
+    <title>로그인</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: Arial, sans-serif;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 320px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            background: #667eea;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #564aa3;
+        }
+        .signup-link {
+            display: block;
+            margin-top: 15px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .signup-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        function login() {
+            const username = document.getElementById('username').value;
+            if (username) {
+                window.location.href = `minihomepage_${username}.html`;
+            } else {
+                alert('아이디를 입력해주세요.');
+            }
+        }
+    </script>
 </head>
 <body>
-    <h2>로그인</h2>
-    <input type="text" id="nickname" placeholder="닉네임">
-    <input type="password" id="password" placeholder="비밀번호 (4자리)" maxlength="4">
-    <button onclick="login()">로그인</button>
-    <p>계정이 없나요? <a href="signup.html">회원가입</a></p>
-
-    <script src="script.js"></script>
+    <div class="login-container">
+        <h2>로그인</h2>
+        <input type="text" id="username" placeholder="아이디" required>
+        <input type="password" placeholder="비밀번호" required>
+        <button class="btn" onclick="login()">로그인</button>
+        <a href="signup.html" class="signup-link">회원가입</a>
+    </div>
 </body>
 </html>
