@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛒 미니홈피 상점</title>
+    <title>🛒 아이템 상점</title>
 
     <!-- ✅ Firebase 및 스크립트 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -27,22 +27,22 @@
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
         .shop-item {
-            display: inline-block;
-            width: 120px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background: #fff;
-            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
         }
         .shop-item img {
-            width: 80px;
-            height: 80px;
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
         }
         button {
-            margin-top: 5px;
-            padding: 5px;
+            padding: 5px 10px;
             background: #007bff;
             color: white;
             border: none;
@@ -53,7 +53,7 @@
 </head>
 <body>
 
-    <h1>🛒 미니홈피 상점</h1>
+    <h1>🛒 아이템 상점</h1>
 
     <div class="shop-container">
         <h2>💰 내 포인트: <span id="user-points">0</span>P</h2>
@@ -61,6 +61,7 @@
     </div>
 
     <br>
+    <button onclick="location.href='myroom.html'">🏠 마이룸</button>
     <button onclick="location.href='home.html'">🏠 미니홈피로</button>
 
 </body>
