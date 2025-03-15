@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미니홈피</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get('user');
+
+            if (!username) {
+                alert("잘못된 접근입니다. 로그인 페이지로 이동합니다.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            get(ref(db, 'users/' + username)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    document.getElementById('username-display').textContent = userData.username;
+                    document.getElementById('user-avatar').src = userData.customAvatar || 'assets/images/default_avatar.png';
+                    document.body.style.backgroundColor = userData.bgColor || '#ffffff';
+                } else {
+                    alert("사용자 정보를 찾을 수 없습니다.");
+                    window.location.href = "login.html";
+                }
+            }).catch((error) => {
+                alert('데이터 불러오기 실패: ' + error.message);
+            });
+
+            // Piskel 편집기 이동 버튼
+            document.getElementById('open-piskel').addEventListener('click', () => {
+                window.open('https://www.piskelapp.com/', '_blank');
+            });
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 600px;
+            height: 500px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            position: relative;
+        }
+
+        #user-avatar {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #ff6600;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #cc5200;
+        }
+
+        #recent-users {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: left;
+        }
+
+        #recent-users li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img id="user-avatar" src="assets/images/default_avatar.png" alt="사용자 아바타">
+        <h2 id="username-display">사용자 이름</h2>
+        <button id="open-piskel" class="btn">Piskel로 픽셀 아트 그리기</button>
+
+        <ul id="recent-users">
+            <li><a href="?user=user1">user1</a></li>
+            <li><a href="?user=user2">user2</a></li>
+            <li><a href="?user=user3">user3</a></li>
+            <!-- 최근 가입한 사용자 추가 -->
+        </ul>
+    </div>
+</body>
+</html>
