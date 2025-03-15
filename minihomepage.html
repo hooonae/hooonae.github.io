@@ -48,6 +48,15 @@
                 }
             });
 
+            function loadRoom(url) {
+                const room = document.getElementById('room');
+                if (url) {
+                    room.style.backgroundImage = `url(${url})`;
+                } else {
+                    room.style.backgroundImage = `url('assets/images/default_room.png')`;
+                }
+            }
+
             function uploadToCloudinary(file, callback) {
                 const formData = new FormData();
                 formData.append("file", file);
