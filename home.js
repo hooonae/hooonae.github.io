@@ -1,10 +1,12 @@
-// ✅ 현재 로그인한 사용자 가져오기
+import { db, DEFAULT_BG_URL, DEFAULT_CHAR_URL } from "./firebase.js";
+
+// ✅ 현재 로그인된 사용자 가져오기
 function getCurrentUser() {
     return localStorage.getItem("user");
 }
 
 // ✅ 미니홈피 데이터 불러오기
-function loadMiniroom() {
+async function loadMiniroom() {
     const user = getCurrentUser();
     if (!user) {
         alert("❌ 로그인 후 이용하세요!");
@@ -12,94 +14,88 @@ function loadMiniroom() {
         return;
     }
 
-    db.ref(`miniroom/${user}`).once("value").then(snapshot => {
-        if (!snapshot.exists()) {
-            console.log("🚀 새 미니홈피 생성!");
-            return;
-        }
+    const snapshot = await db.ref(`miniroom/${user}`).once("value");
+    if (!snapshot.exists()) {
+        console.log("🚀 새 미니홈피 생성!");
+        document.getElementById("room").style.backgroundImage = `url(${DEFAULT_BG_URL})`;
+        document.getElementById("character").src = DEFAULT_CHAR_URL;
+        return;
+    }
 
-        const data = snapshot.val();
-        document.getElementById("room").style.backgroundImage = `url(${data.background || 'default-bg.jpg'})`;
-        document.getElementById("character").src = data.character || "default-character.png";
-        document.getElementById("items").innerHTML = data.items || "";
-    }).catch(error => {
-        console.error("❌ Firebase 데이터 불러오기 오류:", error);
-    });
+    const data = snapshot.val();
+    document.getElementById("room").style.backgroundImage = `url(${data.background || DEFAULT_BG_URL})`;
+    document.getElementById("character").src = data.character || DEFAULT_CHAR_URL;
+    document.getElementById("items").innerHTML = data.items || "";
 }
 
-// ✅ 미니홈피 데이터 저장
-function saveMiniroom() {
+// ✅ 미니홈피 저장 (Cloudinary 이미지 포함)
+async function saveMiniroom() {
     const user = getCurrentUser();
     if (!user) return;
 
-    const background = document.getElementById("bgInput").value || "";
-    const character = document.getElementById("charInput").value || "";
+    const background = document.getElementById("bgInput").value || DEFAULT_BG_URL;
+    const character = document.getElementById("charInput").value || DEFAULT_CHAR_URL;
     const items = document.getElementById("items").innerHTML;
 
-    db.ref(`miniroom/${user}`).set({ background, character, items })
-    .then(() => {
-        alert("✅ 저장 완료!");
-    })
-    .catch(error => {
-        console.error("❌ Firebase 저장 오류:", error);
-    });
+    await db.ref(`miniroom/${user}`).set({ background, character, items });
+
+    alert("✅ 저장 완료!");
+}
+
+// ✅ Cloudinary 이미지 업로드 기능
+async function uploadToCloudinary(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "firebase_uploads");
+
+    try {
+        const response = await fetch("https://api.cloudinary.com/v1_1/your-cloud-name/image/upload", {
+            method: "POST",
+            body: formData
+        });
+        const data = await response.json();
+        return data.secure_url;
+    } catch (error) {
+        console.error("❌ Cloudinary 이미지 업로드 실패:", error);
+        return "";
+    }
 }
 
 // ✅ 배경 변경
-function changeBackground() {
-    const newBg = prompt("변경할 배경 이미지 URL을 입력하세요:");
-    if (newBg) {
-        document.getElementById("room").style.backgroundImage = `url(${newBg})`;
-        document.getElementById("bgInput").value = newBg;
-    }
+async function changeBackground() {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.click();
+
+    fileInput.onchange = async function () {
+        const file = fileInput.files[0];
+        if (file) {
+            const imageUrl = await uploadToCloudinary(file);
+            document.getElementById("room").style.backgroundImage = `url(${imageUrl})`;
+            document.getElementById("bgInput").value = imageUrl;
+        }
+    };
 }
 
 // ✅ 캐릭터 변경
-function changeCharacter() {
-    const newChar = prompt("변경할 캐릭터 이미지 URL을 입력하세요:");
-    if (newChar) {
-        document.getElementById("character").src = newChar;
-        document.getElementById("charInput").value = newChar;
-    }
+async function changeCharacter() {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.click();
+
+    fileInput.onchange = async function () {
+        const file = fileInput.files[0];
+        if (file) {
+            const imageUrl = await uploadToCloudinary(file);
+            document.getElementById("character").src = imageUrl;
+            document.getElementById("charInput").value = imageUrl;
+        }
+    };
 }
 
-// ✅ 아이템 추가
-function addItem() {
-    const newItem = prompt("아이템 이미지 URL을 입력하세요:");
-    if (newItem) {
-        const img = document.createElement("img");
-        img.src = newItem;
-        img.className = "draggable";
-        img.style.left = "50px";
-        img.style.top = "50px";
-        document.getElementById("items").appendChild(img);
-    }
-}
-
-// ✅ 드래그 기능 추가 (아이템 이동 가능)
+// ✅ 페이지 로드 시 실행
 document.addEventListener("DOMContentLoaded", () => {
     loadMiniroom();
-
-    document.getElementById("items").addEventListener("mousedown", function (event) {
-        if (!event.target.classList.contains("draggable")) return;
-
-        let draggedItem = event.target;
-        let offsetX = event.clientX - draggedItem.getBoundingClientRect().left;
-        let offsetY = event.clientY - draggedItem.getBoundingClientRect().top;
-
-        function moveAt(pageX, pageY) {
-            draggedItem.style.left = pageX - offsetX + "px";
-            draggedItem.style.top = pageY - offsetY + "px";
-        }
-
-        function onMouseMove(event) {
-            moveAt(event.pageX, event.pageY);
-        }
-
-        document.addEventListener("mousemove", onMouseMove);
-
-        document.addEventListener("mouseup", function () {
-            document.removeEventListener("mousemove", onMouseMove);
-        }, { once: true });
-    });
 });
