@@ -3,47 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 미니홈피</title>
+    <title>🏠 내 미니홈피</title>
+
+    <!-- ✅ Firebase 및 미니홈피 스크립트 -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <script src="firebase.js"></script>
+    <script src="home.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            padding: 20px;
+        }
+        .miniroom-container {
+            position: relative;
+            width: 400px;
+            height: 300px;
+            margin: auto;
+            background: #eee;
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .character {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+        }
+        .items img {
+            position: absolute;
+            width: 40px;
+            cursor: grab;
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- 📌 사이드바 메뉴 -->
-    <div class="sidebar">
-        <h3>📂 메뉴</h3>
-        <ul>
-            <li><a href="mine.html">⛏ 채광하기</a></li>
-            <li><a href="store.html">🛍 상점</a></li>
-        </ul>
+    <h1>🏠 내 미니홈피</h1>
+
+    <div class="miniroom-container" id="room">
+        <img src="default-character.png" id="character" class="character">
+        <div id="items"></div>
     </div>
 
-    <!-- 📌 미니홈피 본체 -->
-    <div class="main-content">
-        <!-- 🔹 프로필 박스 -->
-        <div class="profile-box">
-            <label for="profileUpload">
-                <img id="profile-pic" src="default.jpg" class="profile-pic">
-            </label>
-            <input type="file" id="profileUpload" accept="image/*" style="display:none">
-            <h2 id="username">닉네임</h2>
-            <p>오늘의 상태 메시지 🌸</p>
-            <p>💰 포인트: <span id="points">0</span>P</p>
-        </div>
+    <br>
 
-        <!-- 🔹 미니룸 -->
-        <div class="miniroom">
-            <h3>내 미니룸</h3>
-            <div class="room" id="room">
-                <!-- 가구 & 아이템 배치될 곳 -->
-            </div>
-        </div>
-    </div>
-</div>
+    <button onclick="changeBackground()">배경 변경</button>
+    <button onclick="changeCharacter()">캐릭터 변경</button>
+    <button onclick="addItem()">아이템 추가</button>
+    <button onclick="saveMiniroom()">저장하기</button>
 
-<script src="script.js"></script>
+    <input type="hidden" id="bgInput">
+    <input type="hidden" id="charInput">
+
+    <br>
+    <button onclick="location.href='index.html'">🏠 홈으로</button>
+
 </body>
 </html>
