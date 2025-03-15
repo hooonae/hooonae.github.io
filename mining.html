@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛏ 채광 시스템</title>
+
+    <!-- ✅ Firebase 및 채광 기능 로드 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script src="mining.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #8B5E3C;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>⛏ 채광 시스템</h2>
+        <p>💎 1시간마다 채광하여 랜덤 포인트를 획득하세요!</p>
+        <button onclick="mine()">채광하기</button>
+    </div>
+
+    <div class="container">
+        <h2>🏆 포인트 랭킹</h2>
+        <div id="ranking-list"></div>
+    </div>
+
+</body>
+</html>
