@@ -3,33 +3,37 @@ function getCurrentUser() {
     return localStorage.getItem("user");
 }
 
-// ✅ 랭킹 데이터 불러오기
+// ✅ 포인트 랭킹 불러오기
 function loadRanking() {
-    db.ref("users").once("value", snapshot => {
-        const rankingContainer = document.getElementById("ranking-list");
-        rankingContainer.innerHTML = "<p>📡 로딩 중...</p>";
+    const rankingContainer = document.getElementById("ranking-list");
 
+    db.ref("users").orderByChild("points").once("value", snapshot => {
         if (!snapshot.exists()) {
-            rankingContainer.innerHTML = "<p>🏆 랭킹 데이터가 없습니다.</p>";
+            rankingContainer.innerHTML = "<p>🚀 아직 랭킹 데이터가 없습니다.</p>";
             return;
         }
 
-        let rankings = [];
+        let rankingArray = [];
         snapshot.forEach(child => {
-            const userId = child.key;
-            const data = child.val();
-            rankings.push({ userId, points: data.points || 0 });
+            rankingArray.push({
+                username: child.key,
+                points: child.val().points || 0
+            });
         });
 
-        // ✅ 포인트 순으로 내림차순 정렬
-        rankings.sort((a, b) => b.points - a.points);
+        // ✅ 높은 점수순으로 정렬
+        rankingArray.sort((a, b) => b.points - a.points);
 
-        rankingContainer.innerHTML = "";
-        rankings.forEach((entry, index) => {
-            let rankDiv = document.createElement("div");
-            rankDiv.classList.add("rank-entry");
-            rankDiv.innerHTML = `<p>🏅 <strong>#${index + 1}</strong> ${entry.userId} - <strong>${entry.points}P</strong></p>`;
-            rankingContainer.appendChild(rankDiv);
+        rankingContainer.innerHTML = ""; // 기존 데이터 초기화
+        rankingArray.forEach((user, index) => {
+            let userDiv = document.createElement("div");
+            userDiv.classList.add("ranking-item");
+            userDiv.innerHTML = `
+                <span class="rank">🏆 ${index + 1}위</span>
+                <span class="username">${user.username}</span>
+                <span class="points">💰 ${user.points}P</span>
+            `;
+            rankingContainer.appendChild(userDiv);
         });
     });
 }
