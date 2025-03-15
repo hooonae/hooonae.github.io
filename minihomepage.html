@@ -107,17 +107,34 @@
                 document.getElementById('piskel-frame').style.display = "none";
                 document.getElementById('piskel-controls').style.display = "none";
             };
-
-            document.getElementById('apply-piskel').onclick = () => {
-                const imageUrl = prompt("업로드한 픽셀아트의 URL을 입력하세요:");
-                if (imageUrl) {
-                    const key = Date.now();
-                    set(ref(db, `users/${username}/items/${key}`), { url: imageUrl, x: 50, y: 50 })
-                        .then(() => location.reload());
-                }
-            };
         });
     </script>
+    <style>
+        #piskel-frame {
+            display: none;
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 650px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background-color: white;
+            z-index: 100;
+        }
+        #piskel-controls {
+            display: none;
+            position: absolute;
+            top: 80%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 101;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -130,11 +147,9 @@
             <div id="room"></div>
             <iframe id="piskel-frame" src="https://www.piskelapp.com/p/create/sprite"></iframe>
             <div id="piskel-controls">
-                <button id="apply-piskel">픽셀아트 적용하기</button>
                 <button id="close-piskel">편집기 닫기</button>
             </div>
         </div>
     </div>
 </body>
 </html>
-
