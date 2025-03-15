@@ -100,10 +100,12 @@
 
             document.getElementById('open-piskel').onclick = () => {
                 document.getElementById('piskel-frame').style.display = "block";
+                document.getElementById('piskel-controls').style.display = "block";
             };
 
             document.getElementById('close-piskel').onclick = () => {
                 document.getElementById('piskel-frame').style.display = "none";
+                document.getElementById('piskel-controls').style.display = "none";
             };
 
             document.getElementById('apply-piskel').onclick = () => {
@@ -131,6 +133,17 @@
             background-color: white;
             z-index: 100;
         }
+        #piskel-controls {
+            display: none;
+            position: absolute;
+            top: 75%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 101;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -138,13 +151,15 @@
         <div class="sidebar">
             <h3 id="username-display">사용자 이름</h3>
             <button id="open-piskel">픽셀아트 그리기</button>
-            <button id="apply-piskel">픽셀아트 적용하기</button>
-            <button id="close-piskel">편집기 닫기</button>
             <ul id="recent-users"></ul>
         </div>
         <div class="main-content">
             <div id="room"></div>
             <iframe id="piskel-frame" src="https://www.piskelapp.com/p/create/sprite"></iframe>
+            <div id="piskel-controls">
+                <button id="apply-piskel">픽셀아트 적용하기</button>
+                <button id="close-piskel">편집기 닫기</button>
+            </div>
         </div>
     </div>
 </body>
