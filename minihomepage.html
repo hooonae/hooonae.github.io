@@ -101,21 +101,28 @@
             document.getElementById('open-piskel').onclick = () => {
                 document.getElementById('piskel-frame').style.display = "block";
             };
+
+            document.getElementById('close-piskel').onclick = () => {
+                document.getElementById('piskel-frame').style.display = "none";
+            };
+
+            document.getElementById('apply-piskel').onclick = () => {
+                const imageUrl = prompt("업로드한 픽셀아트의 URL을 입력하세요:");
+                if (imageUrl) {
+                    const key = Date.now();
+                    set(ref(db, `users/${username}/items/${key}`), { url: imageUrl, x: 50, y: 50 }).then(() => location.reload());
+                }
+            };
         });
     </script>
-
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f9fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { width: 850px; height: 600px; display: flex; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .sidebar { width: 200px; padding: 15px; background-color: #f0f4f8; overflow-y: auto; }
-        .main-content { flex-grow: 1; position: relative; padding: 15px; }
-        #room { width: 100%; height: 100%; background: url('assets/images/default_room.png') no-repeat center; background-size: contain; position: relative; }
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { display: flex; background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .sidebar { padding: 15px; background: #f0f4f8; }
+        .main-content { position: relative; }
+        #room { position: relative; width: 600px; height: 400px; background-size: contain; }
         .item-wrapper { position: absolute; cursor: move; }
-        .item-wrapper button { position: absolute; top: -10px; right: -10px; background-color: red; border: none; border-radius: 50%; color: #fff; cursor: pointer; font-size: 10px; }
-        #recent-users { list-style: none; padding: 0; }
-        #recent-users li { margin-bottom: 5px; }
-        #open-piskel { padding: 10px; background-color: #667eea; color: #fff; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
-        #piskel-frame { display: none; position: absolute; top: 10%; left: 5%; width: 90%; height: 80%; border: none; background-color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 100; }
+        #piskel-frame { display:none; position:absolute; top:5%; left:5%; width:90%; height:80%; overflow:auto; z-index:100; }
     </style>
 </head>
 <body>
@@ -123,6 +130,8 @@
         <div class="sidebar">
             <h3 id="username-display">사용자 이름</h3>
             <button id="open-piskel">픽셀아트 그리기</button>
+            <button id="apply-piskel">픽셀아트 적용하기</button>
+            <button id="close-piskel">편집기 닫기</button>
             <ul id="recent-users"></ul>
         </div>
         <div class="main-content">
