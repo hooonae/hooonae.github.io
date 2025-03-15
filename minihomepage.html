@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>미니홈피</title>
     <link rel="stylesheet" href="styles.css">
-
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-        // ✅ Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
             authDomain: "museum-web-370cd.firebaseapp.com",
@@ -25,7 +22,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        window.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const username = params.get('user');
 
@@ -35,96 +32,120 @@
                 return;
             }
 
-            get(ref(db, 'users/' + username)).then((snapshot) => {
+            get(ref(db, 'users/' + username)).then(snapshot => {
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     document.getElementById('username-display').textContent = userData.username;
                     document.getElementById('user-avatar').src = userData.customAvatar || 'assets/images/default_avatar.png';
+                    document.getElementById('room').style.backgroundImage = `url(${userData.roomImage || 'assets/images/default_room.png'})`;
                     document.body.style.backgroundColor = userData.bgColor || '#ffffff';
                 } else {
                     alert("사용자 정보를 찾을 수 없습니다.");
                     window.location.href = "login.html";
                 }
-            }).catch((error) => {
+            }).catch(error => {
                 alert('데이터 불러오기 실패: ' + error.message);
             });
 
-            // Piskel 편집기 이동 버튼
             document.getElementById('open-piskel').addEventListener('click', () => {
                 window.open('https://www.piskelapp.com/', '_blank');
             });
         });
     </script>
-
     <style>
         body {
-            font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            background-color: #f9fafc;
+            font-family: Arial, sans-serif;
         }
-
         .container {
             width: 800px;
             height: 600px;
+            background: #ffffff;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
             padding: 20px;
-            text-align: center;
-            background-color: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-radius: 10px;
+            background-color: #f0f4f8;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             position: relative;
         }
-
+        #room {
+            width: 100%;
+            height: 80%;
+            background-color: #e0e0e0;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
         #user-avatar {
             width: 64px;
             height: 64px;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            background-color: #ff6600;
-            color: white;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background-color: #cc5200;
-        }
-
-        #recent-users {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            text-align: left;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
         }
-
-        #recent-users li {
-            margin-bottom: 5px;
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #667eea;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn:hover {
+            background-color: #556cd6;
+        }
+        ul {
+            padding: 0;
+            list-style: none;
+        }
+        ul li {
+            margin-bottom: 8px;
+        }
+        ul li a {
+            color: #333;
+            text-decoration: none;
+        }
+        ul li a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img id="user-avatar" src="assets/images/default_avatar.png" alt="사용자 아바타">
-        <h2 id="username-display">사용자 이름</h2>
-        <button id="open-piskel" class="btn">Piskel로 픽셀 아트 그리기</button>
-
-        <div class="piskel-container">
-            <iframe src="https://www.piskelapp.com/p/create" width="750" height="400" style="border: none; margin-top: 20px;"></iframe>
+        <div class="sidebar">
+            <h3 id="username-display">사용자 이름</h3>
+            <button id="open-piskel" class="btn">Piskel로 픽셀 아트 그리기</button>
+            <h4>최근 가입한 회원</h4>
+            <ul>
+                <li><a href="?user=user1">user1</a></li>
+                <li><a href="?user=user2">user2</a></li>
+                <li><a href="?user=user3">user3</a></li>
+            </ul>
         </div>
-
-        <ul id="recent-users">
-            <li><a href="?user=user1">user1</a></li>
-            <li><a href="?user=user2">user2</a></li>
-            <li><a href="?user=user3">user3</a></li>
-            <!-- 최근 가입한 사용자 추가 -->
-        </ul>
+        <div class="main-content">
+            <div id="room"></div>
+            <img id="user-avatar" src="assets/images/default_avatar.png" alt="사용자 아바타">
+        </div>
     </div>
 </body>
 </html>
