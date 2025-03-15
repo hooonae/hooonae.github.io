@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔑 로그인 & 회원가입</title>
+
+    <!-- ✅ Firebase & Auth 기능 불러오기 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script src="auth.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #8B5E3C;
+            color: white;
+            cursor: pointer;
+        }
+        .switch-btn {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 id="form-title">🔑 로그인</h2>
+        <input type="text" id="nickname" placeholder="닉네임">
+        <input type="password" id="password" placeholder="4자리 비밀번호">
+        <button onclick="login()">로그인</button>
+        <button class="switch-btn" onclick="showSignup()">회원가입으로 이동</button>
+    </div>
+
+    <div class="container" style="display: none;" id="signup-container">
+        <h2>📝 회원가입</h2>
+        <input type="text" id="new-nickname" placeholder="닉네임">
+        <input type="password" id="new-password" placeholder="4자리 비밀번호">
+        <button onclick="signup()">회원가입</button>
+        <button class="switch-btn" onclick="showLogin()">로그인으로 이동</button>
+    </div>
+
+    <script>
+        function showSignup() {
+            document.getElementById("signup-container").style.display = "block";
+            document.querySelector(".container").style.display = "none";
+        }
+
+        function showLogin() {
+            document.getElementById("signup-container").style.display = "none";
+            document.querySelector(".container").style.display = "block";
+        }
+    </script>
+
+</body>
+</html>
