@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>픽셀 아트 미니홈피</title>
     <link rel="stylesheet" href="styles.css">
-
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
@@ -49,21 +47,6 @@
                 alert('데이터 불러오기 실패: ' + error.message);
             });
 
-            document.getElementById('save-item').addEventListener('click', () => {
-                const itemURL = document.getElementById('item-url').value;
-                if (!itemImage) {
-                    alert('업로드할 이미지 URL을 입력하세요.');
-                    return;
-                }
-
-                // Firebase에 아이템 추가
-                set(ref(db, `users/${username}/items/${Date.now()}`), {
-                    url: itemURL,
-                    x: 50,
-                    y: 50
-                }).then(() => location.reload());
-            });
-
             document.getElementById('open-piskel').addEventListener('click', () => {
                 document.getElementById('piskel-iframe').style.display = 'block';
             });
@@ -76,33 +59,38 @@
             function loadItems(items) {
                 if (!items) return;
                 const room = document.getElementById('room');
+                room.innerHTML = '';
                 Object.entries(items).forEach(([key, item]) => {
-                    const img = document.createElement('img');
-                    img.src = item.url;
-                    img.style.left = item.x + 'px';
-                    img.style.top = item.y + 'px';
-                    img.draggable = true;
-                    img.ondragend = (e) => {
-                        set(ref(db, `users/${username}/items/${key}`), {
-                            url: items[key].url,
-                            x: e.clientX - room.offsetLeft,
-                            y: e.clientY - room.offsetTop
-                        });
-                    };
-
                     const wrapper = document.createElement('div');
                     wrapper.style.position = 'absolute';
-                    wrapper.style.left = items[key].x + 'px';
-                    wrapper.style.top = items[key].y + 'px';
-                    wrapper.appendChild(img);
+                    wrapper.style.left = item.x + 'px';
+                    wrapper.style.top = item.y + 'px';
+
+                    const img = document.createElement('img');
+                    img.src = item.url;
+                    img.draggable = true;
+                    img.ondragend = (e) => {
+                        const rect = room.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        set(ref(db, `users/${username}/items/${key}`), {
+                            url: item.url,
+                            x: x,
+                            y: y
+                        });
+                        wrapper.style.left = x + 'px';
+                        wrapper.style.top = y + 'px';
+                    };
 
                     const delBtn = document.createElement('button');
                     delBtn.textContent = 'X';
                     delBtn.onclick = () => removeItem(key, delBtn);
-                    wrapper.appendChild(delBtn);
 
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(delBtn);
                     room.appendChild(wrapper);
-                }
+                });
             }
 
             function loadRoom(url) {
@@ -122,11 +110,14 @@
             </ul>
         </div>
         <div class="main-content">
-            <div id="room" style="position:relative;width:600px;height:400px;border:1px solid #333;"></div>
-        </div>
-        <div class="piskel-container">
-            <iframe id="piskel-iframe" src="https://www.piskelapp.com/p/create" width="750" height="400" style="border:none;display:none;"></iframe>
+            <div id="room" style="position:relative;width:600px;height:400px;border:1px solid #333;">
+                <img id="user-avatar" src="assets/images/default_avatar.png" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);">
+            </div>
+            <div class="piskel-container">
+                <iframe id="piskel-iframe" src="https://www.piskelapp.com/p/create/sprite" width="750" height="400" style="border:none;display:none;margin-top:20px;"></iframe>
+            </div>
         </div>
     </div>
 </body>
 </html>
+
