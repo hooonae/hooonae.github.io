@@ -109,42 +109,15 @@
             };
 
             document.getElementById('apply-piskel').onclick = () => {
-                const imageUrl = prompt("업로드한 픽셀아트의 정확한 URL을 입력하세요:");
-                if (imageUrl && imageUrl.startsWith('https://')) {
+                const imageUrl = prompt("업로드한 픽셀아트의 URL을 입력하세요:");
+                if (imageUrl) {
                     const key = Date.now();
-                    set(ref(db, `users/${username}/items/${key}`), { url: imageUrl, x: 50, y: 50 }).then(() => location.reload());
-                } else {
-                    alert('정확한 이미지 URL을 입력해주세요.');
+                    set(ref(db, `users/${username}/items/${key}`), { url: imageUrl, x: 50, y: 50 })
+                        .then(() => location.reload());
                 }
             };
         });
     </script>
-    <style>
-        #piskel-frame {
-            display: none;
-            position: absolute;
-            top: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 600px;
-            border: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            background-color: white;
-            z-index: 100;
-        }
-        #piskel-controls {
-            display: none;
-            position: absolute;
-            top: 75%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 101;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -164,3 +137,4 @@
     </div>
 </body>
 </html>
+
