@@ -5,6 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>로그인</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="module">
+        // ✅ Firebase SDK 추가
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ✅ 로그인 함수
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('아이디와 비밀번호를 입력해주세요.');
+                return;
+            }
+            if (!/^[0-9]{4}$/.test(password)) {
+                alert('비밀번호는 숫자 4자리여야 합니다.');
+                return;
+            }
+
+            // ✅ Firebase에서 사용자 정보 가져오기
+            get(ref(db, 'users/' + username)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.password === password) {
+                        alert('로그인 성공!');
+                        window.location.href = `minihomepage_${username}.html`;
+                    } else {
+                        alert('비밀번호가 틀렸습니다.');
+                    }
+                } else {
+                    alert('아이디가 존재하지 않습니다.');
+                }
+            }).catch((error) => {
+                alert('로그인 실패: ' + error.message);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.btn').addEventListener('click', login);
+        });
+    </script>
     <style>
         body {
             display: flex;
@@ -58,23 +114,13 @@
             text-decoration: underline;
         }
     </style>
-    <script>
-        function login() {
-            const username = document.getElementById('username').value;
-            if (username) {
-                window.location.href = `minihomepage_${username}.html`;
-            } else {
-                alert('아이디를 입력해주세요.');
-            }
-        }
-    </script>
 </head>
 <body>
     <div class="login-container">
         <h2>로그인</h2>
         <input type="text" id="username" placeholder="아이디" required>
-        <input type="password" placeholder="비밀번호" required>
-        <button class="btn" onclick="login()">로그인</button>
+        <input type="password" id="password" placeholder="비밀번호 (숫자 4자리)" required>
+        <button class="btn">로그인</button>
         <a href="signup.html" class="signup-link">회원가입</a>
     </div>
 </body>
