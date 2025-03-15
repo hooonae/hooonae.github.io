@@ -1,4 +1,4 @@
-// ✅ Firebase 초기화 (firebase.js를 로드해야 함)
+// ✅ 현재 로그인한 사용자 가져오기
 function getCurrentUser() {
     return localStorage.getItem("user");
 }
@@ -12,7 +12,7 @@ function loadMiniroom() {
         return;
     }
 
-    db.ref(`miniroom/${user}`).once("value", snapshot => {
+    db.ref(`miniroom/${user}`).once("value").then(snapshot => {
         if (!snapshot.exists()) {
             console.log("🚀 새 미니홈피 생성!");
             return;
@@ -22,6 +22,8 @@ function loadMiniroom() {
         document.getElementById("room").style.backgroundImage = `url(${data.background || 'default-bg.jpg'})`;
         document.getElementById("character").src = data.character || "default-character.png";
         document.getElementById("items").innerHTML = data.items || "";
+    }).catch(error => {
+        console.error("❌ Firebase 데이터 불러오기 오류:", error);
     });
 }
 
@@ -34,9 +36,13 @@ function saveMiniroom() {
     const character = document.getElementById("charInput").value || "";
     const items = document.getElementById("items").innerHTML;
 
-    db.ref(`miniroom/${user}`).set({ background, character, items });
-
-    alert("✅ 저장 완료!");
+    db.ref(`miniroom/${user}`).set({ background, character, items })
+    .then(() => {
+        alert("✅ 저장 완료!");
+    })
+    .catch(error => {
+        console.error("❌ Firebase 저장 오류:", error);
+    });
 }
 
 // ✅ 배경 변경
@@ -70,7 +76,7 @@ function addItem() {
     }
 }
 
-// ✅ 드래그 기능 추가
+// ✅ 드래그 기능 추가 (아이템 이동 가능)
 document.addEventListener("DOMContentLoaded", () => {
     loadMiniroom();
 
