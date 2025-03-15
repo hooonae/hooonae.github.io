@@ -4,14 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module">
+        // ✅ Firebase SDK 추가
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+        // ✅ Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
+            authDomain: "museum-web-370cd.firebaseapp.com",
+            databaseURL: "https://museum-web-370cd-default-rtdb.firebaseio.com",
+            projectId: "museum-web-370cd",
+            storageBucket: "museum-web-370cd.appspot.com",
+            messagingSenderId: "154810876093",
+            appId: "1:154810876093:web:d9cc427254abfb609e37d4"
+        };
+
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ✅ 회원가입 함수
+        function signup() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (!username || !password || !confirmPassword) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            if (!/^[0-9]{4}$/.test(password)) {
+                alert('비밀번호는 숫자 4자리여야 합니다.');
+                return;
+            }
+            if (password !== confirmPassword) {
+                alert('비밀번호가 일치하지 않습니다.');
+                return;
+            }
+
+            // ✅ Firebase에 데이터 저장
+            set(ref(db, 'users/' + username), {
+                username: username,
+                password: password  // (보안상 해시 암호화를 추가해야 함)
+            }).then(() => {
+                alert('회원가입 성공! 이제 로그인하세요.');
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                alert('회원가입 실패: ' + error.message);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.btn').addEventListener('click', signup);
+        });
+    </script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            font-family: Arial, sans-serif;
+        }
+        .signup-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 320px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            background: #ff758c;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #e64a5f;
+        }
+        .login-link {
+            display: block;
+            margin-top: 15px;
+            color: #ff758c;
+            text-decoration: none;
+        }
+        .login-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h2>회원가입</h2>
-    <input type="text" id="new-nickname" placeholder="닉네임">
-    <input type="password" id="new-password" placeholder="비밀번호 (4자리)" maxlength="4">
-    <button onclick="signup()">가입하기</button>
-    <p>이미 계정이 있나요? <a href="login.html">로그인</a></p>
-
-    <script src="script.js"></script>
+    <div class="signup-container">
+        <h2>회원가입</h2>
+        <input type="text" id="username" placeholder="아이디" required>
+        <input type="password" id="password" placeholder="비밀번호 (숫자 4자리)" required>
+        <input type="password" id="confirm-password" placeholder="비밀번호 확인" required>
+        <button class="btn">회원가입</button>
+        <a href="login.html" class="login-link">로그인</a>
+    </div>
 </body>
 </html>
