@@ -22,6 +22,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/<your-cloud-name>/image/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "<your-upload-preset>";
+
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const username = params.get('user');
@@ -45,68 +48,40 @@
                 }
             });
 
-            const recentUsersRef = ref(db, 'users');
-            onValue(recentUsersRef, (snapshot) => {
-                const recentList = document.getElementById('recent-users');
-                recentList.innerHTML = '';
-                const users = Object.keys(snapshot.val()).slice(-15);
-                users.forEach(user => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<a href="?user=${user}">${user}</a>`;
-                    recentList.appendChild(li);
-                });
-            });
+            function uploadToCloudinary(file, callback) {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+                fetch(CLOUDINARY_UPLOAD_URL, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.secure_url) {
+                        callback(data.secure_url);
+                    } else {
+                        alert("이미지 업로드 실패!");
+                    }
+                })
+                .catch(error => console.error("Cloudinary 업로드 에러:", error));
+            }
 
-            function loadItems(items) {
-                const room = document.getElementById('room');
-                room.innerHTML = '';
-                for (let key in items) {
-                    const item = items[key];
-                    const wrapper = document.createElement('div');
-                    wrapper.className = "item-wrapper";
-                    wrapper.style.left = item.x + 'px';
-                    wrapper.style.top = item.y + 'px';
+            document.getElementById('apply-piskel').onclick = () => {
+                const iframe = document.getElementById('piskel-frame');
+                iframe.contentWindow.postMessage({ action: "export" }, "*");
+            };
 
-                    const img = document.createElement('img');
-                    img.src = item.url;
-                    img.draggable = true;
-                    img.style.width = "32px";
-                    img.style.height = "32px";
-                    img.ondragend = (e) => {
-                        const rect = room.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const y = e.clientY - rect.top;
-                        set(ref(db, `users/${username}/items/${key}`), { url: item.url, x, y });
-                        wrapper.style.left = x + 'px';
-                        wrapper.style.top = y + 'px';
-                    };
-
-                    const btn = document.createElement('button');
-                    btn.textContent = "X";
-                    btn.onclick = () => {
-                        remove(ref(db, `users/${username}/items/${key}`));
-                        wrapper.remove();
-                    };
-
-                    wrapper.appendChild(img);
-                    wrapper.appendChild(btn);
-                    room.appendChild(wrapper);
+            window.addEventListener("message", (event) => {
+                if (event.data.action === "exportImage") {
+                    const blob = new Blob([event.data.image], { type: "image/png" });
+                    uploadToCloudinary(blob, (imageUrl) => {
+                        const key = Date.now();
+                        set(ref(db, `users/${username}/items/${key}`), { url: imageUrl, x: 50, y: 50 })
+                            .then(() => location.reload());
+                    });
                 }
-            }
-
-            function loadRoom(url) {
-                document.getElementById('room').style.backgroundImage = `url(${url || 'assets/images/default_room.png'})`;
-            }
-
-            document.getElementById('open-piskel').onclick = () => {
-                document.getElementById('piskel-frame').style.display = "block";
-                document.getElementById('piskel-controls').style.display = "block";
-            };
-
-            document.getElementById('close-piskel').onclick = () => {
-                document.getElementById('piskel-frame').style.display = "none";
-                document.getElementById('piskel-controls').style.display = "none";
-            };
+            });
         });
     </script>
     <style>
@@ -123,17 +98,6 @@
             background-color: white;
             z-index: 100;
         }
-        #piskel-controls {
-            display: none;
-            position: absolute;
-            top: 80%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 101;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
@@ -147,6 +111,7 @@
             <div id="room"></div>
             <iframe id="piskel-frame" src="https://www.piskelapp.com/p/create/sprite"></iframe>
             <div id="piskel-controls">
+                <button id="apply-piskel">픽셀아트 적용하기</button>
                 <button id="close-piskel">편집기 닫기</button>
             </div>
         </div>
