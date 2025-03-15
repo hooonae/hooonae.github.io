@@ -3,71 +3,86 @@ function getCurrentUser() {
     return localStorage.getItem("user");
 }
 
-// ✅ 아이템 불러오기 (Firebase에서 가져옴)
-function loadItems() {
-    const user = getCurrentUser();
-    if (!user) return;
+const userId = getCurrentUser();
 
-    db.ref(`users/${user}/items`).once("value", snapshot => {
-        if (!snapshot.exists()) return;
+// ✅ 유저의 아이템 불러오기
+function loadInventory() {
+    const inventoryContainer = document.getElementById("inventory");
 
-        const room = document.getElementById("my-room");
+    db.ref(`users/${userId}/inventory`).once("value", snapshot => {
+        inventoryContainer.innerHTML = "";
+
+        if (!snapshot.exists()) {
+            inventoryContainer.innerHTML = "<p>🎒 보유한 아이템이 없습니다.</p>";
+            return;
+        }
+
         snapshot.forEach(child => {
-            const item = child.val();
-            addItemToRoom(child.key, item.x, item.y, item.src);
+            let item = child.val();
+            let itemDiv = document.createElement("div");
+            itemDiv.classList.add("inventory-item");
+            itemDiv.innerHTML = `<img src="${item.src}" alt="${item.name}" draggable="true" ondragstart="drag(event, '${child.key}')">`;
+            inventoryContainer.appendChild(itemDiv);
         });
     });
 }
 
-// ✅ 아이템을 화면에 추가하는 함수
-function addItemToRoom(id, x, y, src) {
-    const room = document.getElementById("my-room");
-    const item = document.createElement("img");
+// ✅ 유저의 방 불러오기
+function loadRoom() {
+    db.ref(`users/${userId}/room`).once("value", snapshot => {
+        if (!snapshot.exists()) return;
 
-    item.src = src;
-    item.classList.add("room-item");
-    item.style.left = `${x}px`;
-    item.style.top = `${y}px`;
-    item.dataset.id = id;
+        let room = snapshot.val();
+        document.getElementById("room").style.backgroundImage = `url(${room.background || 'default_bg.png'})`;
 
-    makeDraggable(item); // ✅ 드래그 기능 추가
-    room.appendChild(item);
-}
+        let roomContainer = document.getElementById("room-items");
+        roomContainer.innerHTML = ""; // 기존 아이템 초기화
 
-// ✅ 아이템을 드래그 가능하게 만드는 함수
-function makeDraggable(item) {
-    let offsetX, offsetY, isDragging = false;
-
-    item.addEventListener("mousedown", e => {
-        isDragging = true;
-        offsetX = e.clientX - item.offsetLeft;
-        offsetY = e.clientY - item.offsetTop;
-    });
-
-    document.addEventListener("mousemove", e => {
-        if (!isDragging) return;
-        item.style.left = `${e.clientX - offsetX}px`;
-        item.style.top = `${e.clientY - offsetY}px`;
-    });
-
-    document.addEventListener("mouseup", () => {
-        if (!isDragging) return;
-        isDragging = false;
-        saveItemPosition(item); // ✅ 이동 후 위치 저장
+        if (room.items) {
+            Object.keys(room.items).forEach(key => {
+                let item = room.items[key];
+                let itemDiv = document.createElement("div");
+                itemDiv.classList.add("room-item");
+                itemDiv.style.left = item.x + "px";
+                itemDiv.style.top = item.y + "px";
+                itemDiv.setAttribute("data-key", key);
+                itemDiv.innerHTML = `<img src="${item.src}" alt="아이템">`;
+                roomContainer.appendChild(itemDiv);
+            });
+        }
     });
 }
 
-// ✅ 아이템 위치 저장 (Firebase 업데이트)
-function saveItemPosition(item) {
-    const user = getCurrentUser();
-    if (!user) return;
+// ✅ 드래그 이벤트
+function drag(event, itemId) {
+    event.dataTransfer.setData("itemId", itemId);
+}
 
-    const itemId = item.dataset.id;
-    const x = parseInt(item.style.left);
-    const y = parseInt(item.style.top);
+// ✅ 드롭 이벤트 (방에 아이템 배치)
+function drop(event) {
+    event.preventDefault();
+    let itemId = event.dataTransfer.getData("itemId");
 
-    db.ref(`users/${user}/items/${itemId}`).update({ x, y });
+    db.ref(`users/${userId}/inventory/${itemId}`).once("value", snapshot => {
+        if (!snapshot.exists()) return;
+
+        let item = snapshot.val();
+        let x = event.offsetX;
+        let y = event.offsetY;
+
+        db.ref(`users/${userId}/room/items/${itemId}`).set({ src: item.src, x, y }).then(() => {
+            loadRoom();
+        });
+    });
+}
+
+// ✅ 드래그 앤 드롭 활성화
+function allowDrop(event) {
+    event.preventDefault();
 }
 
 // ✅ 페이지 로드 시 실행
-document.addEventListener("DOMContentLoaded", loadItems);
+document.addEventListener("DOMContentLoaded", () => {
+    loadInventory();
+    loadRoom();
+});
