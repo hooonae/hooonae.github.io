@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏠 내 미니홈피</title>
 
-    <!-- ✅ Firebase 및 홈 스크립트 -->
-    <script type="module" src="firebase.js"></script>
-    <script type="module" src="home.js"></script>
+    <!-- ✅ Firebase 및 미니홈피 스크립트 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script src="home.js"></script>
 
     <style>
         body {
@@ -25,8 +27,6 @@
             border: 2px solid #333;
             border-radius: 10px;
             overflow: hidden;
-            background-size: cover; /* ✅ 배경 크기 조정 */
-            background-position: center;
         }
         .character {
             position: absolute;
@@ -40,6 +40,23 @@
             width: 40px;
             cursor: grab;
         }
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .shop-btn { background: #007bff; color: white; }
+        .mining-btn { background: #28a745; color: white; }
+        .save-btn { background: #8B5E3C; color: white; }
+        .home-btn { background: #555; color: white; }
     </style>
 </head>
 <body>
@@ -47,20 +64,18 @@
     <h1>🏠 내 미니홈피</h1>
 
     <div class="miniroom-container" id="room">
-        <img id="character" class="character">
+        <img src="default-character.png" id="character" class="character">
         <div id="items"></div>
     </div>
 
     <br>
 
-    <button onclick="changeBackground()">배경 변경</button>
-    <button onclick="changeCharacter()">캐릭터 변경</button>
-    <button onclick="addItem()">아이템 추가</button>
-    <button onclick="saveMiniroom()">저장하기</button>
-
-    <br>
-    <button onclick="goMining()">⛏ 채광하기</button>
-    <button onclick="location.href='index.html'">🏠 홈으로</button>
+    <div class="button-group">
+        <button class="shop-btn" onclick="location.href='shop.html'">🛒 상점</button>
+        <button class="mining-btn" onclick="location.href='mining.html'">⛏ 채광</button>
+        <button class="save-btn" onclick="saveMiniroom()">💾 저장</button>
+        <button class="home-btn" onclick="location.href='index.html'">🏠 홈으로</button>
+    </div>
 
 </body>
 </html>
