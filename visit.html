@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 미니홈피 방문</title>
+
+    <!-- ✅ Firebase 및 스크립트 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script src="visit.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: center;
+            background: #F8F1E9;
+            padding: 20px;
+        }
+        .profile-container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        #profileImage {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        #room {
+            width: 100%;
+            height: 300px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .room-item {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+        }
+        .room-item img {
+            width: 100%;
+            height: 100%;
+        }
+        button {
+            padding: 5px 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🏠 미니홈피 방문</h1>
+
+    <div class="profile-container">
+        <img id="profileImage" src="default_profile.png" alt="프로필">
+        <h2 id="nickname">미니홈피 주인</h2>
+        <p id="statusMessage">방문을 환영합니다!</p>
+    </div>
+
+    <div id="room">
+        <div id="room-items"></div>
+    </div>
+
+    <br>
+    <button onclick="location.href='ranking.html'">🏆 랭킹으로</button>
+    <button onclick="location.href='home.html'">🏠 미니홈피로</button>
+
+</body>
+</html>
