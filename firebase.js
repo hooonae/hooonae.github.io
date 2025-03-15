@@ -1,4 +1,8 @@
-// ✅ Firebase 설정 및 초기화
+// ✅ Firebase SDK 추가
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+// ✅ Firebase 설정
 const firebaseConfig = {
     apiKey: "AIzaSyAwXlQewHZxYLbZMkoKhm9HYsj6R8oPEpA",
     authDomain: "museum-web-370cd.firebaseapp.com",
@@ -9,9 +13,14 @@ const firebaseConfig = {
     appId: "1:154810876093:web:d9cc427254abfb609e37d4"
 };
 
-// ✅ Firebase 앱 초기화
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const storage = firebase.storage();
+// ✅ Firebase 초기화
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-console.log("✅ Firebase 초기화 완료!");
+console.log("✅ Firebase 연결 완료!");
+
+// ✅ Cloudinary 기본 이미지 URL 설정
+const DEFAULT_BG_URL = "https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/default-bg.jpg";
+const DEFAULT_CHAR_URL = "https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/default-character.png";
+
+export { db, DEFAULT_BG_URL, DEFAULT_CHAR_URL };
